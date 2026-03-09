@@ -1,6 +1,6 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-09T17:58:51.980Z",
+  "last_updated": "2026-03-09T18:01:02.339Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M1",
@@ -9,17 +9,17 @@
     "worktree": "../okx-onchainos-credit-M1",
     "status": "in_progress",
     "tasks_total": 10,
-    "tasks_done": 7,
+    "tasks_done": 8,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 3
+    "tasks_remaining": 2
   },
   "current_task": {
-    "id": "M1-008",
+    "id": "M1-009",
     "story": "—",
-    "description": "Setup Vitest + test infrastructure",
+    "description": "Setup Harness CLI",
     "status": "in_progress",
-    "started_at": "2026-03-09T17:58:51.980Z",
+    "started_at": "2026-03-09T18:01:02.339Z",
     "files_touched": [],
     "notes": ""
   },
@@ -33,10 +33,10 @@
       "started_at": "2026-03-09T13:31:53.2145557-04:00",
       "depends_on": [],
       "tasks_total": 10,
-      "tasks_done": 7,
+      "tasks_done": 8,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 3,
+      "tasks_remaining": 2,
       "tasks": [
         {
           "id": "M1-001",
@@ -105,16 +105,18 @@
           "id": "M1-008",
           "story": "—",
           "description": "Setup Vitest + test infrastructure",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-09T17:58:51.980Z"
+          "status": "done",
+          "commit": "f5fff54",
+          "started_at": "2026-03-09T17:58:51.980Z",
+          "completed_at": "2026-03-09T18:01:02.302Z"
         },
         {
           "id": "M1-009",
           "story": "—",
           "description": "Setup Harness CLI",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-09T18:01:02.339Z"
         },
         {
           "id": "M1-010",

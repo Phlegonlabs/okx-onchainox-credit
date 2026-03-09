@@ -5,11 +5,17 @@
  * Run: bun run harness <command> [args]
  */
 import process from 'node:process';
-import { fail, info } from './harness/config.js';
+import { fail } from './harness/config.js';
+import { isHelpCommand, runHelp } from './harness/help.js';
 
 const [, , cmd, ...args] = process.argv;
 
 async function main() {
+  if (isHelpCommand(cmd)) {
+    runHelp();
+    return;
+  }
+
   switch (cmd) {
     // ─── Core agent loop ──────────────────────────────────────────────────────
     case 'init': {
@@ -145,16 +151,8 @@ async function main() {
     }
     // ─── Help ─────────────────────────────────────────────────────────────────
     default: {
-      info('OKX OnchainOS Credit — Harness CLI');
-      info('Usage: bun run harness <command>');
-      info('');
-      info('Core loop:  init | validate | done <id>');
-      info('Tasks:      status | next | start <id> | block <id> <reason> | reset <id>');
-      info('Quality:    merge-gate | stale-check | file-guard | changelog | schema');
-      info('Worktree:   worktree:start/finish/rebase/reclaim/status');
-      info('Plans:      plan:apply | plan:status');
-      info('Scaffold:   scaffold <type>');
-      if (cmd && cmd !== 'help') fail(`Unknown command: ${cmd}`);
+      runHelp();
+      fail(`Unknown command: ${cmd}`);
       break;
     }
   }
