@@ -9,6 +9,7 @@ import type {
   WalletEvent,
 } from '../types.js';
 import { type OkxRawTx, parseDefiEvents } from './defi-parser.js';
+import { extractTransactionPage, normalizeWalletHistoryPage } from './wallet-normalizer.js';
 
 const OKX_BASE_URL = process.env.OKX_BASE_URL ?? 'https://web3.okx.com';
 const DEFAULT_TIMEOUT_MS = 3_000;
@@ -17,7 +18,6 @@ const MAX_HISTORY_PAGES = 10;
 const DEFAULT_CANDLE_LIMIT = 100;
 
 const SCORING_CHAINS = '1,42161,10,8453,196,56,137,501';
-const SWAP_METHOD_IDS = new Set(['0x38ed1739', '0x18cbafe5', '0x5c11d795', '0x7ff36ab5']);
 
 interface OkxClientConfig {
   apiKey: string;
@@ -54,86 +54,9 @@ interface OkxPriceItem {
 
 type OkxCandleRow = [string, string, string, string, string, string?, string?, string?];
 
-interface OkxTransactionPage {
-  cursor?: string;
-  transactionList: OkxRawTx[];
-}
-
 function toNumber(value: string | number | undefined): number {
   const parsed = typeof value === 'number' ? value : Number(value ?? 0);
   return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function mapWalletEventType(transaction: OkxRawTx): WalletEvent['type'] {
-  if (transaction.methodId && SWAP_METHOD_IDS.has(transaction.methodId.toLowerCase())) {
-    return 'swap';
-  }
-
-  if (transaction.itype === '0' || transaction.itype === '1' || transaction.itype === '2') {
-    return 'transfer';
-  }
-
-  if (transaction.methodId === '0xa9059cbb') {
-    return 'transfer';
-  }
-
-  return 'other';
-}
-
-function normalizeWalletEvent(transaction: OkxRawTx): WalletEvent {
-  const amount = toNumber(transaction.amount);
-  const tokenPrice = transaction.to[0]?.amount ? toNumber(transaction.to[0].amount) : 0;
-  const valueUsd = amount > 0 && tokenPrice > 0 ? amount * tokenPrice : undefined;
-  const event: WalletEvent = {
-    hash: transaction.txHash,
-    chainId: transaction.chainIndex,
-    type: mapWalletEventType(transaction),
-    timestamp: Math.floor(toNumber(transaction.txTime) / 1_000),
-  };
-
-  if (valueUsd !== undefined) {
-    event.valueUsd = valueUsd;
-  }
-
-  return event;
-}
-
-function extractTransactionPage(data: unknown): OkxTransactionPage {
-  if (!Array.isArray(data) || data.length === 0) {
-    return { transactionList: [] };
-  }
-
-  const [first] = data;
-  if (
-    first &&
-    typeof first === 'object' &&
-    'transactionList' in first &&
-    Array.isArray((first as { transactionList?: unknown }).transactionList)
-  ) {
-    const page = first as { cursor?: string; transactionList: OkxRawTx[] };
-    return page.cursor
-      ? {
-          cursor: page.cursor,
-          transactionList: page.transactionList,
-        }
-      : {
-          transactionList: page.transactionList,
-        };
-  }
-
-  const cursor =
-    typeof (first as { cursor?: unknown })?.cursor === 'string'
-      ? ((first as { cursor?: string }).cursor ?? undefined)
-      : undefined;
-
-  return cursor
-    ? {
-        transactionList: data as OkxRawTx[],
-        cursor,
-      }
-    : {
-        transactionList: data as OkxRawTx[],
-      };
 }
 
 export class OkxClient {
@@ -223,7 +146,7 @@ export class OkxClient {
   }
 
   async getWalletHistory(wallet: string, chains = SCORING_CHAINS): Promise<WalletEvent[]> {
-    const transactions: OkxRawTx[] = [];
+    const events: WalletEvent[] = [];
     let cursor: string | undefined;
 
     for (let page = 0; page < MAX_HISTORY_PAGES; page++) {
@@ -237,22 +160,20 @@ export class OkxClient {
         }
       );
 
-      const parsedPage = extractTransactionPage(result);
-      if (parsedPage.transactionList.length === 0) {
+      const normalizedPage = normalizeWalletHistoryPage(result);
+      if (normalizedPage.events.length === 0 && !normalizedPage.nextCursor) {
         break;
       }
 
-      transactions.push(...parsedPage.transactionList);
-      if (!parsedPage.cursor || parsedPage.cursor === cursor) {
+      events.push(...normalizedPage.events);
+      if (!normalizedPage.nextCursor || normalizedPage.nextCursor === cursor) {
         break;
       }
 
-      cursor = parsedPage.cursor;
+      cursor = normalizedPage.nextCursor;
     }
 
-    return transactions
-      .filter((transaction) => transaction.txStatus === 'success')
-      .map(normalizeWalletEvent);
+    return events;
   }
 
   async getWalletPortfolio(
