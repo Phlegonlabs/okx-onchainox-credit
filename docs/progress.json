@@ -1,6 +1,6 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-09T18:01:02.339Z",
+  "last_updated": "2026-03-09T18:02:25.518Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M1",
@@ -9,17 +9,17 @@
     "worktree": "../okx-onchainos-credit-M1",
     "status": "in_progress",
     "tasks_total": 10,
-    "tasks_done": 8,
+    "tasks_done": 9,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 2
+    "tasks_remaining": 1
   },
   "current_task": {
-    "id": "M1-009",
+    "id": "M1-010",
     "story": "—",
-    "description": "Setup Harness CLI",
+    "description": "GitHub Actions CI",
     "status": "in_progress",
-    "started_at": "2026-03-09T18:01:02.339Z",
+    "started_at": "2026-03-09T18:02:25.518Z",
     "files_touched": [],
     "notes": ""
   },
@@ -33,10 +33,10 @@
       "started_at": "2026-03-09T13:31:53.2145557-04:00",
       "depends_on": [],
       "tasks_total": 10,
-      "tasks_done": 8,
+      "tasks_done": 9,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 2,
+      "tasks_remaining": 1,
       "tasks": [
         {
           "id": "M1-001",
@@ -114,16 +114,18 @@
           "id": "M1-009",
           "story": "—",
           "description": "Setup Harness CLI",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-09T18:01:02.339Z"
+          "status": "done",
+          "commit": "52e4685",
+          "started_at": "2026-03-09T18:01:02.339Z",
+          "completed_at": "2026-03-09T18:02:25.484Z"
         },
         {
           "id": "M1-010",
           "story": "—",
           "description": "GitHub Actions CI",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-09T18:02:25.518Z"
         }
       ]
     },
