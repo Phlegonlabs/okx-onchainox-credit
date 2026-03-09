@@ -1,6 +1,6 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-09T18:14:56.914Z",
+  "last_updated": "2026-03-09T18:16:48.775Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M2",
@@ -9,17 +9,17 @@
     "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2",
     "status": "in_progress",
     "tasks_total": 9,
-    "tasks_done": 1,
+    "tasks_done": 2,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 8
+    "tasks_remaining": 7
   },
   "current_task": {
-    "id": "M2-002",
+    "id": "M2-003",
     "story": "E2-S02",
-    "description": "Dimension: wallet age + activity",
+    "description": "Dimension: asset scale",
     "status": "in_progress",
-    "started_at": "2026-03-09T18:14:56.914Z",
+    "started_at": "2026-03-09T18:16:48.775Z",
     "files_touched": [],
     "notes": ""
   },
@@ -32,10 +32,10 @@
       "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2",
       "depends_on": ["M1"],
       "tasks_total": 9,
-      "tasks_done": 1,
+      "tasks_done": 2,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 8,
+      "tasks_remaining": 7,
       "tasks": [
         {
           "id": "M2-001",
@@ -50,16 +50,18 @@
           "id": "M2-002",
           "story": "E2-S02",
           "description": "Dimension: wallet age + activity",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-09T18:14:56.914Z"
+          "status": "done",
+          "commit": "f58f506",
+          "started_at": "2026-03-09T18:14:56.914Z",
+          "completed_at": "2026-03-09T18:16:48.742Z"
         },
         {
           "id": "M2-003",
           "story": "E2-S02",
           "description": "Dimension: asset scale",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-09T18:16:48.775Z"
         },
         {
           "id": "M2-004",
