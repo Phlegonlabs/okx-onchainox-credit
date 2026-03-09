@@ -1,6 +1,6 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-09T17:51:08.794Z",
+  "last_updated": "2026-03-09T17:54:48.885Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M1",
@@ -9,17 +9,17 @@
     "worktree": "../okx-onchainos-credit-M1",
     "status": "in_progress",
     "tasks_total": 10,
-    "tasks_done": 5,
+    "tasks_done": 6,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 5
+    "tasks_remaining": 4
   },
   "current_task": {
-    "id": "M1-006",
-    "story": "E1-S01",
-    "description": "WalletConnect integration",
+    "id": "M1-007",
+    "story": "E1-S02",
+    "description": "SIWE auth route handlers",
     "status": "in_progress",
-    "started_at": "2026-03-09T17:51:08.794Z",
+    "started_at": "2026-03-09T17:54:48.885Z",
     "files_touched": [],
     "notes": ""
   },
@@ -33,10 +33,10 @@
       "started_at": "2026-03-09T13:31:53.2145557-04:00",
       "depends_on": [],
       "tasks_total": 10,
-      "tasks_done": 5,
+      "tasks_done": 6,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 5,
+      "tasks_remaining": 4,
       "tasks": [
         {
           "id": "M1-001",
@@ -87,16 +87,18 @@
           "id": "M1-006",
           "story": "E1-S01",
           "description": "WalletConnect integration",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-09T17:51:08.794Z"
+          "status": "done",
+          "commit": "2c901dd",
+          "started_at": "2026-03-09T17:51:08.794Z",
+          "completed_at": "2026-03-09T17:54:48.849Z"
         },
         {
           "id": "M1-007",
           "story": "E1-S02",
           "description": "SIWE auth route handlers",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-09T17:54:48.885Z"
         },
         {
           "id": "M1-008",
