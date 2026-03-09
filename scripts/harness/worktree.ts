@@ -1,7 +1,7 @@
 // Worktree lifecycle commands: start, finish, rebase, reclaim, status.
 import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { ok, warn, fail, step, info, PKG } from './config.js';
 import { loadProgress, saveProgress } from './state.js';
 import type { ActiveMilestone, Progress } from './types.js';
@@ -17,10 +17,23 @@ function requireMilestone(p: Progress, milestoneId: string): ActiveMilestone {
 
 function getMainRoot(): string {
   try {
-    return execSync('git rev-parse --show-toplevel', { encoding: 'utf-8' }).trim();
+    const topLevel = execSync('git rev-parse --show-toplevel', { encoding: 'utf-8' }).trim();
+    const commonDir = execSync('git rev-parse --git-common-dir', { encoding: 'utf-8' }).trim();
+    return resolveMainRoot(topLevel, commonDir);
   } catch {
     return process.cwd();
   }
+}
+
+export function resolveMainRoot(topLevel: string, commonDir: string): string {
+  const trimmedTopLevel = topLevel.trim();
+  const trimmedCommonDir = commonDir.trim();
+
+  if (!trimmedCommonDir || trimmedCommonDir === '.git') {
+    return trimmedTopLevel;
+  }
+
+  return dirname(resolve(trimmedCommonDir));
 }
 
 function getMilestoneWorktreePath(milestoneId: string, mainRoot: string): string {

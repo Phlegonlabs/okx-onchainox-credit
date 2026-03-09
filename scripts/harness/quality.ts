@@ -18,7 +18,7 @@ export async function runMergeGate(): Promise<void> {
   await runChangelog();
 
   ok('merge-gate passed — ready to merge');
-  info('The worktree:finish will be queued automatically.');
+  info('Ready for worktree:finish.');
 }
 
 export async function runStaleCheck(): Promise<void> {
@@ -60,9 +60,10 @@ export async function runStaleCheck(): Promise<void> {
 export async function runChangelog(from?: string, to?: string): Promise<void> {
   step('Generating changelog...');
   try {
-    const range = from && to ? `${from}..${to}` : from ? `${from}..HEAD` : 'HEAD~20..HEAD';
+    const range = getChangelogRange(from, to);
+    const rangeArg = range ? `${range} ` : '--max-count=20 ';
     const log = execSync(
-      `git log ${range} --pretty=format:"- %s" --grep="\\[M"`,
+      `git log ${rangeArg}--pretty=format:"- %s" --grep="\\[M"`,
       { encoding: 'utf-8' }
     ).trim();
 
@@ -75,6 +76,18 @@ export async function runChangelog(from?: string, to?: string): Promise<void> {
   } catch {
     warn('Could not generate changelog (git log failed)');
   }
+}
+
+export function getChangelogRange(from?: string, to?: string): string | null {
+  if (from && to) {
+    return `${from}..${to}`;
+  }
+
+  if (from) {
+    return `${from}..HEAD`;
+  }
+
+  return null;
 }
 
 export async function runSchema(): Promise<void> {

@@ -206,6 +206,9 @@ export async function runDone(taskId: string): Promise<void> {
     info('Auto-running merge gate...');
     const { runMergeGate } = await import('./quality.js');
     await runMergeGate();
+    info(`Auto-running worktree finish for ${activeMilestone.id}...`);
+    const { runWorktreeFinish } = await import('./worktree.js');
+    await runWorktreeFinish(activeMilestone.id);
   } else {
     await runNext();
   }
