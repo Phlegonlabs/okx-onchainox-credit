@@ -1,6 +1,6 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-09T17:45:30.037Z",
+  "last_updated": "2026-03-09T17:48:56.755Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M1",
@@ -9,17 +9,17 @@
     "worktree": "../okx-onchainos-credit-M1",
     "status": "in_progress",
     "tasks_total": 10,
-    "tasks_done": 3,
+    "tasks_done": 4,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 7
+    "tasks_remaining": 6
   },
   "current_task": {
-    "id": "M1-004",
-    "story": "E2-S01",
-    "description": "Scaffold OKX OnchainOS API client",
+    "id": "M1-005",
+    "story": "—",
+    "description": "Setup Turso + Drizzle schema",
     "status": "in_progress",
-    "started_at": "2026-03-09T17:45:30.037Z",
+    "started_at": "2026-03-09T17:48:56.755Z",
     "files_touched": [],
     "notes": ""
   },
@@ -33,10 +33,10 @@
       "started_at": "2026-03-09T13:31:53.2145557-04:00",
       "depends_on": [],
       "tasks_total": 10,
-      "tasks_done": 3,
+      "tasks_done": 4,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 7,
+      "tasks_remaining": 6,
       "tasks": [
         {
           "id": "M1-001",
@@ -69,16 +69,18 @@
           "id": "M1-004",
           "story": "E2-S01",
           "description": "Scaffold OKX OnchainOS API client",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-09T17:45:30.037Z"
+          "status": "done",
+          "commit": "03d265b",
+          "started_at": "2026-03-09T17:45:30.037Z",
+          "completed_at": "2026-03-09T17:48:56.719Z"
         },
         {
           "id": "M1-005",
           "story": "—",
           "description": "Setup Turso + Drizzle schema",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-09T17:48:56.755Z"
         },
         {
           "id": "M1-006",
