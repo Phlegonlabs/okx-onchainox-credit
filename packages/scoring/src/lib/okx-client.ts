@@ -1,36 +1,150 @@
-// OKX OnchainOS API client — implement during M1-004.
-// Reference: docs/okx-api-reference.md
-//
-// Verified API paths (all /api/v6/, NOT /api/v5/):
-//   Balance:     GET /api/v6/dex/balance/total-value-by-address
-//                GET /api/v6/dex/balance/all-token-balances-by-address
-//   Tx History:  GET /api/v6/dex/post-transaction/transactions-by-address
-//   Price:       POST /api/v6/dex/market/price
-//   Candles:     GET /api/v6/dex/market/candles
-//   Top Holders: GET /api/v6/dex/market/token/top-holder
-//
-// Auth headers: OK-ACCESS-KEY, OK-ACCESS-TIMESTAMP, OK-ACCESS-PASSPHRASE, OK-ACCESS-SIGN
-// Sign: Base64(HMAC-SHA256(timestamp + METHOD + path + body, secretKey))
 import { createHmac } from 'node:crypto';
-import type { TokenPosition, WalletEvent } from '../types.js';
+import type {
+  DeFiEvent,
+  DeFiPositionSnapshot,
+  PriceCandle,
+  TokenPosition,
+  TokenPriceQuote,
+  TokenPriceRequest,
+  WalletEvent,
+} from '../types.js';
+import { type OkxRawTx, parseDefiEvents } from './defi-parser.js';
 
 const OKX_BASE_URL = process.env.OKX_BASE_URL ?? 'https://web3.okx.com';
+const DEFAULT_TIMEOUT_MS = 3_000;
+const DEFAULT_HISTORY_PAGE_LIMIT = 100;
+const MAX_HISTORY_PAGES = 10;
+const DEFAULT_CANDLE_LIMIT = 100;
 
-// Chains to query for scoring (top 8 by DeFi activity)
-// chainIndex values: 1=ETH, 42161=ARB, 10=OP, 8453=BASE, 196=XLayer, 56=BSC, 137=MATIC, 501=SOL
-const SCORING_CHAINS = '1,42161,10,8453,196,56,137';
+const SCORING_CHAINS = '1,42161,10,8453,196,56,137,501';
+const SWAP_METHOD_IDS = new Set(['0x38ed1739', '0x18cbafe5', '0x5c11d795', '0x7ff36ab5']);
 
 interface OkxClientConfig {
   apiKey: string;
   secretKey: string;
   passphrase: string;
+  baseUrl?: string;
+  timeoutMs?: number;
+}
+
+interface OkxApiEnvelope<T> {
+  code: string;
+  msg: string;
+  data: T;
+}
+
+interface OkxPortfolioValueItem {
+  totalValue: string;
+}
+
+interface OkxTokenBalanceItem {
+  chainIndex: string;
+  tokenContractAddress?: string;
+  symbol: string;
+  balance: string;
+  tokenPrice: string;
+}
+
+interface OkxPriceItem {
+  chainIndex: string;
+  tokenContractAddress: string;
+  price: string;
+  time: string;
+}
+
+type OkxCandleRow = [string, string, string, string, string, string?, string?, string?];
+
+interface OkxTransactionPage {
+  cursor?: string;
+  transactionList: OkxRawTx[];
+}
+
+function toNumber(value: string | number | undefined): number {
+  const parsed = typeof value === 'number' ? value : Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function mapWalletEventType(transaction: OkxRawTx): WalletEvent['type'] {
+  if (transaction.methodId && SWAP_METHOD_IDS.has(transaction.methodId.toLowerCase())) {
+    return 'swap';
+  }
+
+  if (transaction.itype === '0' || transaction.itype === '1' || transaction.itype === '2') {
+    return 'transfer';
+  }
+
+  if (transaction.methodId === '0xa9059cbb') {
+    return 'transfer';
+  }
+
+  return 'other';
+}
+
+function normalizeWalletEvent(transaction: OkxRawTx): WalletEvent {
+  const amount = toNumber(transaction.amount);
+  const tokenPrice = transaction.to[0]?.amount ? toNumber(transaction.to[0].amount) : 0;
+  const valueUsd = amount > 0 && tokenPrice > 0 ? amount * tokenPrice : undefined;
+  const event: WalletEvent = {
+    hash: transaction.txHash,
+    chainId: transaction.chainIndex,
+    type: mapWalletEventType(transaction),
+    timestamp: Math.floor(toNumber(transaction.txTime) / 1_000),
+  };
+
+  if (valueUsd !== undefined) {
+    event.valueUsd = valueUsd;
+  }
+
+  return event;
+}
+
+function extractTransactionPage(data: unknown): OkxTransactionPage {
+  if (!Array.isArray(data) || data.length === 0) {
+    return { transactionList: [] };
+  }
+
+  const [first] = data;
+  if (
+    first &&
+    typeof first === 'object' &&
+    'transactionList' in first &&
+    Array.isArray((first as { transactionList?: unknown }).transactionList)
+  ) {
+    const page = first as { cursor?: string; transactionList: OkxRawTx[] };
+    return page.cursor
+      ? {
+          cursor: page.cursor,
+          transactionList: page.transactionList,
+        }
+      : {
+          transactionList: page.transactionList,
+        };
+  }
+
+  const cursor =
+    typeof (first as { cursor?: unknown })?.cursor === 'string'
+      ? ((first as { cursor?: string }).cursor ?? undefined)
+      : undefined;
+
+  return cursor
+    ? {
+        transactionList: data as OkxRawTx[],
+        cursor,
+      }
+    : {
+        transactionList: data as OkxRawTx[],
+      };
 }
 
 export class OkxClient {
-  private config: OkxClientConfig;
+  private config: Required<OkxClientConfig>;
 
   constructor(config: OkxClientConfig) {
-    this.config = config;
+    this.config = {
+      baseUrl: OKX_BASE_URL,
+      timeoutMs: DEFAULT_TIMEOUT_MS,
+      ...config,
+    };
   }
 
   static fromEnv(): OkxClient {
@@ -45,79 +159,227 @@ export class OkxClient {
     return new OkxClient({ apiKey, secretKey, passphrase });
   }
 
-  // Planned in M1-004: implement HMAC-SHA256 auth headers.
-  // sign = Base64(HMAC-SHA256(ts + METHOD + path + body, secretKey))
   private buildHeaders(method: string, path: string, body = ''): Record<string, string> {
-    const ts = new Date().toISOString();
-    const prehash = ts + method.toUpperCase() + path + body;
+    const timestamp = new Date().toISOString();
+    const prehash = timestamp + method.toUpperCase() + path + body;
     const sign = createHmac('sha256', this.config.secretKey).update(prehash).digest('base64');
 
     return {
       'Content-Type': 'application/json',
       'OK-ACCESS-KEY': this.config.apiKey,
-      'OK-ACCESS-TIMESTAMP': ts,
+      'OK-ACCESS-TIMESTAMP': timestamp,
       'OK-ACCESS-PASSPHRASE': this.config.passphrase,
       'OK-ACCESS-SIGN': sign,
     };
   }
 
-  // Planned in M1-004: implement fetch wrapper with timeout and error handling.
+  private async request<T>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<T> {
+    const serializedBody = body ? JSON.stringify(body) : '';
+    const headers = this.buildHeaders(method, path, serializedBody);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.config.timeoutMs);
+    const requestInit: RequestInit = {
+      method,
+      headers,
+      signal: controller.signal,
+    };
+
+    if (serializedBody) {
+      requestInit.body = serializedBody;
+    }
+
+    try {
+      const response = await fetch(`${this.config.baseUrl}${path}`, requestInit);
+
+      if (!response.ok) {
+        throw new Error(`OKX API error: ${response.status} ${response.statusText}`);
+      }
+
+      const json = (await response.json()) as OkxApiEnvelope<T>;
+      if (json.code !== '0') {
+        throw new Error(`OKX API error: ${json.msg}`);
+      }
+
+      return json.data;
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('OKX_API_TIMEOUT');
+      }
+
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
   private async get<T>(path: string, params: Record<string, string> = {}): Promise<T> {
     const qs = new URLSearchParams(params).toString();
-    const fullPath = qs ? `${path}?${qs}` : path;
-    const headers = this.buildHeaders('GET', fullPath);
-    const res = await fetch(`${OKX_BASE_URL}${fullPath}`, { headers });
-    if (!res.ok) throw new Error(`OKX API error: ${res.status} ${res.statusText}`);
-    const json = (await res.json()) as { code: string; msg: string; data: T };
-    if (json.code !== '0') throw new Error(`OKX API error: ${json.msg}`);
-    return json.data;
+    const requestPath = qs ? `${path}?${qs}` : path;
+    return this.request<T>('GET', requestPath);
   }
 
   private async post<T>(path: string, body: unknown): Promise<T> {
-    const bodyStr = JSON.stringify(body);
-    const headers = this.buildHeaders('POST', path, bodyStr);
-    const res = await fetch(`${OKX_BASE_URL}${path}`, { method: 'POST', headers, body: bodyStr });
-    if (!res.ok) throw new Error(`OKX API error: ${res.status} ${res.statusText}`);
-    const json = (await res.json()) as { code: string; msg: string; data: T };
-    if (json.code !== '0') throw new Error(`OKX API error: ${json.msg}`);
-    return json.data;
+    return this.request<T>('POST', path, body);
   }
 
-  // Planned in M1-004: wire up the real endpoint.
-  // GET /api/v6/dex/post-transaction/transactions-by-address
-  async getWalletHistory(_wallet: string): Promise<WalletEvent[]> {
-    throw new Error('Not implemented — complete M1-004');
+  async getWalletHistory(wallet: string, chains = SCORING_CHAINS): Promise<WalletEvent[]> {
+    const transactions: OkxRawTx[] = [];
+    let cursor: string | undefined;
+
+    for (let page = 0; page < MAX_HISTORY_PAGES; page++) {
+      const result = await this.get<unknown>(
+        '/api/v6/dex/post-transaction/transactions-by-address',
+        {
+          address: wallet,
+          chains,
+          limit: String(DEFAULT_HISTORY_PAGE_LIMIT),
+          ...(cursor ? { cursor } : {}),
+        }
+      );
+
+      const parsedPage = extractTransactionPage(result);
+      if (parsedPage.transactionList.length === 0) {
+        break;
+      }
+
+      transactions.push(...parsedPage.transactionList);
+      if (!parsedPage.cursor || parsedPage.cursor === cursor) {
+        break;
+      }
+
+      cursor = parsedPage.cursor;
+    }
+
+    return transactions
+      .filter((transaction) => transaction.txStatus === 'success')
+      .map(normalizeWalletEvent);
   }
 
-  // Planned in M1-004: wire up the real endpoint.
-  // GET /api/v6/dex/balance/total-value-by-address
-  // GET /api/v6/dex/balance/all-token-balances-by-address
-  async getWalletPortfolio(_wallet: string): Promise<{
-    totalValueUsd: number;
-    positions: TokenPosition[];
-  }> {
-    throw new Error('Not implemented — complete M1-004');
+  async getWalletPortfolio(
+    wallet: string,
+    chains = SCORING_CHAINS
+  ): Promise<{ totalValueUsd: number; positions: TokenPosition[] }> {
+    const [portfolioData, tokenBalances] = await Promise.all([
+      this.get<OkxPortfolioValueItem[]>('/api/v6/dex/balance/total-value-by-address', {
+        address: wallet,
+        chains,
+        assetType: '0',
+        excludeRiskToken: 'true',
+      }),
+      this.get<OkxTokenBalanceItem[]>('/api/v6/dex/balance/all-token-balances-by-address', {
+        address: wallet,
+        chains,
+        excludeRiskToken: '0',
+      }),
+    ]);
+
+    const totalValueUsd = toNumber(portfolioData[0]?.totalValue);
+    const positions = tokenBalances.map((token) => ({
+      tokenId: token.tokenContractAddress || `${token.chainIndex}:${token.symbol}`,
+      symbol: token.symbol,
+      chainId: token.chainIndex,
+      balanceUsd: toNumber(token.balance) * toNumber(token.tokenPrice),
+    }));
+
+    return { totalValueUsd, positions };
   }
 
-  // Planned in M2-005: filter tx history by DeFi method selectors.
-  // See docs/okx-api-reference.md §7 for known selector map (Aave, Compound, Morpho)
-  async getDeFiHistory(_wallet: string): Promise<WalletEvent[]> {
-    throw new Error('Not implemented — complete M2-005');
+  async getDeFiPositions(wallet: string, chains = SCORING_CHAINS): Promise<DeFiPositionSnapshot> {
+    const data = await this.get<OkxPortfolioValueItem[]>(
+      '/api/v6/dex/balance/total-value-by-address',
+      {
+        address: wallet,
+        chains,
+        assetType: '2',
+        excludeRiskToken: 'true',
+      }
+    );
+
+    const totalValueUsd = toNumber(data[0]?.totalValue);
+    return {
+      totalValueUsd,
+      hasPositions: totalValueUsd > 0,
+    };
   }
 
-  // Planned in M2-003: add price data for position valuation.
-  // POST /api/v6/dex/market/price
-  async getTokenPrice(_chainIndex: string, _tokenAddress: string): Promise<number> {
-    throw new Error('Not implemented — complete M2-003');
+  async getDeFiHistory(wallet: string, chains = SCORING_CHAINS): Promise<DeFiEvent[]> {
+    const transactions: OkxRawTx[] = [];
+    let cursor: string | undefined;
+
+    for (let page = 0; page < MAX_HISTORY_PAGES; page++) {
+      const result = await this.get<unknown>(
+        '/api/v6/dex/post-transaction/transactions-by-address',
+        {
+          address: wallet,
+          chains,
+          limit: String(DEFAULT_HISTORY_PAGE_LIMIT),
+          ...(cursor ? { cursor } : {}),
+        }
+      );
+
+      const parsedPage = extractTransactionPage(result);
+      if (parsedPage.transactionList.length === 0) {
+        break;
+      }
+
+      transactions.push(...parsedPage.transactionList);
+      if (!parsedPage.cursor || parsedPage.cursor === cursor) {
+        break;
+      }
+
+      cursor = parsedPage.cursor;
+    }
+
+    return parseDefiEvents(transactions);
   }
 
-  // Planned in M2-003: add candle data for stability volatility calculations.
-  // GET /api/v6/dex/market/candles
-  async getCandles(_chainIndex: string, _tokenAddress: string): Promise<unknown[]> {
-    throw new Error('Not implemented — complete M2-003');
+  async getTokenPrices(requests: TokenPriceRequest[]): Promise<TokenPriceQuote[]> {
+    const quotes = await Promise.all(
+      requests.map(async (request) => {
+        const [result] = await this.post<OkxPriceItem[]>('/api/v6/dex/market/price', request);
+        if (!result) {
+          throw new Error(`OKX API error: missing price for ${request.tokenContractAddress}`);
+        }
+
+        return {
+          chainIndex: result.chainIndex,
+          tokenContractAddress: result.tokenContractAddress,
+          price: toNumber(result.price),
+          timestamp: toNumber(result.time),
+        } satisfies TokenPriceQuote;
+      })
+    );
+
+    return quotes;
   }
 
-  // Expose for callers that need the default chain set
+  async getTokenPrice(chainIndex: string, tokenAddress: string): Promise<number> {
+    const [quote] = await this.getTokenPrices([{ chainIndex, tokenContractAddress: tokenAddress }]);
+    return quote?.price ?? 0;
+  }
+
+  async getCandles(
+    chainIndex: string,
+    tokenAddress: string,
+    bar = '1H',
+    limit = DEFAULT_CANDLE_LIMIT
+  ): Promise<PriceCandle[]> {
+    const rows = await this.get<OkxCandleRow[]>('/api/v6/dex/market/candles', {
+      chainIndex,
+      tokenContractAddress: tokenAddress.toLowerCase(),
+      bar,
+      limit: String(limit),
+    });
+
+    return rows.map(([timestamp, open, high, low, close]) => ({
+      timestamp: toNumber(timestamp),
+      open: toNumber(open),
+      high: toNumber(high),
+      low: toNumber(low),
+      close: toNumber(close),
+    }));
+  }
+
   static get scoringChains(): string {
     return SCORING_CHAINS;
   }

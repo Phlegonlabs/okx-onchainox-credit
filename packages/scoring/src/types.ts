@@ -60,6 +60,21 @@ export interface PriceCandle {
   close: number;
 }
 
+export interface TokenPriceRequest {
+  chainIndex: string;
+  tokenContractAddress: string;
+}
+
+export interface TokenPriceQuote extends TokenPriceRequest {
+  price: number;
+  timestamp: number;
+}
+
+export interface DeFiPositionSnapshot {
+  totalValueUsd: number;
+  hasPositions: boolean;
+}
+
 export interface RawWalletData {
   wallet: string;
   events: WalletEvent[]; // all raw on-chain events (transfers, swaps)

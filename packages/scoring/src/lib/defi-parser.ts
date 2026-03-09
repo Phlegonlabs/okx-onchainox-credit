@@ -17,6 +17,7 @@ export interface OkxRawTx {
   chainIndex: string;
   txHash: string;
   txTime: string; // Unix ms string
+  itype?: string;
   txStatus: string; // "success" | "fail" | "pending"
   methodId?: string; // contract function selector, e.g. "0x573ade81"
   from: Array<{ address: string; amount: string }>;
