@@ -1,7 +1,7 @@
 // Worktree lifecycle commands: start, finish, rebase, reclaim, status.
 import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { basename, dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve, sep } from 'node:path';
 import { ok, warn, fail, step, info, PKG } from './config.js';
 import { loadProgress, saveProgress } from './state.js';
 import type { ActiveMilestone, Progress } from './types.js';
@@ -39,6 +39,22 @@ export function resolveMainRoot(topLevel: string, commonDir: string): string {
 export function getMilestoneWorktreePath(milestoneId: string, mainRoot: string): string {
   const projectName = basename(mainRoot) || 'project';
   return join(mainRoot, '..', `${projectName}-${milestoneId}`);
+}
+
+function hasGitCheckout(worktreePath: string): boolean {
+  if (!existsSync(worktreePath)) {
+    return false;
+  }
+
+  try {
+    execSync('git rev-parse --is-inside-work-tree', {
+      cwd: worktreePath,
+      stdio: 'ignore',
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function runWorktreeStart(milestoneId: string): Promise<void> {
@@ -104,11 +120,15 @@ export async function runWorktreeFinish(milestoneId: string): Promise<void> {
   const branch = targetMilestone.branch ?? `milestone/m${id.replace('M', '').toLowerCase()}`;
 
   // Rebase onto main
-  step('Rebasing onto main...');
-  try {
-    execSync('git rebase main', { stdio: 'inherit', cwd: worktreePath });
-  } catch {
-    fail('Rebase failed. Resolve conflicts manually, then re-run worktree:finish.');
+  if (hasGitCheckout(worktreePath)) {
+    step('Rebasing onto main...');
+    try {
+      execSync('git rebase main', { stdio: 'inherit', cwd: worktreePath });
+    } catch {
+      fail('Rebase failed. Resolve conflicts manually, then re-run worktree:finish.');
+    }
+  } else {
+    warn(`Worktree checkout not available at ${worktreePath}; skipping rebase.`);
   }
 
   // Merge into main
@@ -124,13 +144,42 @@ export async function runWorktreeFinish(milestoneId: string): Promise<void> {
   }
 
   // Remove worktree
-  execSync(`git worktree remove "${worktreePath}" --force`, { stdio: 'inherit', cwd: mainRoot });
+  if (existsSync(worktreePath)) {
+    try {
+      execSync(`git worktree remove "${worktreePath}" --force`, {
+        stdio: 'inherit',
+        cwd: mainRoot,
+      });
+    } catch {
+      const resolvedCwd = resolve(process.cwd());
+      const resolvedWorktreePath = resolve(worktreePath);
+      const isCurrentWorktree =
+        resolvedCwd === resolvedWorktreePath ||
+        resolvedCwd.startsWith(`${resolvedWorktreePath}${sep}`);
+
+      if (isCurrentWorktree) {
+        warn(`Skipping removal of current worktree directory: ${worktreePath}`);
+      } else {
+        warn(`Could not remove worktree directory: ${worktreePath}`);
+      }
+    }
+  }
 
   // Update progress
-  p.completed_milestones.push({
-    id, name: targetMilestone.title ?? id, completed_at: new Date().toISOString()
-  });
+  if (!p.completed_milestones.some(entry => entry.id === id)) {
+    p.completed_milestones.push({
+      id,
+      name: targetMilestone.title ?? id,
+      completed_at: new Date().toISOString(),
+    });
+  }
   p.active_milestones = p.active_milestones.filter(m => m.id !== id);
+  if (p.current_milestone?.id === id) {
+    p.current_milestone = null;
+  }
+  if (p.current_task?.id?.startsWith(`${id}-`)) {
+    p.current_task = null;
+  }
   saveProgress(p);
 
   ok(`${id} complete and merged!`);
