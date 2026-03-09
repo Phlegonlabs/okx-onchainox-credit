@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/* ── Map shadcn CSS vars → Tailwind v4 theme tokens ─────────────────────── */
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --font-sans: "Instrument Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ── shadcn/ui CSS variables (dark-first — matches project design) ─────── */
+:root {
+  /* Dark navy palette from docs/frontend-design.md */
+  --background: 222 47% 5%; /* #080c14 */
+  --foreground: 214 40% 93%; /* #e8edf5 */
+
+  --card: 222 40% 8%; /* #0d1420 */
+  --card-foreground: 214 40% 93%;
+
+  --popover: 222 40% 8%;
+  --popover-foreground: 214 40% 93%;
+
+  --primary: 37 91% 55%; /* #f5a623 amber */
+  --primary-foreground: 222 47% 5%;
+
+  --secondary: 222 35% 13%; /* #111827 */
+  --secondary-foreground: 214 40% 93%;
+
+  --muted: 222 35% 13%;
+  --muted-foreground: 220 15% 50%; /* #6b7a99 */
+
+  --accent: 37 68% 26%; /* amber-glow surface */
+  --accent-foreground: 37 91% 65%; /* lighter amber */
+
+  --destructive: 0 84% 60%;
+  --border: 222 40% 17%; /* #1a2540 */
+  --input: 222 40% 17%;
+  --ring: 37 91% 55%;
+
+  --radius: 0.375rem;
+
+  /* ── Project-specific tokens (use directly in Tailwind utilities) ─────── */
+  --okx-accent: #f5a623;
+  --okx-accent-dim: #c27d0e;
+  --okx-accent-glow: rgba(245, 166, 35, 0.15);
+  --okx-surface: #0d1420;
+  --okx-surface-2: #111827;
+  --okx-border: #1a2540;
+  --okx-border-light: #243352;
+  --okx-text-muted: #6b7a99;
+  --okx-text-dim: #3d4f70;
+
+  /* Score dimension colours */
+  --okx-score-excellent: #10b981;
+  --okx-score-good: #3b82f6;
+  --okx-score-fair: #f59e0b;
+  --okx-score-poor: #ef4444;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
