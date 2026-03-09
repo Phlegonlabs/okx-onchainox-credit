@@ -9,6 +9,7 @@
     "build": "bun run --cwd apps/web build",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
+    "check:commit-msg": "tsx scripts/check-commit-msg.ts",
     "type-check": "tsc --noEmit -p tsconfig.json && bun run --cwd apps/web type-check && bun run --cwd packages/scoring type-check && bun run --cwd packages/mcp type-check && bun run --cwd packages/cli type-check",
     "test": "vitest run",
     "test:integration": "vitest run tests/integration --passWithNoTests",
