@@ -1,6 +1,6 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-09T17:48:56.755Z",
+  "last_updated": "2026-03-09T17:51:08.794Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M1",
@@ -9,17 +9,17 @@
     "worktree": "../okx-onchainos-credit-M1",
     "status": "in_progress",
     "tasks_total": 10,
-    "tasks_done": 4,
+    "tasks_done": 5,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 6
+    "tasks_remaining": 5
   },
   "current_task": {
-    "id": "M1-005",
-    "story": "—",
-    "description": "Setup Turso + Drizzle schema",
+    "id": "M1-006",
+    "story": "E1-S01",
+    "description": "WalletConnect integration",
     "status": "in_progress",
-    "started_at": "2026-03-09T17:48:56.755Z",
+    "started_at": "2026-03-09T17:51:08.794Z",
     "files_touched": [],
     "notes": ""
   },
@@ -33,10 +33,10 @@
       "started_at": "2026-03-09T13:31:53.2145557-04:00",
       "depends_on": [],
       "tasks_total": 10,
-      "tasks_done": 4,
+      "tasks_done": 5,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 6,
+      "tasks_remaining": 5,
       "tasks": [
         {
           "id": "M1-001",
@@ -78,16 +78,18 @@
           "id": "M1-005",
           "story": "—",
           "description": "Setup Turso + Drizzle schema",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-09T17:48:56.755Z"
+          "status": "done",
+          "commit": "d9113ce",
+          "started_at": "2026-03-09T17:48:56.755Z",
+          "completed_at": "2026-03-09T17:51:08.759Z"
         },
         {
           "id": "M1-006",
           "story": "E1-S01",
           "description": "WalletConnect integration",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-09T17:51:08.794Z"
         },
         {
           "id": "M1-007",
