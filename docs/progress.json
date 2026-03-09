@@ -1,6 +1,6 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-09T17:54:48.885Z",
+  "last_updated": "2026-03-09T17:58:51.980Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M1",
@@ -9,17 +9,17 @@
     "worktree": "../okx-onchainos-credit-M1",
     "status": "in_progress",
     "tasks_total": 10,
-    "tasks_done": 6,
+    "tasks_done": 7,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 4
+    "tasks_remaining": 3
   },
   "current_task": {
-    "id": "M1-007",
-    "story": "E1-S02",
-    "description": "SIWE auth route handlers",
+    "id": "M1-008",
+    "story": "—",
+    "description": "Setup Vitest + test infrastructure",
     "status": "in_progress",
-    "started_at": "2026-03-09T17:54:48.885Z",
+    "started_at": "2026-03-09T17:58:51.980Z",
     "files_touched": [],
     "notes": ""
   },
@@ -33,10 +33,10 @@
       "started_at": "2026-03-09T13:31:53.2145557-04:00",
       "depends_on": [],
       "tasks_total": 10,
-      "tasks_done": 6,
+      "tasks_done": 7,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 4,
+      "tasks_remaining": 3,
       "tasks": [
         {
           "id": "M1-001",
@@ -96,16 +96,18 @@
           "id": "M1-007",
           "story": "E1-S02",
           "description": "SIWE auth route handlers",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-09T17:54:48.885Z"
+          "status": "done",
+          "commit": "4717f83",
+          "started_at": "2026-03-09T17:54:48.885Z",
+          "completed_at": "2026-03-09T17:58:51.945Z"
         },
         {
           "id": "M1-008",
           "story": "—",
           "description": "Setup Vitest + test infrastructure",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-09T17:58:51.980Z"
         },
         {
           "id": "M1-009",
