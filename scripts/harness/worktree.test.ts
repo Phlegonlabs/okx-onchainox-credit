@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { resolveMainRoot } from './worktree.js';
+import { getMilestoneWorktreePath, resolveMainRoot } from './worktree.js';
 
 describe('resolveMainRoot', () => {
   it('uses the git common dir when running inside a worktree', () => {
@@ -19,5 +19,18 @@ describe('resolveMainRoot', () => {
         '.git'
       )
     ).toBe('C:/Users/mps19/Documents/Github/okx-onchainox-credit');
+  });
+});
+
+describe('getMilestoneWorktreePath', () => {
+  it('builds sibling worktree paths on Windows-style roots', () => {
+    expect(
+      getMilestoneWorktreePath(
+        'M2',
+        'C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit'
+      )
+    ).toBe(
+      resolve('C:/Users/mps19/Documents/Github/okx-onchainox-credit-M2')
+    );
   });
 });

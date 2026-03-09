@@ -1,7 +1,7 @@
 // Worktree lifecycle commands: start, finish, rebase, reclaim, status.
 import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { ok, warn, fail, step, info, PKG } from './config.js';
 import { loadProgress, saveProgress } from './state.js';
 import type { ActiveMilestone, Progress } from './types.js';
@@ -36,8 +36,8 @@ export function resolveMainRoot(topLevel: string, commonDir: string): string {
   return dirname(resolve(trimmedCommonDir));
 }
 
-function getMilestoneWorktreePath(milestoneId: string, mainRoot: string): string {
-  const projectName = mainRoot.split('/').pop() ?? 'project';
+export function getMilestoneWorktreePath(milestoneId: string, mainRoot: string): string {
+  const projectName = basename(mainRoot) || 'project';
   return join(mainRoot, '..', `${projectName}-${milestoneId}`);
 }
 
@@ -66,14 +66,20 @@ export async function runWorktreeStart(milestoneId: string): Promise<void> {
 
   step(`Creating worktree for ${id}...`);
   try {
-    execSync(`git worktree add -b ${branch} "${worktreePath}" main`, { stdio: 'inherit' });
+    execSync(`git worktree add -b ${branch} "${worktreePath}" main`, {
+      stdio: 'inherit',
+      cwd: mainRoot,
+    });
   } catch {
     // Branch may already exist
-    execSync(`git worktree add "${worktreePath}" ${branch}`, { stdio: 'inherit' });
+    execSync(`git worktree add "${worktreePath}" ${branch}`, {
+      stdio: 'inherit',
+      cwd: mainRoot,
+    });
   }
 
   step('Installing dependencies...');
-  execSync(`cd "${worktreePath}" && ${PKG} install`, { stdio: 'inherit' });
+  execSync(`${PKG} install`, { stdio: 'inherit', cwd: worktreePath });
 
   // Update milestone status
   targetMilestone.status = 'in_progress';
@@ -100,7 +106,7 @@ export async function runWorktreeFinish(milestoneId: string): Promise<void> {
   // Rebase onto main
   step('Rebasing onto main...');
   try {
-    execSync(`cd "${worktreePath}" && git rebase main`, { stdio: 'inherit' });
+    execSync('git rebase main', { stdio: 'inherit', cwd: worktreePath });
   } catch {
     fail('Rebase failed. Resolve conflicts manually, then re-run worktree:finish.');
   }
