@@ -26,6 +26,41 @@ function requireTask(
   return task!;
 }
 
+function syncCurrentMilestone(
+  p: Progress,
+  milestone: ActiveMilestone & { tasks: Array<Record<string, unknown>> }
+): void {
+  p.current_milestone = {
+    id: milestone.id,
+    name: milestone.title,
+    branch: milestone.branch ?? '',
+    worktree: String(milestone.worktree ?? ''),
+    status: milestone.status ?? 'not_started',
+    tasks_total: milestone.tasks_total ?? milestone.tasks.length,
+    tasks_done: milestone.tasks_done ?? 0,
+    tasks_in_progress: milestone.tasks_in_progress ?? 0,
+    tasks_blocked: milestone.tasks_blocked ?? 0,
+    tasks_remaining: milestone.tasks_remaining ?? Math.max(0, milestone.tasks.length),
+  };
+}
+
+function syncCurrentTask(p: Progress, task: Record<string, unknown> | null): void {
+  if (!task) {
+    p.current_task = null;
+    return;
+  }
+
+  p.current_task = {
+    id: String(task['id'] ?? ''),
+    story: String(task['story'] ?? ''),
+    description: String(task['description'] ?? ''),
+    status: String(task['status'] ?? 'not_started'),
+    started_at: String(task['started_at'] ?? ''),
+    files_touched: [],
+    notes: '',
+  };
+}
+
 export async function runInit(): Promise<void> {
   step('Harness init — OKX OnchainOS Credit');
   const p = loadProgress();
@@ -120,9 +155,13 @@ export async function runStart(taskId: string): Promise<void> {
   const activeTasks = activeMilestone.tasks;
   const task = requireTask(activeTasks, taskId, `Task ${taskId} not found in active milestone.`);
 
+  if (task['status'] !== 'in_progress') {
+    activeMilestone.tasks_in_progress = (activeMilestone.tasks_in_progress ?? 0) + 1;
+  }
   task['status'] = 'in_progress';
   task['started_at'] = new Date().toISOString();
-  activeMilestone.tasks_in_progress = (activeMilestone.tasks_in_progress ?? 0) + 1;
+  syncCurrentMilestone(p, activeMilestone);
+  syncCurrentTask(p, task);
 
   saveProgress(p);
   ok(`Started: ${taskId} — ${task['description']}`);
@@ -134,6 +173,8 @@ export async function runDone(taskId: string): Promise<void> {
   const activeMilestone = requireActiveMilestone(p);
   const activeTasks = activeMilestone.tasks;
   const task = requireTask(activeTasks, taskId, `Task ${taskId} not found.`);
+  const wasDone = task['status'] === 'done';
+  const wasInProgress = task['status'] === 'in_progress';
 
   task['status'] = 'done';
   task['completed_at'] = new Date().toISOString();
@@ -144,15 +185,18 @@ export async function runDone(taskId: string): Promise<void> {
     task['commit'] = hash;
   } catch { /* not in git */ }
 
-  activeMilestone.tasks_done = (activeMilestone.tasks_done ?? 0) + 1;
-  activeMilestone.tasks_in_progress = Math.max(0, (activeMilestone.tasks_in_progress ?? 0) - 1);
-  activeMilestone.tasks_remaining = Math.max(0, (activeMilestone.tasks_remaining ?? 0) - 1);
+  if (!wasDone) {
+    activeMilestone.tasks_done = (activeMilestone.tasks_done ?? 0) + 1;
+    activeMilestone.tasks_remaining = Math.max(0, (activeMilestone.tasks_remaining ?? 0) - 1);
+  }
+  if (wasInProgress) {
+    activeMilestone.tasks_in_progress = Math.max(0, (activeMilestone.tasks_in_progress ?? 0) - 1);
+  }
+  syncCurrentMilestone(p, activeMilestone);
+  syncCurrentTask(p, null);
 
   saveProgress(p);
   ok(`Done: ${taskId}`);
-
-  // Auto-cascade: clean working tree, find next task
-  try { execSync('git checkout .', { stdio: 'pipe' }); } catch { /* ignore */ }
 
   const allDone = activeTasks.every(t =>
     (t as Record<string, unknown>)['status'] === 'done'

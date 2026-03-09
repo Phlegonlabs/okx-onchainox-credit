@@ -1,6 +1,6 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-09T17:32:05.784Z",
+  "last_updated": "2026-03-09T17:39:43.639Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M1",
@@ -9,12 +9,20 @@
     "worktree": "C:/Users/mps19/Documents/Github/okx-onchainox-credit-M1",
     "status": "in_progress",
     "tasks_total": 10,
-    "tasks_done": 0,
-    "tasks_in_progress": 0,
+    "tasks_done": 2,
+    "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 10
+    "tasks_remaining": 8
   },
-  "current_task": null,
+  "current_task": {
+    "id": "M1-003",
+    "story": "—",
+    "description": "Setup Biome + pre-commit hook",
+    "status": "in_progress",
+    "started_at": "2026-03-09T13:40:38.7239536-04:00",
+    "files_touched": [],
+    "notes": ""
+  },
   "active_milestones": [
     {
       "id": "M1",
@@ -25,32 +33,36 @@
       "started_at": "2026-03-09T13:31:53.2145557-04:00",
       "depends_on": [],
       "tasks_total": 10,
-      "tasks_done": 0,
+      "tasks_done": 2,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 10,
+      "tasks_remaining": 8,
       "tasks": [
         {
           "id": "M1-001",
           "story": "—",
           "description": "Init bun workspaces",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-09T17:32:05.784Z"
+          "status": "done",
+          "commit": "ae7d251",
+          "started_at": "2026-03-09T17:32:05.784Z",
+          "completed_at": "2026-03-09T17:39:31.000Z"
         },
         {
           "id": "M1-002",
           "story": "—",
           "description": "Configure base TypeScript",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "ae7d251",
+          "started_at": "2026-03-09T17:39:31.000Z",
+          "completed_at": "2026-03-09T17:39:43.639Z"
         },
         {
           "id": "M1-003",
           "story": "—",
           "description": "Setup Biome + pre-commit hook",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-09T13:40:38.7239536-04:00"
         },
         {
           "id": "M1-004",
