@@ -40,7 +40,25 @@ export const auditLog = sqliteTable(
   })
 );
 
+export const apiRateLimits = sqliteTable(
+  'api_rate_limits',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    payer: text('payer').notNull(),
+    resource: text('resource').notNull(),
+    createdAt: text('created_at').notNull(),
+  },
+  (table) => ({
+    payerCreatedAtIdx: index('api_rate_limits_payer_created_at_idx').on(
+      table.payer,
+      table.createdAt
+    ),
+    createdAtIdx: index('api_rate_limits_created_at_idx').on(table.createdAt),
+  })
+);
+
 export const schema = {
+  apiRateLimits,
   auditLog,
   creditScores,
 };

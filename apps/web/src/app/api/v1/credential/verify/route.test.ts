@@ -1,17 +1,23 @@
 import { NextResponse } from 'next/server';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GET } from './route';
 
-const { checkEnterpriseRateLimit, logger, requireX402Payment, verifyCredentialSignature } =
-  vi.hoisted(() => ({
-    checkEnterpriseRateLimit: vi.fn(),
-    logger: {
-      error: vi.fn(),
-      info: vi.fn(),
-    },
-    requireX402Payment: vi.fn(),
-    verifyCredentialSignature: vi.fn(),
-  }));
+const {
+  checkEnterpriseRateLimit,
+  logEnterpriseApiQuery,
+  logger,
+  requireX402Payment,
+  verifyCredentialSignature,
+} = vi.hoisted(() => ({
+  checkEnterpriseRateLimit: vi.fn(),
+  logEnterpriseApiQuery: vi.fn(),
+  logger: {
+    error: vi.fn(),
+    info: vi.fn(),
+  },
+  requireX402Payment: vi.fn(),
+  verifyCredentialSignature: vi.fn(),
+}));
 
 vi.mock('@/lib/x402', () => ({
   requireX402Payment,
@@ -19,6 +25,10 @@ vi.mock('@/lib/x402', () => ({
 
 vi.mock('@/lib/enterprise/rate-limit', () => ({
   checkEnterpriseRateLimit,
+}));
+
+vi.mock('@/lib/enterprise/audit', () => ({
+  logEnterpriseApiQuery,
 }));
 
 vi.mock('@/lib/credential/signing', () => ({
@@ -66,10 +76,14 @@ function createRequest(credential?: unknown): Request {
 
 afterEach(() => {
   vi.clearAllMocks();
+});
+
+beforeEach(() => {
   checkEnterpriseRateLimit.mockResolvedValue({
     ok: true,
     requestCount: 1,
   });
+  logEnterpriseApiQuery.mockResolvedValue(undefined);
 });
 
 describe('GET /api/v1/credential/verify', () => {
@@ -169,6 +183,17 @@ describe('GET /api/v1/credential/verify', () => {
       score: 720,
       valid: true,
       wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
+    });
+    expect(logEnterpriseApiQuery).toHaveBeenCalledWith({
+      metadata: {
+        expiresAt: 1775692800,
+        valid: true,
+      },
+      payer: '0xpayer',
+      resource: 'credential_verification',
+      scoreTier: 'good',
+      walletHash: expect.any(String),
+      x402Tx: '0xtx',
     });
   });
 

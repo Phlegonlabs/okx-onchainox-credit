@@ -1,18 +1,25 @@
 import { NextResponse } from 'next/server';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GET } from './route';
 
-const { checkEnterpriseRateLimit, logger, requireX402Payment, resolveWalletScore, signCredential } =
-  vi.hoisted(() => ({
-    checkEnterpriseRateLimit: vi.fn(),
-    logger: {
-      error: vi.fn(),
-      info: vi.fn(),
-    },
-    requireX402Payment: vi.fn(),
-    resolveWalletScore: vi.fn(),
-    signCredential: vi.fn(),
-  }));
+const {
+  checkEnterpriseRateLimit,
+  logEnterpriseApiQuery,
+  logger,
+  requireX402Payment,
+  resolveWalletScore,
+  signCredential,
+} = vi.hoisted(() => ({
+  checkEnterpriseRateLimit: vi.fn(),
+  logEnterpriseApiQuery: vi.fn(),
+  logger: {
+    error: vi.fn(),
+    info: vi.fn(),
+  },
+  requireX402Payment: vi.fn(),
+  resolveWalletScore: vi.fn(),
+  signCredential: vi.fn(),
+}));
 
 vi.mock('@/lib/x402', () => ({
   requireX402Payment,
@@ -20,6 +27,10 @@ vi.mock('@/lib/x402', () => ({
 
 vi.mock('@/lib/enterprise/rate-limit', () => ({
   checkEnterpriseRateLimit,
+}));
+
+vi.mock('@/lib/enterprise/audit', () => ({
+  logEnterpriseApiQuery,
 }));
 
 vi.mock('@/lib/credit/score-service', () => ({
@@ -48,10 +59,14 @@ function createRequest(wallet?: string): Request {
 
 afterEach(() => {
   vi.clearAllMocks();
+});
+
+beforeEach(() => {
   checkEnterpriseRateLimit.mockResolvedValue({
     ok: true,
     requestCount: 1,
   });
+  logEnterpriseApiQuery.mockResolvedValue(undefined);
 });
 
 describe('GET /api/v1/score', () => {
@@ -177,6 +192,16 @@ describe('GET /api/v1/score', () => {
       tier: 'good',
       version: '1.0',
       wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
+    });
+    expect(logEnterpriseApiQuery).toHaveBeenCalledWith({
+      metadata: {
+        stale: true,
+      },
+      payer: '0xpayer',
+      resource: 'score_query',
+      scoreTier: 'good',
+      walletHash: expect.any(String),
+      x402Tx: '0xtx',
     });
     expect(signCredential).toHaveBeenCalledWith({
       breakdown: {

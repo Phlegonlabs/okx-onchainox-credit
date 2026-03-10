@@ -1,5 +1,6 @@
 import { signCredential } from '@/lib/credential/signing';
 import { resolveWalletScore } from '@/lib/credit/score-service';
+import { logEnterpriseApiQuery } from '@/lib/enterprise/audit';
 import { checkEnterpriseRateLimit } from '@/lib/enterprise/rate-limit';
 import { createScoreQueryPayload } from '@/lib/enterprise/score-payload';
 import { ValidationError, toErrorBody } from '@/lib/errors';
@@ -50,6 +51,16 @@ export async function GET(request: Request) {
     const score = await resolveWalletScore(wallet);
     const payload = createScoreQueryPayload(wallet, score);
     const signature = await signCredential(payload);
+    await logEnterpriseApiQuery({
+      metadata: {
+        stale: payload.stale,
+      },
+      payer,
+      resource: 'score_query',
+      scoreTier: score.tier,
+      walletHash,
+      x402Tx: paymentResult.payment.txHash,
+    });
 
     logger.info(
       {

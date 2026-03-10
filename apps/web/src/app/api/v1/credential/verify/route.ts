@@ -1,5 +1,6 @@
 import { verifyCredentialSignature } from '@/lib/credential/signing';
 import { parseCredentialQueryValue } from '@/lib/credential/verification';
+import { logEnterpriseApiQuery } from '@/lib/enterprise/audit';
 import { checkEnterpriseRateLimit } from '@/lib/enterprise/rate-limit';
 import { AppError, toErrorBody } from '@/lib/errors';
 import { logger } from '@/lib/logger';
@@ -41,6 +42,17 @@ export async function GET(request: Request) {
     const { signature, ...payload } = credential;
     const walletHash = createWalletHash(payload.wallet);
     const valid = await verifyCredentialSignature(payload, signature);
+    await logEnterpriseApiQuery({
+      metadata: {
+        expiresAt: payload.expiresAt,
+        valid,
+      },
+      payer,
+      resource: 'credential_verification',
+      scoreTier: payload.tier,
+      walletHash,
+      x402Tx: paymentResult.payment.txHash,
+    });
 
     logger.info(
       {
