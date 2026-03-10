@@ -1,6 +1,6 @@
 // Worktree lifecycle commands: start, finish, rebase, reclaim, status.
 import { execSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import { ok, warn, fail, step, info, PKG } from './config.js';
 import { loadProgress, saveProgress } from './state.js';
@@ -65,6 +65,11 @@ export function isCurrentWorktreePath(worktreePath: string, cwd = process.cwd())
     resolvedCwd.startsWith(`${resolvedWorktreePath}${sep}`);
 }
 
+function syncWorktreeProgressSnapshot(worktreePath: string, progress: Progress): void {
+  const progressFilePath = join(worktreePath, 'docs', 'progress.json');
+  writeFileSync(progressFilePath, JSON.stringify(progress, null, 2) + '\n');
+}
+
 export async function runWorktreeStart(milestoneId: string): Promise<void> {
   const id = milestoneId.toUpperCase();
   const p = loadProgress();
@@ -111,6 +116,7 @@ export async function runWorktreeStart(milestoneId: string): Promise<void> {
   targetMilestone.worktree = worktreePath;
   targetMilestone.started_at = new Date().toISOString();
   saveProgress(p);
+  syncWorktreeProgressSnapshot(worktreePath, p);
 
   ok(`Worktree ready: ${worktreePath}`);
   info(`cd "${worktreePath}" && bun run harness init`);

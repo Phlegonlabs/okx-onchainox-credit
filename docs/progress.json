@@ -1,66 +1,97 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-10T00:37:30.705Z",
+  "last_updated": "2026-03-10T00:58:49.163Z",
   "last_agent": "harness-engineer-cli",
-  "current_milestone": null,
-  "current_task": null,
+  "current_milestone": {
+    "id": "M3",
+    "name": "x402 + Credential Issuance",
+    "branch": "milestone/m3",
+    "worktree": "../okx-onchainos-credit-M3",
+    "status": "in_progress",
+    "tasks_total": 6,
+    "tasks_done": 5,
+    "tasks_in_progress": 1,
+    "tasks_blocked": 0,
+    "tasks_remaining": 1
+  },
+  "current_task": {
+    "id": "M3-006",
+    "story": "E3-S01",
+    "description": "Integration test (x402 → credential)",
+    "status": "in_progress",
+    "started_at": "2026-03-10T00:58:49.163Z",
+    "files_touched": [],
+    "notes": ""
+  },
   "active_milestones": [
     {
       "id": "M3",
       "title": "x402 + Credential Issuance",
-      "status": "not_started",
+      "status": "in_progress",
       "branch": "milestone/m3",
       "worktree": "../okx-onchainos-credit-M3",
       "depends_on": ["M2"],
       "tasks_total": 6,
-      "tasks_done": 0,
-      "tasks_in_progress": 0,
+      "tasks_done": 5,
+      "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 6,
+      "tasks_remaining": 1,
       "tasks": [
         {
           "id": "M3-001",
           "story": "E3-S01",
           "description": "x402 middleware",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "7a1012d",
+          "started_at": "2026-03-10T01:00:00.000Z",
+          "completed_at": "2026-03-10T00:48:42.864Z"
         },
         {
           "id": "M3-002",
           "story": "E3-S02",
           "description": "ECDSA signing service",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "58031e2",
+          "started_at": "2026-03-10T00:48:42.901Z",
+          "completed_at": "2026-03-10T00:52:18.190Z"
         },
         {
           "id": "M3-003",
           "story": "E3-S03",
           "description": "Credential issuance endpoint",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "2a86f02",
+          "started_at": "2026-03-10T00:52:18.225Z",
+          "completed_at": "2026-03-10T00:55:31.596Z"
         },
         {
           "id": "M3-004",
           "story": "E3-S03",
           "description": "Credential structure + expiry",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "8b73749",
+          "started_at": "2026-03-10T00:55:31.630Z",
+          "completed_at": "2026-03-10T00:56:39.596Z"
         },
         {
           "id": "M3-005",
           "story": "E3-S03",
           "description": "Audit log on credential issuance",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "ded8703",
+          "started_at": "2026-03-10T00:56:39.630Z",
+          "completed_at": "2026-03-10T00:58:49.128Z"
         },
         {
           "id": "M3-006",
           "story": "E3-S01",
           "description": "Integration test (x402 → credential)",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-10T00:58:49.163Z"
         }
-      ]
+      ],
+      "started_at": "2026-03-10T01:00:00.000Z"
     },
     {
       "id": "M4",
