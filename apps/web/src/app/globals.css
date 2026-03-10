@@ -21,8 +21,8 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
-  --font-sans: "Instrument Sans", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: var(--font-ui), sans-serif;
+  --font-mono: var(--font-data), monospace;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -64,6 +64,7 @@
   /* ── Project-specific tokens (use directly in Tailwind utilities) ─────── */
   --okx-accent: #f5a623;
   --okx-accent-dim: #c27d0e;
+  --okx-accent-soft: #ffd07a;
   --okx-accent-glow: rgba(245, 166, 35, 0.15);
   --okx-surface: #0d1420;
   --okx-surface-2: #111827;
@@ -87,7 +88,33 @@
 body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: var(--font-sans);
+  font-family: var(--font-ui), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(245, 166, 35, 0.32);
+  color: #fff9ef;
+}
+
+a,
+button {
+  cursor: pointer;
+}
+
+.animate-rise {
+  animation: rise-in 720ms cubic-bezier(0.2, 1, 0.22, 1) both;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
