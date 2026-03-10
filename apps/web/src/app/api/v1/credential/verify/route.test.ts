@@ -2,17 +2,23 @@ import { NextResponse } from 'next/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { GET } from './route';
 
-const { logger, requireX402Payment, verifyCredentialSignature } = vi.hoisted(() => ({
-  logger: {
-    error: vi.fn(),
-    info: vi.fn(),
-  },
-  requireX402Payment: vi.fn(),
-  verifyCredentialSignature: vi.fn(),
-}));
+const { checkEnterpriseRateLimit, logger, requireX402Payment, verifyCredentialSignature } =
+  vi.hoisted(() => ({
+    checkEnterpriseRateLimit: vi.fn(),
+    logger: {
+      error: vi.fn(),
+      info: vi.fn(),
+    },
+    requireX402Payment: vi.fn(),
+    verifyCredentialSignature: vi.fn(),
+  }));
 
 vi.mock('@/lib/x402', () => ({
   requireX402Payment,
+}));
+
+vi.mock('@/lib/enterprise/rate-limit', () => ({
+  checkEnterpriseRateLimit,
 }));
 
 vi.mock('@/lib/credential/signing', () => ({
@@ -60,6 +66,10 @@ function createRequest(credential?: unknown): Request {
 
 afterEach(() => {
   vi.clearAllMocks();
+  checkEnterpriseRateLimit.mockResolvedValue({
+    ok: true,
+    requestCount: 1,
+  });
 });
 
 describe('GET /api/v1/credential/verify', () => {
@@ -104,6 +114,38 @@ describe('GET /api/v1/credential/verify', () => {
         code: 'INVALID_INPUT',
       },
     });
+  });
+
+  it('returns 429 when the payer exceeds the enterprise rate limit', async () => {
+    requireX402Payment.mockResolvedValue({
+      ok: true,
+      payment: {
+        payer: '0xpayer',
+        raw: {},
+        receipt: 'receipt',
+        settlementId: 'settlement-1',
+        txHash: '0xtx',
+      },
+    });
+    checkEnterpriseRateLimit.mockResolvedValue({
+      error: {
+        code: 'RATE_LIMITED',
+        details: {
+          limit: 100,
+          retryAfterSeconds: 60,
+          windowSeconds: 60,
+        },
+        message: 'Enterprise API rate limit exceeded.',
+        statusCode: 429,
+      },
+      ok: false,
+      retryAfterSeconds: 60,
+    });
+
+    const response = await GET(createRequest(createCredential()));
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get('retry-after')).toBe('60');
   });
 
   it('returns the credential summary with valid=true when the signature matches', async () => {

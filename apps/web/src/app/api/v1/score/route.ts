@@ -1,5 +1,6 @@
 import { signCredential } from '@/lib/credential/signing';
 import { resolveWalletScore } from '@/lib/credit/score-service';
+import { checkEnterpriseRateLimit } from '@/lib/enterprise/rate-limit';
 import { createScoreQueryPayload } from '@/lib/enterprise/score-payload';
 import { ValidationError, toErrorBody } from '@/lib/errors';
 import { logger } from '@/lib/logger';
@@ -16,6 +17,21 @@ export async function GET(request: Request) {
   });
   if (!paymentResult.ok) {
     return paymentResult.response;
+  }
+
+  const payer =
+    paymentResult.payment.payer ?? paymentResult.payment.settlementId ?? 'unknown_payer';
+  const rateLimitResult = await checkEnterpriseRateLimit({
+    payer,
+    resource: 'score_query',
+  });
+  if (!rateLimitResult.ok) {
+    return NextResponse.json(toErrorBody(rateLimitResult.error), {
+      headers: {
+        'retry-after': String(rateLimitResult.retryAfterSeconds),
+      },
+      status: rateLimitResult.error.statusCode,
+    });
   }
 
   const requestId = request.headers.get('x-request-id') ?? undefined;
@@ -38,7 +54,7 @@ export async function GET(request: Request) {
     logger.info(
       {
         operation: 'api.score.query',
-        payer: paymentResult.payment.payer,
+        payer,
         requestId,
         txHash: paymentResult.payment.txHash,
         walletHash,
@@ -55,7 +71,7 @@ export async function GET(request: Request) {
       {
         error: error instanceof Error ? error.message : String(error),
         operation: 'api.score.query',
-        payer: paymentResult.payment.payer,
+        payer,
         requestId,
         txHash: paymentResult.payment.txHash,
         walletHash,

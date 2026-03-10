@@ -1,5 +1,6 @@
 import { verifyCredentialSignature } from '@/lib/credential/signing';
 import { parseCredentialQueryValue } from '@/lib/credential/verification';
+import { checkEnterpriseRateLimit } from '@/lib/enterprise/rate-limit';
 import { AppError, toErrorBody } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { createWalletHash } from '@/lib/wallet/hash';
@@ -16,6 +17,21 @@ export async function GET(request: Request) {
     return paymentResult.response;
   }
 
+  const payer =
+    paymentResult.payment.payer ?? paymentResult.payment.settlementId ?? 'unknown_payer';
+  const rateLimitResult = await checkEnterpriseRateLimit({
+    payer,
+    resource: 'credential_verification',
+  });
+  if (!rateLimitResult.ok) {
+    return NextResponse.json(toErrorBody(rateLimitResult.error), {
+      headers: {
+        'retry-after': String(rateLimitResult.retryAfterSeconds),
+      },
+      status: rateLimitResult.error.statusCode,
+    });
+  }
+
   const requestId = request.headers.get('x-request-id') ?? undefined;
 
   try {
@@ -29,7 +45,7 @@ export async function GET(request: Request) {
     logger.info(
       {
         operation: 'api.credential.verify',
-        payer: paymentResult.payment.payer,
+        payer,
         requestId,
         txHash: paymentResult.payment.txHash,
         valid,
@@ -53,7 +69,7 @@ export async function GET(request: Request) {
       {
         error: error instanceof Error ? error.message : String(error),
         operation: 'api.credential.verify',
-        payer: paymentResult.payment.payer,
+        payer,
         requestId,
       },
       'credential verification failed'
