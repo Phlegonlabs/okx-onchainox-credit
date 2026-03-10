@@ -1,25 +1,25 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-10T00:37:30.705Z",
+  "last_updated": "2026-03-10T00:48:42.901Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M3",
     "name": "x402 + Credential Issuance",
     "branch": "milestone/m3",
-    "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M3",
+    "worktree": "../okx-onchainos-credit-M3",
     "status": "in_progress",
     "tasks_total": 6,
-    "tasks_done": 0,
+    "tasks_done": 1,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 6
+    "tasks_remaining": 5
   },
   "current_task": {
-    "id": "M3-001",
-    "story": "E3-S01",
-    "description": "x402 middleware",
+    "id": "M3-002",
+    "story": "E3-S02",
+    "description": "ECDSA signing service",
     "status": "in_progress",
-    "started_at": "2026-03-10T01:00:00.000Z",
+    "started_at": "2026-03-10T00:48:42.901Z",
     "files_touched": [],
     "notes": ""
   },
@@ -32,25 +32,27 @@
       "worktree": "../okx-onchainos-credit-M3",
       "depends_on": ["M2"],
       "tasks_total": 6,
-      "tasks_done": 0,
+      "tasks_done": 1,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 6,
+      "tasks_remaining": 5,
       "tasks": [
         {
           "id": "M3-001",
           "story": "E3-S01",
           "description": "x402 middleware",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-10T01:00:00.000Z"
+          "status": "done",
+          "commit": "7a1012d",
+          "started_at": "2026-03-10T01:00:00.000Z",
+          "completed_at": "2026-03-10T00:48:42.864Z"
         },
         {
           "id": "M3-002",
           "story": "E3-S02",
           "description": "ECDSA signing service",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-10T00:48:42.901Z"
         },
         {
           "id": "M3-003",
