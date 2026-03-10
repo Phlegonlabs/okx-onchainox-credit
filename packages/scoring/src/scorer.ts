@@ -45,6 +45,20 @@ export async function computeScore(data: RawWalletData): Promise<Score> {
 
   const now = new Date();
   const expires = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const dataGaps: string[] = [];
+
+  if (!data.oldestEventTimestamp) {
+    dataGaps.push('wallet_age_unknown');
+  } else {
+    const walletAgeDays = (Date.now() / 1000 - data.oldestEventTimestamp) / (24 * 60 * 60);
+    if (walletAgeDays < 30) {
+      dataGaps.push('insufficient_wallet_history');
+    }
+  }
+
+  if (data.defiEvents.length === 0 && !data.hasDeFiPositions) {
+    dataGaps.push('no_defi_history');
+  }
 
   return {
     wallet: data.wallet,
@@ -53,5 +67,6 @@ export async function computeScore(data: RawWalletData): Promise<Score> {
     dimensions,
     computedAt: now.toISOString(),
     expiresAt: expires.toISOString(),
+    ...(dataGaps.length > 0 ? { dataGaps } : {}),
   };
 }
