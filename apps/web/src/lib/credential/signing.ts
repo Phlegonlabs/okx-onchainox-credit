@@ -9,7 +9,7 @@ type SerializableValue =
   | SerializableValue[]
   | { [key: string]: SerializableValue };
 
-function normalizeValue(value: SerializableValue): SerializableValue {
+function normalizeValue(value: unknown): SerializableValue {
   if (Array.isArray(value)) {
     return value.map((entry) => normalizeValue(entry));
   }
@@ -28,22 +28,31 @@ function normalizeValue(value: SerializableValue): SerializableValue {
       }, {});
   }
 
-  return value;
+  if (
+    value === null ||
+    typeof value === 'boolean' ||
+    typeof value === 'number' ||
+    typeof value === 'string'
+  ) {
+    return value;
+  }
+
+  throw new TypeError('Credential payload contains unsupported value types');
 }
 
-export function serializeCredentialPayload(payload: SerializableValue): string {
+export function serializeCredentialPayload(payload: unknown): string {
   return JSON.stringify(normalizeValue(payload));
 }
 
 export async function signCredential(
-  payload: SerializableValue,
+  payload: unknown,
   signer: Wallet = getCredentialSignerWallet()
 ): Promise<string> {
   return signer.signMessage(serializeCredentialPayload(payload));
 }
 
 export async function verifyCredentialSignature(
-  payload: SerializableValue,
+  payload: unknown,
   signature: string,
   expectedAddress = getCredentialPublicAddress()
 ): Promise<boolean> {

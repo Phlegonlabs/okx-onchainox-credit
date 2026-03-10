@@ -76,7 +76,7 @@ describe('POST /api/credential', () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
       error: {
-        code: 'INVALID_WALLET',
+        code: 'INVALID_INPUT',
       },
     });
   });
@@ -125,6 +125,7 @@ describe('POST /api/credential', () => {
         issuer: 'okx-onchainos-credit',
         score: 720,
         tier: 'good',
+        wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
       })
     );
   });

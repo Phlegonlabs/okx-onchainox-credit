@@ -1,6 +1,7 @@
 import { createCredentialPayload } from '@/lib/credential/payload';
 import { signCredential } from '@/lib/credential/signing';
 import { resolveWalletScore } from '@/lib/credit/score-service';
+import { ValidationError, toErrorBody } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { createWalletHash } from '@/lib/wallet/hash';
 import { requireX402Payment } from '@/lib/x402';
@@ -24,10 +25,9 @@ export async function POST(request: Request) {
   const rawWallet = body.wallet?.trim();
 
   if (!rawWallet || !isAddress(rawWallet)) {
-    return NextResponse.json(
-      { error: { code: 'INVALID_WALLET', message: 'A valid EVM wallet address is required.' } },
-      { status: 400 }
-    );
+    const error = new ValidationError('A valid EVM wallet address is required.');
+
+    return NextResponse.json(toErrorBody(error), { status: error.statusCode });
   }
 
   const wallet = getAddress(rawWallet);
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
   try {
     const score = await resolveWalletScore(wallet);
-    const payload = createCredentialPayload(score);
+    const payload = createCredentialPayload(wallet, score);
     const signature = await signCredential(payload);
 
     logger.info(

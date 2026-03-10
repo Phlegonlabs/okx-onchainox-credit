@@ -24,6 +24,12 @@ export class PaymentVerificationError extends AppError {
   }
 }
 
+export class ValidationError extends AppError {
+  constructor(message = 'Invalid input', details?: unknown) {
+    super(message, 'INVALID_INPUT', 400, details);
+  }
+}
+
 export function toErrorBody(error: AppError): {
   error: { code: string; details?: unknown; message: string };
 } {
