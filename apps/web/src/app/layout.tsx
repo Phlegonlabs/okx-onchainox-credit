@@ -1,25 +1,33 @@
 import { WalletProvider } from '@/components/wallet/wallet-provider';
 import type { Metadata } from 'next';
-import { Instrument_Sans, JetBrains_Mono } from 'next/font/google';
+import { DM_Serif_Display, IBM_Plex_Mono, Syne } from 'next/font/google';
 import './globals.css';
 
-const instrumentSans = Instrument_Sans({
+const dmSerifDisplay = DM_Serif_Display({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-sans',
+  weight: '400',
+  variable: '--font-display',
   display: 'swap',
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const ibmPlexMono = IBM_Plex_Mono({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600'],
-  variable: '--font-mono',
+  variable: '--font-data',
+  display: 'swap',
+});
+
+const syne = Syne({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-ui',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: 'OKX OnchainOS Credit',
-  description: 'On-chain credit scoring powered by OKX OnchainOS',
+  description:
+    'Wallet-native credit scoring, signed credentials, and enterprise underwriting APIs powered by OKX OnchainOS.',
 };
 
 export default function RootLayout({
@@ -28,7 +36,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${instrumentSans.variable} ${jetbrainsMono.variable}`}>
+    <html
+      lang="en"
+      className={`${dmSerifDisplay.variable} ${ibmPlexMono.variable} ${syne.variable}`}
+    >
       <body>
         <WalletProvider>{children}</WalletProvider>
       </body>
