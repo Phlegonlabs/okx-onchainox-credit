@@ -1,3 +1,4 @@
+import { CredentialIssuancePanel } from '@/components/dashboard/credential-issuance-panel';
 import { DashboardScorePanel } from '@/components/dashboard/dashboard-score-panel';
 import { DashboardSessionCard } from '@/components/dashboard/dashboard-session-card';
 import { SESSION_COOKIE_NAME, verifySessionToken } from '@/lib/session';
@@ -18,6 +19,7 @@ export default async function DashboardPage() {
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
         <DashboardSessionCard expiresAt={session.expiresAt} wallet={session.wallet} />
         <DashboardScorePanel wallet={session.wallet} />
+        <CredentialIssuancePanel wallet={session.wallet} />
 
         <section className="grid gap-4 md:grid-cols-3">
           <article className="rounded-[24px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.82)] p-5">
