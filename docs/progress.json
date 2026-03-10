@@ -2,19 +2,38 @@
   "project": "okx-onchainos-credit",
   "last_updated": "2026-03-10T00:37:30.705Z",
   "last_agent": "harness-engineer-cli",
-  "current_milestone": null,
-  "current_task": null,
+  "current_milestone": {
+    "id": "M3",
+    "name": "x402 + Credential Issuance",
+    "branch": "milestone/m3",
+    "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M3",
+    "status": "in_progress",
+    "tasks_total": 6,
+    "tasks_done": 0,
+    "tasks_in_progress": 1,
+    "tasks_blocked": 0,
+    "tasks_remaining": 6
+  },
+  "current_task": {
+    "id": "M3-001",
+    "story": "E3-S01",
+    "description": "x402 middleware",
+    "status": "in_progress",
+    "started_at": "2026-03-10T01:00:00.000Z",
+    "files_touched": [],
+    "notes": ""
+  },
   "active_milestones": [
     {
       "id": "M3",
       "title": "x402 + Credential Issuance",
-      "status": "not_started",
+      "status": "in_progress",
       "branch": "milestone/m3",
       "worktree": "../okx-onchainos-credit-M3",
       "depends_on": ["M2"],
       "tasks_total": 6,
       "tasks_done": 0,
-      "tasks_in_progress": 0,
+      "tasks_in_progress": 1,
       "tasks_blocked": 0,
       "tasks_remaining": 6,
       "tasks": [
@@ -22,8 +41,9 @@
           "id": "M3-001",
           "story": "E3-S01",
           "description": "x402 middleware",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-10T01:00:00.000Z"
         },
         {
           "id": "M3-002",
@@ -60,7 +80,8 @@
           "status": "not_started",
           "commit": null
         }
-      ]
+      ],
+      "started_at": "2026-03-10T01:00:00.000Z"
     },
     {
       "id": "M4",
