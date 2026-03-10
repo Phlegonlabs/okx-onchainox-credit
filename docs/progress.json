@@ -1,126 +1,10 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-10T02:04:37.466Z",
+  "last_updated": "2026-03-10T02:07:33.525Z",
   "last_agent": "harness-engineer-cli",
-  "current_milestone": {
-    "id": "M6",
-    "name": "MCP Server + CLI",
-    "branch": "milestone/m6",
-    "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M6",
-    "status": "in_progress",
-    "tasks_total": 9,
-    "tasks_done": 8,
-    "tasks_in_progress": 1,
-    "tasks_blocked": 0,
-    "tasks_remaining": 1
-  },
-  "current_task": {
-    "id": "M6-009",
-    "story": "E6-S04",
-    "description": "CLI unit tests",
-    "status": "in_progress",
-    "started_at": "2026-03-10T02:04:37.466Z",
-    "files_touched": [],
-    "notes": ""
-  },
-  "active_milestones": [
-    {
-      "id": "M6",
-      "title": "MCP Server + CLI",
-      "status": "in_progress",
-      "branch": "milestone/m6",
-      "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M6",
-      "depends_on": ["M4", "M5"],
-      "tasks_total": 9,
-      "tasks_done": 8,
-      "tasks_in_progress": 1,
-      "tasks_blocked": 0,
-      "tasks_remaining": 1,
-      "tasks": [
-        {
-          "id": "M6-001",
-          "story": "E6-S01",
-          "description": "MCP server scaffold (stdio)",
-          "status": "done",
-          "commit": "91082d6",
-          "started_at": "2026-03-10T01:42:34.288Z",
-          "completed_at": "2026-03-10T01:45:12.653Z"
-        },
-        {
-          "id": "M6-002",
-          "story": "E6-S01",
-          "description": "Tool: analyze_credit",
-          "status": "done",
-          "commit": "c8aa11b",
-          "started_at": "2026-03-10T01:45:12.688Z",
-          "completed_at": "2026-03-10T01:52:36.469Z"
-        },
-        {
-          "id": "M6-003",
-          "story": "E6-S01",
-          "description": "Tool: get_score",
-          "status": "done",
-          "commit": "f82b4aa",
-          "started_at": "2026-03-10T01:52:36.506Z",
-          "completed_at": "2026-03-10T01:54:16.459Z"
-        },
-        {
-          "id": "M6-004",
-          "story": "E6-S01",
-          "description": "Tool: get_improvement_tips",
-          "status": "done",
-          "commit": "76b942b",
-          "started_at": "2026-03-10T01:54:16.496Z",
-          "completed_at": "2026-03-10T01:55:42.147Z"
-        },
-        {
-          "id": "M6-005",
-          "story": "E6-S02",
-          "description": "SKILL.md (initial version exists at root) + docs/api-reference.md",
-          "status": "done",
-          "commit": "b7c6423",
-          "started_at": "2026-03-10T01:55:42.183Z",
-          "completed_at": "2026-03-10T01:57:24.119Z"
-        },
-        {
-          "id": "M6-006",
-          "story": "E6-S03",
-          "description": "CLI: okx-credit score",
-          "status": "done",
-          "commit": "2b76fe4",
-          "started_at": "2026-03-10T01:57:24.153Z",
-          "completed_at": "2026-03-10T01:59:25.392Z"
-        },
-        {
-          "id": "M6-007",
-          "story": "E6-S03",
-          "description": "CLI: okx-credit verify",
-          "status": "done",
-          "commit": "eaf62c4",
-          "started_at": "2026-03-10T01:59:25.426Z",
-          "completed_at": "2026-03-10T02:03:20.896Z"
-        },
-        {
-          "id": "M6-008",
-          "story": "E6-S04",
-          "description": "MCP integration tests",
-          "status": "done",
-          "commit": "af76be2",
-          "started_at": "2026-03-10T02:03:20.932Z",
-          "completed_at": "2026-03-10T02:04:37.431Z"
-        },
-        {
-          "id": "M6-009",
-          "story": "E6-S04",
-          "description": "CLI unit tests",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-10T02:04:37.466Z"
-        }
-      ],
-      "started_at": "2026-03-10T01:42:24.470Z"
-    }
-  ],
+  "current_milestone": null,
+  "current_task": null,
+  "active_milestones": [],
   "completed_milestones": [
     {
       "id": "M1",
@@ -146,6 +30,11 @@
       "id": "M5",
       "name": "Enterprise API",
       "completed_at": "2026-03-10T01:42:13.080Z"
+    },
+    {
+      "id": "M6",
+      "name": "MCP Server + CLI",
+      "completed_at": "2026-03-10T02:07:33.525Z"
     }
   ],
   "blockers": [],

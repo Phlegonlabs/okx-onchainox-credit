@@ -65,9 +65,17 @@ export function isCurrentWorktreePath(worktreePath: string, cwd = process.cwd())
     resolvedCwd.startsWith(`${resolvedWorktreePath}${sep}`);
 }
 
-function syncWorktreeProgressSnapshot(worktreePath: string, progress: Progress): void {
-  const progressFilePath = join(worktreePath, 'docs', 'progress.json');
+function writeProgressSnapshot(rootPath: string, progress: Progress): void {
+  const progressFilePath = join(rootPath, 'docs', 'progress.json');
   writeFileSync(progressFilePath, JSON.stringify(progress, null, 2) + '\n');
+}
+
+function syncProgressSnapshots(progress: Progress, ...rootPaths: string[]): void {
+  const uniqueRootPaths = new Set(rootPaths.map(rootPath => resolve(rootPath)));
+
+  for (const rootPath of uniqueRootPaths) {
+    writeProgressSnapshot(rootPath, progress);
+  }
 }
 
 export async function runWorktreeStart(milestoneId: string): Promise<void> {
@@ -116,7 +124,7 @@ export async function runWorktreeStart(milestoneId: string): Promise<void> {
   targetMilestone.worktree = worktreePath;
   targetMilestone.started_at = new Date().toISOString();
   saveProgress(p);
-  syncWorktreeProgressSnapshot(worktreePath, p);
+  syncProgressSnapshots(p, mainRoot, worktreePath, process.cwd());
 
   ok(`Worktree ready: ${worktreePath}`);
   info(`cd "${worktreePath}" && bun run harness init`);
@@ -174,6 +182,7 @@ export async function runWorktreeFinish(milestoneId: string): Promise<void> {
     p.current_task = null;
   }
   saveProgress(p);
+  syncProgressSnapshots(p, mainRoot, worktreePath, process.cwd());
 
   ok(`${id} complete and merged!`);
 
