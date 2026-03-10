@@ -30,6 +30,12 @@ export class ValidationError extends AppError {
   }
 }
 
+export class RateLimitError extends AppError {
+  constructor(message = 'Rate limit exceeded', details?: unknown) {
+    super(message, 'RATE_LIMITED', 429, details);
+  }
+}
+
 export function toErrorBody(error: AppError): {
   error: { code: string; details?: unknown; message: string };
 } {
