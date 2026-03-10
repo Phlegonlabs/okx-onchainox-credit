@@ -11,8 +11,8 @@ export async function DashboardScorePanel({ wallet }: { wallet: string }) {
 
     return (
       <div className="grid gap-4">
-        <section className="grid gap-4 lg:grid-cols-[minmax(320px,420px)_minmax(0,1fr)]">
-          <article className="rounded-[28px] border border-[var(--okx-border-light)] bg-[linear-gradient(180deg,rgba(12,18,32,0.96),rgba(8,12,20,0.98))] p-6 shadow-[0_24px_90px_rgba(0,0,0,0.42)]">
+        <section className="grid gap-4 lg:grid-cols-[minmax(280px,420px)_minmax(0,1fr)]">
+          <article className="min-w-0 rounded-[28px] border border-[var(--okx-border-light)] bg-[linear-gradient(180deg,rgba(12,18,32,0.96),rgba(8,12,20,0.98))] p-5 shadow-[0_24px_90px_rgba(0,0,0,0.42)] md:p-6">
             <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[var(--okx-accent)]">
               Credit gauge
             </p>
@@ -21,18 +21,18 @@ export async function DashboardScorePanel({ wallet }: { wallet: string }) {
             </div>
           </article>
 
-          <article className="rounded-[28px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.84)] p-6">
+          <article className="min-w-0 rounded-[28px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.84)] p-5 md:p-6">
             <div className="flex flex-col gap-4 border-b border-[var(--okx-border)] pb-5 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
                   Score status
                 </p>
-                <h2 className="mt-3 text-4xl tracking-[-0.04em] [font-family:var(--font-display)]">
+                <h2 className="mt-3 text-3xl tracking-[-0.04em] text-balance [font-family:var(--font-display)] md:text-4xl">
                   The wallet is now being priced on actual on-chain behavior.
                 </h2>
               </div>
 
-              <div className="rounded-full border border-[var(--okx-border)] bg-[rgba(255,255,255,0.03)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-muted)]">
+              <div className="self-start rounded-full border border-[var(--okx-border)] bg-[rgba(255,255,255,0.03)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-muted)]">
                 {score.stale ? 'Serving stale cache' : 'Fresh within 24h'}
               </div>
             </div>
@@ -110,11 +110,11 @@ export async function DashboardScorePanel({ wallet }: { wallet: string }) {
     );
 
     return (
-      <section className="rounded-[28px] border border-[rgba(239,68,68,0.2)] bg-[rgba(12,18,32,0.9)] p-6">
+      <section className="rounded-[28px] border border-[rgba(239,68,68,0.2)] bg-[rgba(12,18,32,0.9)] p-5 md:p-6">
         <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[var(--okx-score-poor)]">
           Score unavailable
         </p>
-        <h2 className="mt-4 text-4xl tracking-[-0.04em] [font-family:var(--font-display)]">
+        <h2 className="mt-4 text-3xl tracking-[-0.04em] text-balance [font-family:var(--font-display)] md:text-4xl">
           We could not retrieve wallet telemetry from OKX OnchainOS right now.
         </h2>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--okx-text-muted)]">

@@ -80,19 +80,19 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
   }
 
   return (
-    <section className="rounded-[28px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.84)] p-6">
+    <section className="rounded-[28px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.84)] p-5 md:p-6">
       <div className="flex flex-col gap-3 border-b border-[var(--okx-border)] pb-5 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
             Credential issuance
           </p>
-          <h2 className="mt-3 text-4xl tracking-[-0.04em] [font-family:var(--font-display)]">
+          <h2 className="mt-3 text-3xl tracking-[-0.04em] text-balance [font-family:var(--font-display)] md:text-4xl">
             Mint a signed credit credential once the x402 payment settles.
           </h2>
         </div>
 
         <button
-          className="rounded-full bg-[var(--okx-accent)] px-5 py-3 text-sm font-semibold text-[#080c14] transition hover:bg-[#ffb84d] disabled:opacity-60"
+          className="min-h-[52px] w-full rounded-full bg-[var(--okx-accent)] px-5 py-3 text-sm font-semibold text-[#080c14] transition hover:bg-[#ffb84d] disabled:opacity-60 md:w-auto"
           disabled={isSubmitting}
           onClick={() => requestCredential()}
           type="button"
@@ -102,7 +102,7 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <article className="rounded-[24px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.02)] p-5">
+        <article className="min-w-0 rounded-[24px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.02)] p-5">
           <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
             Flow
           </p>
@@ -123,7 +123,7 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
                   {paymentRequired.amount} {paymentRequired.token} on {paymentRequired.network} (
                   chain {paymentRequired.chainId})
                 </p>
-                <p>Recipient {paymentRequired.recipient}</p>
+                <p className="break-all">Recipient {paymentRequired.recipient}</p>
                 <p>Resource {paymentRequired.resource}</p>
                 <p>Header {paymentRequired.header}</p>
               </div>
@@ -141,7 +141,7 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
               </label>
 
               <button
-                className="mt-4 rounded-full border border-[var(--okx-border-light)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-sm font-medium text-[var(--color-foreground)] transition hover:border-[var(--okx-accent)] disabled:opacity-60"
+                className="mt-4 min-h-[52px] w-full rounded-full border border-[var(--okx-border-light)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-sm font-medium text-[var(--color-foreground)] transition hover:border-[var(--okx-accent)] disabled:opacity-60"
                 disabled={isSubmitting || paymentReceipt.trim().length === 0}
                 onClick={() => requestCredential(paymentReceipt.trim())}
                 type="button"
@@ -163,20 +163,20 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
           ) : null}
         </article>
 
-        <article className="rounded-[24px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.02)] p-5">
-          <div className="flex items-start justify-between gap-4">
+        <article className="min-w-0 rounded-[24px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.02)] p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
                 Credential output
               </p>
-              <h3 className="mt-3 text-3xl tracking-[-0.03em] [font-family:var(--font-display)]">
+              <h3 className="mt-3 text-2xl tracking-[-0.03em] [font-family:var(--font-display)] md:text-3xl">
                 {credential ? 'Signed credential ready' : 'Awaiting issuance'}
               </h3>
             </div>
 
             {credential ? (
               <button
-                className="rounded-full border border-[var(--okx-border-light)] bg-[rgba(255,255,255,0.04)] px-4 py-2 text-sm font-medium text-[var(--color-foreground)] transition hover:border-[var(--okx-accent)]"
+                className="min-h-[48px] w-full rounded-full border border-[var(--okx-border-light)] bg-[rgba(255,255,255,0.04)] px-4 py-2 text-sm font-medium text-[var(--color-foreground)] transition hover:border-[var(--okx-accent)] sm:w-auto"
                 onClick={() => downloadCredential(credential)}
                 type="button"
               >
@@ -214,7 +214,7 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
                 </div>
               </div>
 
-              <pre className="overflow-x-auto rounded-[20px] border border-[var(--okx-border)] bg-[rgba(8,12,20,0.92)] p-4 text-xs leading-6 text-[var(--okx-accent-soft)]">
+              <pre className="max-h-80 overflow-auto rounded-[20px] border border-[var(--okx-border)] bg-[rgba(8,12,20,0.92)] p-4 text-xs leading-6 text-[var(--okx-accent-soft)]">
                 {JSON.stringify(credential, null, 2)}
               </pre>
             </div>

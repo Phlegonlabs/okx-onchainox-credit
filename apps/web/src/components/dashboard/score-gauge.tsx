@@ -48,7 +48,7 @@ export function ScoreGauge({
       className="grid gap-6"
       role="img"
     >
-      <div className="relative mx-auto flex h-[250px] w-[250px] items-center justify-center">
+      <div className="relative mx-auto flex h-[220px] w-[220px] items-center justify-center md:h-[250px] md:w-[250px]">
         <div
           className="absolute inset-7 rounded-full blur-3xl"
           style={{
@@ -110,7 +110,7 @@ export function ScoreGauge({
           <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[var(--okx-text-muted)]">
             Current score
           </p>
-          <p className="mt-4 text-7xl leading-none tracking-[-0.05em] [font-family:var(--font-display)]">
+          <p className="mt-4 text-6xl leading-none tracking-[-0.05em] [font-family:var(--font-display)] md:text-7xl">
             {animatedScore}
           </p>
           <p className="mt-3 text-sm uppercase tracking-[0.24em]" style={{ color: theme.accent }}>
@@ -119,7 +119,7 @@ export function ScoreGauge({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 text-center font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
+      <div className="grid grid-cols-3 gap-2 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--okx-text-dim)] md:gap-3 md:text-[11px] md:tracking-[0.24em]">
         <span>300 Base</span>
         <span>575 Median</span>
         <span>850 Prime</span>

@@ -12,19 +12,19 @@ export function ScoreBreakdown({
   const entries = getDimensionEntries(dimensions);
 
   return (
-    <section className="rounded-[28px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.84)] p-6">
+    <section className="rounded-[28px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.84)] p-5 md:p-6">
       <div className="flex flex-col gap-3 border-b border-[var(--okx-border)] pb-5 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
             Dimension breakdown
           </p>
-          <h2 className="mt-3 text-4xl tracking-[-0.04em] [font-family:var(--font-display)]">
+          <h2 className="mt-3 text-3xl tracking-[-0.04em] text-balance [font-family:var(--font-display)] md:text-4xl">
             Five underwriting inputs, normalized into one credit surface.
           </h2>
         </div>
 
         <div
-          className="rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.24em]"
+          className="self-start rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.24em]"
           style={{
             borderColor: theme.glow,
             color: theme.accent,
@@ -55,7 +55,7 @@ export function ScoreBreakdown({
                 </p>
               </div>
 
-              <div className="font-mono text-right">
+              <div className="font-mono md:text-right">
                 <p className="text-3xl text-[var(--color-foreground)]">{entry.value}</p>
                 <p className="text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
                   out of 100
