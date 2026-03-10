@@ -2,6 +2,7 @@
 
 import { parseCredentialApiResponse } from '@/lib/credential/client';
 import type { IssuedCredential } from '@/lib/credential/payload';
+import { getCredentialActionMessage } from '@/lib/credential/ui';
 import { useState } from 'react';
 
 function formatTimestamp(seconds: number): string {
@@ -36,6 +37,7 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
     token: string;
     tokenAddress: string;
   } | null>(null);
+  const hasReceipt = paymentReceipt.trim().length > 0;
 
   async function requestCredential(receipt?: string) {
     setErrorMessage(null);
@@ -65,22 +67,26 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
       }
 
       if (result.kind === 'payment_required') {
+        setCredential(null);
         setPaymentHeader(result.paymentRequired.header);
         setPaymentRequired(result.paymentRequired);
         setErrorMessage(null);
         return;
       }
 
-      setErrorMessage(result.error.message);
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Unable to issue credential.');
+      setErrorMessage(getCredentialActionMessage(result.error));
+    } catch (_error) {
+      setErrorMessage(getCredentialActionMessage(undefined));
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <section className="rounded-[28px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.84)] p-5 md:p-6">
+    <section
+      aria-busy={isSubmitting}
+      className="rounded-[28px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.84)] p-5 md:p-6"
+    >
       <div className="flex flex-col gap-3 border-b border-[var(--okx-border)] pb-5 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
@@ -113,7 +119,21 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
             <li>4. Download the ECDSA-signed credential JSON.</li>
           </ol>
 
-          {paymentRequired ? (
+          {isSubmitting ? (
+            <output
+              aria-live="polite"
+              className="mt-5 rounded-[22px] border border-[rgba(245,166,35,0.22)] bg-[rgba(245,166,35,0.08)] p-4"
+            >
+              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-accent)]">
+                {hasReceipt ? 'Verifying settlement' : 'Requesting payment'}
+              </p>
+              <div className="mt-4 grid gap-3">
+                <div className="h-3 animate-pulse rounded-full bg-[rgba(245,166,35,0.16)]" />
+                <div className="h-3 w-5/6 animate-pulse rounded-full bg-[rgba(245,166,35,0.12)]" />
+                <div className="h-24 animate-pulse rounded-[20px] bg-[rgba(8,12,20,0.62)]" />
+              </div>
+            </output>
+          ) : paymentRequired ? (
             <div className="mt-5 rounded-[22px] border border-[rgba(245,166,35,0.22)] bg-[rgba(245,166,35,0.08)] p-4">
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-accent)]">
                 Payment required
@@ -142,7 +162,7 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
 
               <button
                 className="mt-4 min-h-[52px] w-full rounded-full border border-[var(--okx-border-light)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-sm font-medium text-[var(--color-foreground)] transition hover:border-[var(--okx-accent)] disabled:opacity-60"
-                disabled={isSubmitting || paymentReceipt.trim().length === 0}
+                disabled={isSubmitting || !hasReceipt}
                 onClick={() => requestCredential(paymentReceipt.trim())}
                 type="button"
               >
@@ -157,7 +177,10 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
           )}
 
           {errorMessage ? (
-            <div className="mt-4 rounded-[22px] border border-[rgba(239,68,68,0.2)] bg-[rgba(239,68,68,0.08)] p-4 text-sm leading-7 text-[#f3b0b0]">
+            <div
+              className="mt-4 rounded-[22px] border border-[rgba(239,68,68,0.2)] bg-[rgba(239,68,68,0.08)] p-4 text-sm leading-7 text-[#f3b0b0]"
+              role="alert"
+            >
               {errorMessage}
             </div>
           ) : null}
@@ -185,7 +208,22 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
             ) : null}
           </div>
 
-          {credential ? (
+          {isSubmitting ? (
+            <output aria-live="polite" className="mt-5 grid gap-4">
+              <div className="grid gap-4 md:grid-cols-3">
+                {['score', 'issued', 'expires'].map((key) => (
+                  <div
+                    className="rounded-[20px] border border-[var(--okx-border)] bg-[rgba(8,12,20,0.82)] p-4"
+                    key={key}
+                  >
+                    <div className="h-3 w-16 animate-pulse rounded-full bg-[rgba(255,255,255,0.08)]" />
+                    <div className="mt-4 h-6 w-20 animate-pulse rounded-full bg-[rgba(245,166,35,0.16)]" />
+                  </div>
+                ))}
+              </div>
+              <div className="h-64 animate-pulse rounded-[20px] border border-[var(--okx-border)] bg-[rgba(8,12,20,0.92)]" />
+            </output>
+          ) : credential ? (
             <div className="mt-5 grid gap-4">
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="rounded-[20px] border border-[var(--okx-border)] bg-[rgba(8,12,20,0.82)] p-4">
