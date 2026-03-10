@@ -35,4 +35,48 @@ describe('computeScore', () => {
     expect(result.dataGaps).toContain('insufficient_wallet_history');
     expect(result.dataGaps).toContain('no_defi_history');
   });
+
+  it('keeps empty wallets in the poor tier with explicit data gaps', async () => {
+    const result = await computeScore({
+      wallet: '0xempty',
+      events: [],
+      defiEvents: [],
+      positions: [],
+      totalValueUsd: 0,
+      hasDeFiPositions: false,
+      activeChains: [],
+    });
+
+    expect(result.score).toBeGreaterThanOrEqual(300);
+    expect(result.score).toBeLessThan(500);
+    expect(result.tier).toBe('poor');
+    expect(result.dataGaps).toContain('wallet_age_unknown');
+    expect(result.dataGaps).toContain('no_defi_history');
+  });
+
+  it('scores whale wallets near the top end of the range', async () => {
+    const result = await computeScore(
+      createRawWalletData({
+        totalValueUsd: 250_000,
+        activeChains: ['1', '10', '56', '137', '196', '8453', '42161'],
+        positions: [
+          {
+            tokenId: 'eth',
+            symbol: 'ETH',
+            chainId: '1',
+            balanceUsd: 150_000,
+          },
+          {
+            tokenId: 'btc',
+            symbol: 'WBTC',
+            chainId: '8453',
+            balanceUsd: 100_000,
+          },
+        ],
+      })
+    );
+
+    expect(result.score).toBeGreaterThanOrEqual(700);
+    expect(result.tier).toBe('good');
+  });
 });

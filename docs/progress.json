@@ -1,6 +1,6 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-10T00:35:47.768Z",
+  "last_updated": "2026-03-10T00:37:30.705Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M2",
@@ -9,17 +9,17 @@
     "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2",
     "status": "in_progress",
     "tasks_total": 9,
-    "tasks_done": 7,
+    "tasks_done": 8,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 2
+    "tasks_remaining": 1
   },
   "current_task": {
-    "id": "M2-008",
-    "story": "E2-S04",
-    "description": "Score caching (Turso, 24h TTL)",
+    "id": "M2-009",
+    "story": "E2-S02",
+    "description": "Unit tests for all dimensions",
     "status": "in_progress",
-    "started_at": "2026-03-10T00:35:47.768Z",
+    "started_at": "2026-03-10T00:37:30.704Z",
     "files_touched": [],
     "notes": ""
   },
@@ -32,10 +32,10 @@
       "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2",
       "depends_on": ["M1"],
       "tasks_total": 9,
-      "tasks_done": 7,
+      "tasks_done": 8,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 2,
+      "tasks_remaining": 1,
       "tasks": [
         {
           "id": "M2-001",
@@ -104,16 +104,18 @@
           "id": "M2-008",
           "story": "E2-S04",
           "description": "Score caching (Turso, 24h TTL)",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-10T00:35:47.768Z"
+          "status": "done",
+          "commit": "9fc20a0",
+          "started_at": "2026-03-10T00:35:47.768Z",
+          "completed_at": "2026-03-10T00:37:30.672Z"
         },
         {
           "id": "M2-009",
           "story": "E2-S02",
           "description": "Unit tests for all dimensions",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-10T00:37:30.704Z"
         }
       ],
       "started_at": "2026-03-09T18:10:30.994Z"
