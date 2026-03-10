@@ -1,6 +1,6 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-10T00:34:56.533Z",
+  "last_updated": "2026-03-10T00:35:47.768Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M2",
@@ -9,17 +9,17 @@
     "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2",
     "status": "in_progress",
     "tasks_total": 9,
-    "tasks_done": 6,
+    "tasks_done": 7,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 3
+    "tasks_remaining": 2
   },
   "current_task": {
-    "id": "M2-007",
-    "story": "E2-S03",
-    "description": "Score aggregation (300-850)",
+    "id": "M2-008",
+    "story": "E2-S04",
+    "description": "Score caching (Turso, 24h TTL)",
     "status": "in_progress",
-    "started_at": "2026-03-10T00:34:56.533Z",
+    "started_at": "2026-03-10T00:35:47.768Z",
     "files_touched": [],
     "notes": ""
   },
@@ -32,10 +32,10 @@
       "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2",
       "depends_on": ["M1"],
       "tasks_total": 9,
-      "tasks_done": 6,
+      "tasks_done": 7,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 3,
+      "tasks_remaining": 2,
       "tasks": [
         {
           "id": "M2-001",
@@ -95,16 +95,18 @@
           "id": "M2-007",
           "story": "E2-S03",
           "description": "Score aggregation (300-850)",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-10T00:34:56.533Z"
+          "status": "done",
+          "commit": "50fa463",
+          "started_at": "2026-03-10T00:34:56.533Z",
+          "completed_at": "2026-03-10T00:35:47.734Z"
         },
         {
           "id": "M2-008",
           "story": "E2-S04",
           "description": "Score caching (Turso, 24h TTL)",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-10T00:35:47.768Z"
         },
         {
           "id": "M2-009",

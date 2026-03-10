@@ -2,6 +2,7 @@
 // See: ARCHITECTURE.md → packages/scoring structure
 
 export type {
+  RawWalletData,
   DeFiPositionSnapshot,
   Score,
   ScoreDimensions,
