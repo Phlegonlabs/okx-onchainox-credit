@@ -1,26 +1,16 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { CreditAnalysis } from '@okx-credit/scoring';
+import { registerAnalyzeCreditTool } from './analyze-credit.js';
 
 const notImplementedText =
   'This MCP tool is scaffolded in M6-001 and will be implemented in the next M6 tasks.';
 
-export function registerCreditTools(server: McpServer) {
-  server.registerTool(
-    'analyze_credit',
-    {
-      description:
-        'Return the full OKX OnchainOS credit analysis for a wallet, including score, breakdown, and ranked improvement tips.',
-    },
-    async () => ({
-      content: [
-        {
-          text: notImplementedText,
-          type: 'text',
-        },
-      ],
-      isError: true,
-    })
-  );
+interface CreditToolDependencies {
+  analyzeCredit?: (wallet: string) => Promise<CreditAnalysis>;
+}
 
+export function registerCreditTools(server: McpServer, dependencies: CreditToolDependencies = {}) {
+  registerAnalyzeCreditTool(server, dependencies);
   server.registerTool(
     'get_score',
     {
