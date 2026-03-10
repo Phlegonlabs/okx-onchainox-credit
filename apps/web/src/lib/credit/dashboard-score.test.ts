@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   clampCreditScore,
+  getDimensionEntries,
   getGaugeProgress,
   getGaugeRotation,
   getTierTheme,
@@ -28,5 +29,23 @@ describe('dashboard score helpers', () => {
   it('returns a tier-specific visual theme', () => {
     expect(getTierTheme('excellent')).toMatchObject({ label: 'Excellent' });
     expect(getTierTheme('poor')).toMatchObject({ label: 'Poor' });
+  });
+
+  it('returns ordered score dimension entries with labels and values', () => {
+    expect(
+      getDimensionEntries({
+        walletAge: 71,
+        assetScale: 82,
+        positionStability: 63,
+        repaymentHistory: 90,
+        multichain: 44,
+      })
+    ).toEqual([
+      expect.objectContaining({ key: 'walletAge', label: 'Wallet age', value: 71 }),
+      expect.objectContaining({ key: 'assetScale', label: 'Asset scale', value: 82 }),
+      expect.objectContaining({ key: 'positionStability', label: 'Position stability', value: 63 }),
+      expect.objectContaining({ key: 'repaymentHistory', label: 'Repayment history', value: 90 }),
+      expect.objectContaining({ key: 'multichain', label: 'Multichain activity', value: 44 }),
+    ]);
   });
 });
