@@ -1,11 +1,16 @@
-// MCP Server entry point — implement during M6-001.
-// Exposes 3 tools: analyze_credit, get_score, get_improvement_tips.
-// Reference: docs/okx-api-reference.md (OKX AI Tools section)
-//
-// Run: bun run --cwd packages/mcp start
-// Or:  npx tsx packages/mcp/src/server.ts
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { createMcpServer } from './lib/create-server.js';
 
-// TODO: M6-001 — implement full MCP server with stdio transport
-// Scaffold with: bun run harness scaffold mcp
+async function main() {
+  const server = createMcpServer();
+  const transport = new StdioServerTransport();
 
-throw new Error('MCP server not yet implemented. Complete M6-001 through M6-004 to build this.');
+  await server.connect(transport);
+}
+
+main().catch((error) => {
+  process.stderr.write(
+    `MCP server bootstrap failed: ${error instanceof Error ? error.message : String(error)}\n`
+  );
+  process.exit(1);
+});

@@ -23,6 +23,39 @@ export interface Score {
   dataGaps?: string[]; // e.g. ['no_defi_history', 'wallet_age_unknown']
 }
 
+export interface CreditAnalysisDimension {
+  detail: string;
+  score: number;
+}
+
+export interface CreditAnalysisDimensions {
+  walletAge: CreditAnalysisDimension;
+  assetScale: CreditAnalysisDimension;
+  positionStability: CreditAnalysisDimension;
+  repaymentHistory: CreditAnalysisDimension;
+  multichain: CreditAnalysisDimension;
+}
+
+export interface CreditImprovementTip {
+  action: string;
+  currentValue: number;
+  dimensionKey: keyof ScoreDimensions;
+  dimensionLabel: string;
+  estimatedPointGain: number;
+}
+
+export interface CreditAnalysis {
+  wallet: string;
+  score: number;
+  tier: ScoreTier;
+  dimensions: CreditAnalysisDimensions;
+  improvementTips: CreditImprovementTip[];
+  credential: null;
+  computedAt: string;
+  expiresAt: string;
+  dataGaps?: string[];
+}
+
 // Generic on-chain event (used for wallet age + activity scoring)
 export interface WalletEvent {
   hash: string;

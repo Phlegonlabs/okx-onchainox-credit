@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",
-    "@okx-credit/scoring": "workspace:*"
+    "@okx-credit/scoring": "workspace:*",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "tsx": "^4.19.2",

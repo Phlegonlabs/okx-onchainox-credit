@@ -1,296 +1,124 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-10T00:58:49.163Z",
+  "last_updated": "2026-03-10T02:04:37.466Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
-    "id": "M3",
-    "name": "x402 + Credential Issuance",
-    "branch": "milestone/m3",
-    "worktree": "../okx-onchainos-credit-M3",
+    "id": "M6",
+    "name": "MCP Server + CLI",
+    "branch": "milestone/m6",
+    "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M6",
     "status": "in_progress",
-    "tasks_total": 6,
-    "tasks_done": 5,
+    "tasks_total": 9,
+    "tasks_done": 8,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
     "tasks_remaining": 1
   },
   "current_task": {
-    "id": "M3-006",
-    "story": "E3-S01",
-    "description": "Integration test (x402 → credential)",
+    "id": "M6-009",
+    "story": "E6-S04",
+    "description": "CLI unit tests",
     "status": "in_progress",
-    "started_at": "2026-03-10T00:58:49.163Z",
+    "started_at": "2026-03-10T02:04:37.466Z",
     "files_touched": [],
     "notes": ""
   },
   "active_milestones": [
     {
-      "id": "M3",
-      "title": "x402 + Credential Issuance",
+      "id": "M6",
+      "title": "MCP Server + CLI",
       "status": "in_progress",
-      "branch": "milestone/m3",
-      "worktree": "../okx-onchainos-credit-M3",
-      "depends_on": ["M2"],
-      "tasks_total": 6,
-      "tasks_done": 5,
+      "branch": "milestone/m6",
+      "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M6",
+      "depends_on": ["M4", "M5"],
+      "tasks_total": 9,
+      "tasks_done": 8,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
       "tasks_remaining": 1,
       "tasks": [
         {
-          "id": "M3-001",
-          "story": "E3-S01",
-          "description": "x402 middleware",
-          "status": "done",
-          "commit": "7a1012d",
-          "started_at": "2026-03-10T01:00:00.000Z",
-          "completed_at": "2026-03-10T00:48:42.864Z"
-        },
-        {
-          "id": "M3-002",
-          "story": "E3-S02",
-          "description": "ECDSA signing service",
-          "status": "done",
-          "commit": "58031e2",
-          "started_at": "2026-03-10T00:48:42.901Z",
-          "completed_at": "2026-03-10T00:52:18.190Z"
-        },
-        {
-          "id": "M3-003",
-          "story": "E3-S03",
-          "description": "Credential issuance endpoint",
-          "status": "done",
-          "commit": "2a86f02",
-          "started_at": "2026-03-10T00:52:18.225Z",
-          "completed_at": "2026-03-10T00:55:31.596Z"
-        },
-        {
-          "id": "M3-004",
-          "story": "E3-S03",
-          "description": "Credential structure + expiry",
-          "status": "done",
-          "commit": "8b73749",
-          "started_at": "2026-03-10T00:55:31.630Z",
-          "completed_at": "2026-03-10T00:56:39.596Z"
-        },
-        {
-          "id": "M3-005",
-          "story": "E3-S03",
-          "description": "Audit log on credential issuance",
-          "status": "done",
-          "commit": "ded8703",
-          "started_at": "2026-03-10T00:56:39.630Z",
-          "completed_at": "2026-03-10T00:58:49.128Z"
-        },
-        {
-          "id": "M3-006",
-          "story": "E3-S01",
-          "description": "Integration test (x402 → credential)",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-10T00:58:49.163Z"
-        }
-      ],
-      "started_at": "2026-03-10T01:00:00.000Z"
-    },
-    {
-      "id": "M4",
-      "title": "Web Dashboard",
-      "status": "not_started",
-      "branch": "milestone/m4",
-      "worktree": "../okx-onchainos-credit-M4",
-      "depends_on": ["M3"],
-      "tasks_total": 8,
-      "tasks_done": 0,
-      "tasks_in_progress": 0,
-      "tasks_blocked": 0,
-      "tasks_remaining": 8,
-      "tasks": [
-        {
-          "id": "M4-001",
-          "story": "E4-S01",
-          "description": "Landing page",
-          "status": "not_started",
-          "commit": null
-        },
-        {
-          "id": "M4-002",
-          "story": "E4-S01",
-          "description": "Wallet connect flow",
-          "status": "not_started",
-          "commit": null
-        },
-        {
-          "id": "M4-003",
-          "story": "E4-S02",
-          "description": "Score gauge component",
-          "status": "not_started",
-          "commit": null
-        },
-        {
-          "id": "M4-004",
-          "story": "E4-S02",
-          "description": "Score breakdown component",
-          "status": "not_started",
-          "commit": null
-        },
-        {
-          "id": "M4-005",
-          "story": "E4-S02",
-          "description": "Improvement tips component",
-          "status": "not_started",
-          "commit": null
-        },
-        {
-          "id": "M4-006",
-          "story": "E4-S03",
-          "description": "Credential issuance CTA + flow",
-          "status": "not_started",
-          "commit": null
-        },
-        {
-          "id": "M4-007",
-          "story": "E4-S04",
-          "description": "Mobile responsive layout",
-          "status": "not_started",
-          "commit": null
-        },
-        {
-          "id": "M4-008",
-          "story": "E4-S04",
-          "description": "Loading + error states",
-          "status": "not_started",
-          "commit": null
-        }
-      ]
-    },
-    {
-      "id": "M5",
-      "title": "Enterprise API",
-      "status": "not_started",
-      "branch": "milestone/m5",
-      "worktree": "../okx-onchainos-credit-M5",
-      "depends_on": ["M3"],
-      "tasks_total": 5,
-      "tasks_done": 0,
-      "tasks_in_progress": 0,
-      "tasks_blocked": 0,
-      "tasks_remaining": 5,
-      "tasks": [
-        {
-          "id": "M5-001",
-          "story": "E5-S01",
-          "description": "GET /api/v1/score endpoint",
-          "status": "not_started",
-          "commit": null
-        },
-        {
-          "id": "M5-002",
-          "story": "E5-S02",
-          "description": "GET /api/v1/credential/verify endpoint",
-          "status": "not_started",
-          "commit": null
-        },
-        {
-          "id": "M5-003",
-          "story": "E5-S03",
-          "description": "Rate limiting",
-          "status": "not_started",
-          "commit": null
-        },
-        {
-          "id": "M5-004",
-          "story": "E5-S03",
-          "description": "API audit log",
-          "status": "not_started",
-          "commit": null
-        },
-        {
-          "id": "M5-005",
-          "story": "E5-S01",
-          "description": "/api/health endpoint",
-          "status": "not_started",
-          "commit": null
-        }
-      ]
-    },
-    {
-      "id": "M6",
-      "title": "MCP Server + CLI",
-      "status": "not_started",
-      "branch": "milestone/m6",
-      "worktree": "../okx-onchainos-credit-M6",
-      "depends_on": ["M4", "M5"],
-      "tasks_total": 9,
-      "tasks_done": 0,
-      "tasks_in_progress": 0,
-      "tasks_blocked": 0,
-      "tasks_remaining": 9,
-      "tasks": [
-        {
           "id": "M6-001",
           "story": "E6-S01",
           "description": "MCP server scaffold (stdio)",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "91082d6",
+          "started_at": "2026-03-10T01:42:34.288Z",
+          "completed_at": "2026-03-10T01:45:12.653Z"
         },
         {
           "id": "M6-002",
           "story": "E6-S01",
           "description": "Tool: analyze_credit",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "c8aa11b",
+          "started_at": "2026-03-10T01:45:12.688Z",
+          "completed_at": "2026-03-10T01:52:36.469Z"
         },
         {
           "id": "M6-003",
           "story": "E6-S01",
           "description": "Tool: get_score",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "f82b4aa",
+          "started_at": "2026-03-10T01:52:36.506Z",
+          "completed_at": "2026-03-10T01:54:16.459Z"
         },
         {
           "id": "M6-004",
           "story": "E6-S01",
           "description": "Tool: get_improvement_tips",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "76b942b",
+          "started_at": "2026-03-10T01:54:16.496Z",
+          "completed_at": "2026-03-10T01:55:42.147Z"
         },
         {
           "id": "M6-005",
           "story": "E6-S02",
           "description": "SKILL.md (initial version exists at root) + docs/api-reference.md",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "b7c6423",
+          "started_at": "2026-03-10T01:55:42.183Z",
+          "completed_at": "2026-03-10T01:57:24.119Z"
         },
         {
           "id": "M6-006",
           "story": "E6-S03",
           "description": "CLI: okx-credit score",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "2b76fe4",
+          "started_at": "2026-03-10T01:57:24.153Z",
+          "completed_at": "2026-03-10T01:59:25.392Z"
         },
         {
           "id": "M6-007",
           "story": "E6-S03",
           "description": "CLI: okx-credit verify",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "eaf62c4",
+          "started_at": "2026-03-10T01:59:25.426Z",
+          "completed_at": "2026-03-10T02:03:20.896Z"
         },
         {
           "id": "M6-008",
           "story": "E6-S04",
           "description": "MCP integration tests",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "af76be2",
+          "started_at": "2026-03-10T02:03:20.932Z",
+          "completed_at": "2026-03-10T02:04:37.431Z"
         },
         {
           "id": "M6-009",
           "story": "E6-S04",
           "description": "CLI unit tests",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-10T02:04:37.466Z"
         }
-      ]
+      ],
+      "started_at": "2026-03-10T01:42:24.470Z"
     }
   ],
   "completed_milestones": [
@@ -303,6 +131,21 @@
       "id": "M2",
       "name": "Score Engine",
       "completed_at": "2026-03-10T00:38:39.547Z"
+    },
+    {
+      "id": "M3",
+      "name": "x402 + Credential Issuance",
+      "completed_at": "2026-03-10T01:00:40.406Z"
+    },
+    {
+      "id": "M4",
+      "name": "Web Dashboard",
+      "completed_at": "2026-03-10T01:31:11.049Z"
+    },
+    {
+      "id": "M5",
+      "name": "Enterprise API",
+      "completed_at": "2026-03-10T01:42:13.080Z"
     }
   ],
   "blockers": [],
