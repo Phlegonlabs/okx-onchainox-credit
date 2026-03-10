@@ -1,6 +1,6 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-10T02:03:20.932Z",
+  "last_updated": "2026-03-10T02:04:37.466Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M6",
@@ -9,17 +9,17 @@
     "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M6",
     "status": "in_progress",
     "tasks_total": 9,
-    "tasks_done": 7,
+    "tasks_done": 8,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 2
+    "tasks_remaining": 1
   },
   "current_task": {
-    "id": "M6-008",
+    "id": "M6-009",
     "story": "E6-S04",
-    "description": "MCP integration tests",
+    "description": "CLI unit tests",
     "status": "in_progress",
-    "started_at": "2026-03-10T02:03:20.932Z",
+    "started_at": "2026-03-10T02:04:37.466Z",
     "files_touched": [],
     "notes": ""
   },
@@ -32,10 +32,10 @@
       "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M6",
       "depends_on": ["M4", "M5"],
       "tasks_total": 9,
-      "tasks_done": 7,
+      "tasks_done": 8,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 2,
+      "tasks_remaining": 1,
       "tasks": [
         {
           "id": "M6-001",
@@ -104,16 +104,18 @@
           "id": "M6-008",
           "story": "E6-S04",
           "description": "MCP integration tests",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-10T02:03:20.932Z"
+          "status": "done",
+          "commit": "af76be2",
+          "started_at": "2026-03-10T02:03:20.932Z",
+          "completed_at": "2026-03-10T02:04:37.431Z"
         },
         {
           "id": "M6-009",
           "story": "E6-S04",
           "description": "CLI unit tests",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-10T02:04:37.466Z"
         }
       ],
       "started_at": "2026-03-10T01:42:24.470Z"
