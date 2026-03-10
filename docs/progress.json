@@ -1,6 +1,6 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-10T00:55:31.630Z",
+  "last_updated": "2026-03-10T00:56:39.630Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M3",
@@ -9,17 +9,17 @@
     "worktree": "../okx-onchainos-credit-M3",
     "status": "in_progress",
     "tasks_total": 6,
-    "tasks_done": 3,
+    "tasks_done": 4,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 3
+    "tasks_remaining": 2
   },
   "current_task": {
-    "id": "M3-004",
+    "id": "M3-005",
     "story": "E3-S03",
-    "description": "Credential structure + expiry",
+    "description": "Audit log on credential issuance",
     "status": "in_progress",
-    "started_at": "2026-03-10T00:55:31.630Z",
+    "started_at": "2026-03-10T00:56:39.630Z",
     "files_touched": [],
     "notes": ""
   },
@@ -32,10 +32,10 @@
       "worktree": "../okx-onchainos-credit-M3",
       "depends_on": ["M2"],
       "tasks_total": 6,
-      "tasks_done": 3,
+      "tasks_done": 4,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 3,
+      "tasks_remaining": 2,
       "tasks": [
         {
           "id": "M3-001",
@@ -68,16 +68,18 @@
           "id": "M3-004",
           "story": "E3-S03",
           "description": "Credential structure + expiry",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-10T00:55:31.630Z"
+          "status": "done",
+          "commit": "8b73749",
+          "started_at": "2026-03-10T00:55:31.630Z",
+          "completed_at": "2026-03-10T00:56:39.596Z"
         },
         {
           "id": "M3-005",
           "story": "E3-S03",
           "description": "Audit log on credential issuance",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-10T00:56:39.630Z"
         },
         {
           "id": "M3-006",

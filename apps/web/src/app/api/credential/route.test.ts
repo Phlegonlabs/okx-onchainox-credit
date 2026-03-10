@@ -2,15 +2,17 @@ import { NextResponse } from 'next/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { POST } from './route';
 
-const { logger, requireX402Payment, resolveWalletScore, signCredential } = vi.hoisted(() => ({
-  logger: {
-    error: vi.fn(),
-    info: vi.fn(),
-  },
-  requireX402Payment: vi.fn(),
-  resolveWalletScore: vi.fn(),
-  signCredential: vi.fn(),
-}));
+const { logCredentialIssuance, logger, requireX402Payment, resolveWalletScore, signCredential } =
+  vi.hoisted(() => ({
+    logCredentialIssuance: vi.fn(),
+    logger: {
+      error: vi.fn(),
+      info: vi.fn(),
+    },
+    requireX402Payment: vi.fn(),
+    resolveWalletScore: vi.fn(),
+    signCredential: vi.fn(),
+  }));
 
 vi.mock('@/lib/x402', () => ({
   requireX402Payment,
@@ -22,6 +24,10 @@ vi.mock('@/lib/credit/score-service', () => ({
 
 vi.mock('@/lib/credential/signing', () => ({
   signCredential,
+}));
+
+vi.mock('@/lib/credential/audit', () => ({
+  logCredentialIssuance,
 }));
 
 vi.mock('@/lib/logger', () => ({
@@ -106,6 +112,7 @@ describe('POST /api/credential', () => {
       wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
     });
     signCredential.mockResolvedValue('0xsigned');
+    logCredentialIssuance.mockResolvedValue(undefined);
 
     const response = await POST(
       createRequest({ wallet: '0x1234567890AbcdEF1234567890aBcdef12345678' })
@@ -128,5 +135,47 @@ describe('POST /api/credential', () => {
         wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
       })
     );
+    expect(logCredentialIssuance).toHaveBeenCalledWith({
+      expiresAt: expect.any(Number),
+      issuedAt: expect.any(Number),
+      payer: '0xpayer',
+      scoreTier: 'good',
+      walletHash: expect.any(String),
+      x402Tx: '0xtx',
+    });
+  });
+
+  it('returns 500 when audit persistence fails', async () => {
+    requireX402Payment.mockResolvedValue({
+      ok: true,
+      payment: {
+        payer: '0xpayer',
+        raw: {},
+        receipt: 'receipt',
+        settlementId: 'settlement-1',
+        txHash: '0xtx',
+      },
+    });
+    resolveWalletScore.mockResolvedValue({
+      dimensions: {
+        assetScale: 72,
+        multichain: 68,
+        positionStability: 74,
+        repaymentHistory: 81,
+        walletAge: 77,
+      },
+      expiresAt: '2026-03-11T00:00:00.000Z',
+      score: 720,
+      tier: 'good',
+      wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
+    });
+    signCredential.mockResolvedValue('0xsigned');
+    logCredentialIssuance.mockRejectedValue(new Error('db unavailable'));
+
+    const response = await POST(
+      createRequest({ wallet: '0x1234567890AbcdEF1234567890aBcdef12345678' })
+    );
+
+    expect(response.status).toBe(500);
   });
 });

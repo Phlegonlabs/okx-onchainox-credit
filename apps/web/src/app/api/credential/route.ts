@@ -1,3 +1,4 @@
+import { logCredentialIssuance } from '@/lib/credential/audit';
 import { createCredentialPayload } from '@/lib/credential/payload';
 import { signCredential } from '@/lib/credential/signing';
 import { resolveWalletScore } from '@/lib/credit/score-service';
@@ -37,6 +38,15 @@ export async function POST(request: Request) {
     const score = await resolveWalletScore(wallet);
     const payload = createCredentialPayload(wallet, score);
     const signature = await signCredential(payload);
+
+    await logCredentialIssuance({
+      expiresAt: payload.expiresAt,
+      issuedAt: payload.issuedAt,
+      payer: paymentResult.payment.payer,
+      scoreTier: score.tier,
+      walletHash,
+      x402Tx: paymentResult.payment.txHash,
+    });
 
     logger.info(
       {
