@@ -1,6 +1,10 @@
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { getMilestoneWorktreePath, resolveMainRoot } from './worktree.js';
+import {
+  getMilestoneWorktreePath,
+  isCurrentWorktreePath,
+  resolveMainRoot,
+} from './worktree.js';
 
 describe('resolveMainRoot', () => {
   it('uses the git common dir when running inside a worktree', () => {
@@ -32,5 +36,34 @@ describe('getMilestoneWorktreePath', () => {
     ).toBe(
       resolve('C:/Users/mps19/Documents/Github/okx-onchainox-credit-M2')
     );
+  });
+});
+
+describe('isCurrentWorktreePath', () => {
+  it('detects when the cwd matches the worktree root', () => {
+    expect(
+      isCurrentWorktreePath(
+        'C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2',
+        'C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2'
+      )
+    ).toBe(true);
+  });
+
+  it('detects when the cwd is inside the worktree', () => {
+    expect(
+      isCurrentWorktreePath(
+        'C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2',
+        'C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2\\packages\\scoring'
+      )
+    ).toBe(true);
+  });
+
+  it('returns false for sibling directories', () => {
+    expect(
+      isCurrentWorktreePath(
+        'C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2',
+        'C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit'
+      )
+    ).toBe(false);
   });
 });

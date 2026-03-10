@@ -2,124 +2,9 @@
   "project": "okx-onchainos-credit",
   "last_updated": "2026-03-10T00:37:30.705Z",
   "last_agent": "harness-engineer-cli",
-  "current_milestone": {
-    "id": "M2",
-    "name": "Score Engine",
-    "branch": "milestone/m2",
-    "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2",
-    "status": "in_progress",
-    "tasks_total": 9,
-    "tasks_done": 8,
-    "tasks_in_progress": 1,
-    "tasks_blocked": 0,
-    "tasks_remaining": 1
-  },
-  "current_task": {
-    "id": "M2-009",
-    "story": "E2-S02",
-    "description": "Unit tests for all dimensions",
-    "status": "in_progress",
-    "started_at": "2026-03-10T00:37:30.704Z",
-    "files_touched": [],
-    "notes": ""
-  },
+  "current_milestone": null,
+  "current_task": null,
   "active_milestones": [
-    {
-      "id": "M2",
-      "title": "Score Engine",
-      "status": "in_progress",
-      "branch": "milestone/m2",
-      "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2",
-      "depends_on": ["M1"],
-      "tasks_total": 9,
-      "tasks_done": 8,
-      "tasks_in_progress": 1,
-      "tasks_blocked": 0,
-      "tasks_remaining": 1,
-      "tasks": [
-        {
-          "id": "M2-001",
-          "story": "E2-S01",
-          "description": "Transaction data normalizer",
-          "status": "done",
-          "commit": "2e2b602",
-          "started_at": "2026-03-09T18:12:04.974Z",
-          "completed_at": "2026-03-09T18:14:56.877Z"
-        },
-        {
-          "id": "M2-002",
-          "story": "E2-S02",
-          "description": "Dimension: wallet age + activity",
-          "status": "done",
-          "commit": "f58f506",
-          "started_at": "2026-03-09T18:14:56.914Z",
-          "completed_at": "2026-03-09T18:16:48.742Z"
-        },
-        {
-          "id": "M2-003",
-          "story": "E2-S02",
-          "description": "Dimension: asset scale",
-          "status": "done",
-          "commit": "f667233",
-          "started_at": "2026-03-09T18:16:48.775Z",
-          "completed_at": "2026-03-09T18:18:11.102Z"
-        },
-        {
-          "id": "M2-004",
-          "story": "E2-S02",
-          "description": "Dimension: position stability",
-          "status": "done",
-          "commit": "0b24b58",
-          "started_at": "2026-03-09T18:18:11.136Z",
-          "completed_at": "2026-03-10T00:33:42.878Z"
-        },
-        {
-          "id": "M2-005",
-          "story": "E2-S02",
-          "description": "Dimension: DeFi repayment history",
-          "status": "done",
-          "commit": "4cf12bc",
-          "started_at": "2026-03-10T00:33:42.912Z",
-          "completed_at": "2026-03-10T00:34:18.067Z"
-        },
-        {
-          "id": "M2-006",
-          "story": "E2-S02",
-          "description": "Dimension: multi-chain activity",
-          "status": "done",
-          "commit": "1581cfc",
-          "started_at": "2026-03-10T00:34:18.102Z",
-          "completed_at": "2026-03-10T00:34:56.498Z"
-        },
-        {
-          "id": "M2-007",
-          "story": "E2-S03",
-          "description": "Score aggregation (300-850)",
-          "status": "done",
-          "commit": "50fa463",
-          "started_at": "2026-03-10T00:34:56.533Z",
-          "completed_at": "2026-03-10T00:35:47.734Z"
-        },
-        {
-          "id": "M2-008",
-          "story": "E2-S04",
-          "description": "Score caching (Turso, 24h TTL)",
-          "status": "done",
-          "commit": "9fc20a0",
-          "started_at": "2026-03-10T00:35:47.768Z",
-          "completed_at": "2026-03-10T00:37:30.672Z"
-        },
-        {
-          "id": "M2-009",
-          "story": "E2-S02",
-          "description": "Unit tests for all dimensions",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-10T00:37:30.704Z"
-        }
-      ],
-      "started_at": "2026-03-09T18:10:30.994Z"
-    },
     {
       "id": "M3",
       "title": "x402 + Credential Issuance",
@@ -382,6 +267,11 @@
       "id": "M1",
       "name": "Foundation & Infrastructure",
       "completed_at": "2026-03-09T18:10:21.281Z"
+    },
+    {
+      "id": "M2",
+      "name": "Score Engine",
+      "completed_at": "2026-03-10T00:38:39.547Z"
     }
   ],
   "blockers": [],

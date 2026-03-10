@@ -57,6 +57,14 @@ function hasGitCheckout(worktreePath: string): boolean {
   }
 }
 
+export function isCurrentWorktreePath(worktreePath: string, cwd = process.cwd()): boolean {
+  const resolvedCwd = resolve(cwd);
+  const resolvedWorktreePath = resolve(worktreePath);
+
+  return resolvedCwd === resolvedWorktreePath ||
+    resolvedCwd.startsWith(`${resolvedWorktreePath}${sep}`);
+}
+
 export async function runWorktreeStart(milestoneId: string): Promise<void> {
   const id = milestoneId.toUpperCase();
   const p = loadProgress();
@@ -118,6 +126,7 @@ export async function runWorktreeFinish(milestoneId: string): Promise<void> {
   const mainRoot = getMainRoot();
   const worktreePath = getMilestoneWorktreePath(id, mainRoot);
   const branch = targetMilestone.branch ?? `milestone/m${id.replace('M', '').toLowerCase()}`;
+  const isCurrentWorktree = isCurrentWorktreePath(worktreePath);
 
   // Rebase onto main
   if (hasGitCheckout(worktreePath)) {
@@ -141,28 +150,6 @@ export async function runWorktreeFinish(milestoneId: string): Promise<void> {
     execSync('git push origin main', { stdio: 'inherit', cwd: mainRoot });
   } catch {
     warn('Push failed — push manually when ready');
-  }
-
-  // Remove worktree
-  if (existsSync(worktreePath)) {
-    try {
-      execSync(`git worktree remove "${worktreePath}" --force`, {
-        stdio: 'inherit',
-        cwd: mainRoot,
-      });
-    } catch {
-      const resolvedCwd = resolve(process.cwd());
-      const resolvedWorktreePath = resolve(worktreePath);
-      const isCurrentWorktree =
-        resolvedCwd === resolvedWorktreePath ||
-        resolvedCwd.startsWith(`${resolvedWorktreePath}${sep}`);
-
-      if (isCurrentWorktree) {
-        warn(`Skipping removal of current worktree directory: ${worktreePath}`);
-      } else {
-        warn(`Could not remove worktree directory: ${worktreePath}`);
-      }
-    }
   }
 
   // Update progress
@@ -193,6 +180,27 @@ export async function runWorktreeFinish(milestoneId: string): Promise<void> {
   if (next) {
     info(`Auto-starting next milestone: ${next.id}`);
     await runWorktreeStart(next.id);
+  }
+
+  // Remove worktree after progress/state updates. When finishing from inside
+  // the active worktree on Windows, deleting the current directory can break
+  // follow-up file writes and auto-start logic.
+  if (!existsSync(worktreePath)) {
+    return;
+  }
+
+  if (isCurrentWorktree) {
+    warn(`Skipping removal of current worktree directory: ${worktreePath}`);
+    return;
+  }
+
+  try {
+    execSync(`git worktree remove "${worktreePath}" --force`, {
+      stdio: 'inherit',
+      cwd: mainRoot,
+    });
+  } catch {
+    warn(`Could not remove worktree directory: ${worktreePath}`);
   }
 }
 
