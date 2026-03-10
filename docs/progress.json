@@ -1,204 +1,124 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-09T18:04:06.623Z",
+  "last_updated": "2026-03-10T00:37:30.705Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
-    "id": "M1",
-    "name": "Foundation & Infrastructure",
-    "branch": "milestone/m1",
-    "worktree": "../okx-onchainos-credit-M1",
+    "id": "M2",
+    "name": "Score Engine",
+    "branch": "milestone/m2",
+    "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2",
     "status": "in_progress",
-    "tasks_total": 10,
-    "tasks_done": 10,
-    "tasks_in_progress": 0,
+    "tasks_total": 9,
+    "tasks_done": 8,
+    "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 0
+    "tasks_remaining": 1
   },
-  "current_task": null,
+  "current_task": {
+    "id": "M2-009",
+    "story": "E2-S02",
+    "description": "Unit tests for all dimensions",
+    "status": "in_progress",
+    "started_at": "2026-03-10T00:37:30.704Z",
+    "files_touched": [],
+    "notes": ""
+  },
   "active_milestones": [
-    {
-      "id": "M1",
-      "title": "Foundation & Infrastructure",
-      "status": "in_progress",
-      "branch": "milestone/m1",
-      "worktree": "../okx-onchainos-credit-M1",
-      "started_at": "2026-03-09T13:31:53.2145557-04:00",
-      "depends_on": [],
-      "tasks_total": 10,
-      "tasks_done": 10,
-      "tasks_in_progress": 0,
-      "tasks_blocked": 0,
-      "tasks_remaining": 0,
-      "tasks": [
-        {
-          "id": "M1-001",
-          "story": "—",
-          "description": "Init bun workspaces",
-          "status": "done",
-          "commit": "ae7d251",
-          "started_at": "2026-03-09T17:32:05.784Z",
-          "completed_at": "2026-03-09T17:39:31.000Z"
-        },
-        {
-          "id": "M1-002",
-          "story": "—",
-          "description": "Configure base TypeScript",
-          "status": "done",
-          "commit": "ae7d251",
-          "started_at": "2026-03-09T17:39:31.000Z",
-          "completed_at": "2026-03-09T17:39:43.639Z"
-        },
-        {
-          "id": "M1-003",
-          "story": "—",
-          "description": "Setup Biome + pre-commit hook",
-          "status": "done",
-          "commit": "a505dac",
-          "started_at": "2026-03-09T13:40:38.7239536-04:00",
-          "completed_at": "2026-03-09T17:45:30.002Z"
-        },
-        {
-          "id": "M1-004",
-          "story": "E2-S01",
-          "description": "Scaffold OKX OnchainOS API client",
-          "status": "done",
-          "commit": "03d265b",
-          "started_at": "2026-03-09T17:45:30.037Z",
-          "completed_at": "2026-03-09T17:48:56.719Z"
-        },
-        {
-          "id": "M1-005",
-          "story": "—",
-          "description": "Setup Turso + Drizzle schema",
-          "status": "done",
-          "commit": "d9113ce",
-          "started_at": "2026-03-09T17:48:56.755Z",
-          "completed_at": "2026-03-09T17:51:08.759Z"
-        },
-        {
-          "id": "M1-006",
-          "story": "E1-S01",
-          "description": "WalletConnect integration",
-          "status": "done",
-          "commit": "2c901dd",
-          "started_at": "2026-03-09T17:51:08.794Z",
-          "completed_at": "2026-03-09T17:54:48.849Z"
-        },
-        {
-          "id": "M1-007",
-          "story": "E1-S02",
-          "description": "SIWE auth route handlers",
-          "status": "done",
-          "commit": "4717f83",
-          "started_at": "2026-03-09T17:54:48.885Z",
-          "completed_at": "2026-03-09T17:58:51.945Z"
-        },
-        {
-          "id": "M1-008",
-          "story": "—",
-          "description": "Setup Vitest + test infrastructure",
-          "status": "done",
-          "commit": "f5fff54",
-          "started_at": "2026-03-09T17:58:51.980Z",
-          "completed_at": "2026-03-09T18:01:02.302Z"
-        },
-        {
-          "id": "M1-009",
-          "story": "—",
-          "description": "Setup Harness CLI",
-          "status": "done",
-          "commit": "52e4685",
-          "started_at": "2026-03-09T18:01:02.339Z",
-          "completed_at": "2026-03-09T18:02:25.484Z"
-        },
-        {
-          "id": "M1-010",
-          "story": "—",
-          "description": "GitHub Actions CI",
-          "status": "done",
-          "commit": "ea51110",
-          "started_at": "2026-03-09T18:02:25.518Z",
-          "completed_at": "2026-03-09T18:04:06.590Z"
-        }
-      ]
-    },
     {
       "id": "M2",
       "title": "Score Engine",
-      "status": "not_started",
+      "status": "in_progress",
       "branch": "milestone/m2",
-      "worktree": "../okx-onchainos-credit-M2",
+      "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M2",
       "depends_on": ["M1"],
       "tasks_total": 9,
-      "tasks_done": 0,
-      "tasks_in_progress": 0,
+      "tasks_done": 8,
+      "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 9,
+      "tasks_remaining": 1,
       "tasks": [
         {
           "id": "M2-001",
           "story": "E2-S01",
           "description": "Transaction data normalizer",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "2e2b602",
+          "started_at": "2026-03-09T18:12:04.974Z",
+          "completed_at": "2026-03-09T18:14:56.877Z"
         },
         {
           "id": "M2-002",
           "story": "E2-S02",
           "description": "Dimension: wallet age + activity",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "f58f506",
+          "started_at": "2026-03-09T18:14:56.914Z",
+          "completed_at": "2026-03-09T18:16:48.742Z"
         },
         {
           "id": "M2-003",
           "story": "E2-S02",
           "description": "Dimension: asset scale",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "f667233",
+          "started_at": "2026-03-09T18:16:48.775Z",
+          "completed_at": "2026-03-09T18:18:11.102Z"
         },
         {
           "id": "M2-004",
           "story": "E2-S02",
           "description": "Dimension: position stability",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "0b24b58",
+          "started_at": "2026-03-09T18:18:11.136Z",
+          "completed_at": "2026-03-10T00:33:42.878Z"
         },
         {
           "id": "M2-005",
           "story": "E2-S02",
           "description": "Dimension: DeFi repayment history",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "4cf12bc",
+          "started_at": "2026-03-10T00:33:42.912Z",
+          "completed_at": "2026-03-10T00:34:18.067Z"
         },
         {
           "id": "M2-006",
           "story": "E2-S02",
           "description": "Dimension: multi-chain activity",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "1581cfc",
+          "started_at": "2026-03-10T00:34:18.102Z",
+          "completed_at": "2026-03-10T00:34:56.498Z"
         },
         {
           "id": "M2-007",
           "story": "E2-S03",
           "description": "Score aggregation (300-850)",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "50fa463",
+          "started_at": "2026-03-10T00:34:56.533Z",
+          "completed_at": "2026-03-10T00:35:47.734Z"
         },
         {
           "id": "M2-008",
           "story": "E2-S04",
           "description": "Score caching (Turso, 24h TTL)",
-          "status": "not_started",
-          "commit": null
+          "status": "done",
+          "commit": "9fc20a0",
+          "started_at": "2026-03-10T00:35:47.768Z",
+          "completed_at": "2026-03-10T00:37:30.672Z"
         },
         {
           "id": "M2-009",
           "story": "E2-S02",
           "description": "Unit tests for all dimensions",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-10T00:37:30.704Z"
         }
-      ]
+      ],
+      "started_at": "2026-03-09T18:10:30.994Z"
     },
     {
       "id": "M3",
@@ -457,7 +377,13 @@
       ]
     }
   ],
-  "completed_milestones": [],
+  "completed_milestones": [
+    {
+      "id": "M1",
+      "name": "Foundation & Infrastructure",
+      "completed_at": "2026-03-09T18:10:21.281Z"
+    }
+  ],
   "blockers": [],
   "learnings": [],
   "dependency_graph": {

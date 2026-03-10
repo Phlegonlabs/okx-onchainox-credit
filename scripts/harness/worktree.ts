@@ -123,7 +123,7 @@ export async function runWorktreeFinish(milestoneId: string): Promise<void> {
   if (hasGitCheckout(worktreePath)) {
     step('Rebasing onto main...');
     try {
-      execSync('git rebase main', { stdio: 'inherit', cwd: worktreePath });
+      execSync('git rebase main --autostash', { stdio: 'inherit', cwd: worktreePath });
     } catch {
       fail('Rebase failed. Resolve conflicts manually, then re-run worktree:finish.');
     }
@@ -199,7 +199,7 @@ export async function runWorktreeFinish(milestoneId: string): Promise<void> {
 export async function runWorktreeRebase(): Promise<void> {
   step('Rebasing worktree onto main...');
   try {
-    execSync('git rebase main', { stdio: 'inherit' });
+    execSync('git rebase main --autostash', { stdio: 'inherit' });
     ok('Rebase complete');
   } catch {
     fail('Rebase failed. Resolve conflicts and run: git rebase --continue');
