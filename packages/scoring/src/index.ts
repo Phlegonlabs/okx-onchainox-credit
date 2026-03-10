@@ -19,3 +19,4 @@ export { computeScore } from './scorer.js';
 export { getImprovementTips } from './lib/improvement-tips.js';
 export { loadRawWalletData } from './lib/wallet-data.js';
 export { OkxClient } from './lib/okx-client.js';
+export { getWalletScore } from './wallet-score.js';

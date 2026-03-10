@@ -123,4 +123,54 @@ describe('MCP server scaffold', () => {
       },
     });
   });
+
+  it('returns score-only payloads for get_score', async () => {
+    const server = createMcpServer({
+      getScore: async (wallet) => ({
+        wallet,
+        score: 689,
+        tier: 'good',
+        dimensions: {
+          walletAge: 85,
+          assetScale: 70,
+          positionStability: 66,
+          repaymentHistory: 73,
+          multichain: 50,
+        },
+        computedAt: '2026-03-10T00:00:00.000Z',
+        expiresAt: '2026-03-11T00:00:00.000Z',
+      }),
+    });
+    const client = new Client(
+      {
+        name: 'okx-credit-test-client',
+        version: '1.0.0',
+      },
+      {
+        capabilities: {},
+      }
+    );
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+
+    transports.push(clientTransport, serverTransport);
+
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: 'get_score',
+      arguments: {
+        wallet: '0x1234567890abcdef1234567890abcdef12345678',
+      },
+    });
+
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toMatchObject({
+      wallet: '0x1234567890abcdef1234567890abcdef12345678',
+      score: 689,
+      tier: 'good',
+      dimensions: {
+        walletAge: 85,
+      },
+    });
+  });
 });
