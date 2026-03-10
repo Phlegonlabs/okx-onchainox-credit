@@ -1,6 +1,6 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-10T01:57:24.153Z",
+  "last_updated": "2026-03-10T01:59:25.426Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M6",
@@ -9,17 +9,17 @@
     "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M6",
     "status": "in_progress",
     "tasks_total": 9,
-    "tasks_done": 5,
+    "tasks_done": 6,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 4
+    "tasks_remaining": 3
   },
   "current_task": {
-    "id": "M6-006",
+    "id": "M6-007",
     "story": "E6-S03",
-    "description": "CLI: okx-credit score",
+    "description": "CLI: okx-credit verify",
     "status": "in_progress",
-    "started_at": "2026-03-10T01:57:24.153Z",
+    "started_at": "2026-03-10T01:59:25.426Z",
     "files_touched": [],
     "notes": ""
   },
@@ -32,10 +32,10 @@
       "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M6",
       "depends_on": ["M4", "M5"],
       "tasks_total": 9,
-      "tasks_done": 5,
+      "tasks_done": 6,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 4,
+      "tasks_remaining": 3,
       "tasks": [
         {
           "id": "M6-001",
@@ -86,16 +86,18 @@
           "id": "M6-006",
           "story": "E6-S03",
           "description": "CLI: okx-credit score",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-10T01:57:24.153Z"
+          "status": "done",
+          "commit": "2b76fe4",
+          "started_at": "2026-03-10T01:57:24.153Z",
+          "completed_at": "2026-03-10T01:59:25.392Z"
         },
         {
           "id": "M6-007",
           "story": "E6-S03",
           "description": "CLI: okx-credit verify",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-10T01:59:25.426Z"
         },
         {
           "id": "M6-008",

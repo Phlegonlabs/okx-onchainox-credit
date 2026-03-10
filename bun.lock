@@ -78,6 +78,9 @@
     "packages/scoring": {
       "name": "@okx-credit/scoring",
       "version": "0.1.0",
+      "dependencies": {
+        "ethers": "^6.13.4",
+      },
       "devDependencies": {
         "typescript": "^5.7.3",
         "vitest": "^2.1.9",
