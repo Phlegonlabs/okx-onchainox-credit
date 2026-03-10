@@ -1,5 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import type { CreditImprovementTip } from '@okx-credit/scoring';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createMcpServer } from './lib/create-server.js';
 
@@ -172,5 +173,61 @@ describe('MCP server scaffold', () => {
         walletAge: 85,
       },
     });
+  });
+
+  it('returns ranked tips for get_improvement_tips', async () => {
+    const server = createMcpServer({
+      getImprovementTipsForWallet: async (wallet, limit) => ({
+        wallet,
+        currentScore: 689,
+        tips: (
+          [
+            {
+              action: 'Repay open borrows faster.',
+              currentValue: 60,
+              dimensionKey: 'repaymentHistory',
+              dimensionLabel: 'Repayment history',
+              estimatedPointGain: 40,
+            },
+            {
+              action: 'Expand credible activity to more chains.',
+              currentValue: 50,
+              dimensionKey: 'multichain',
+              dimensionLabel: 'Multichain activity',
+              estimatedPointGain: 28,
+            },
+          ] satisfies CreditImprovementTip[]
+        ).slice(0, limit),
+      }),
+    });
+    const client = new Client(
+      {
+        name: 'okx-credit-test-client',
+        version: '1.0.0',
+      },
+      {
+        capabilities: {},
+      }
+    );
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+
+    transports.push(clientTransport, serverTransport);
+
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: 'get_improvement_tips',
+      arguments: {
+        wallet: '0x1234567890abcdef1234567890abcdef12345678',
+        limit: 1,
+      },
+    });
+
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toMatchObject({
+      wallet: '0x1234567890abcdef1234567890abcdef12345678',
+      currentScore: 689,
+    });
+    expect((result.structuredContent as { tips: CreditImprovementTip[] }).tips).toHaveLength(1);
   });
 });
