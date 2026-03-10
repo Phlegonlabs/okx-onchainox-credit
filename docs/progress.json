@@ -1,6 +1,6 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-10T01:54:16.496Z",
+  "last_updated": "2026-03-10T01:55:42.183Z",
   "last_agent": "harness-engineer-cli",
   "current_milestone": {
     "id": "M6",
@@ -9,17 +9,17 @@
     "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M6",
     "status": "in_progress",
     "tasks_total": 9,
-    "tasks_done": 3,
+    "tasks_done": 4,
     "tasks_in_progress": 1,
     "tasks_blocked": 0,
-    "tasks_remaining": 6
+    "tasks_remaining": 5
   },
   "current_task": {
-    "id": "M6-004",
-    "story": "E6-S01",
-    "description": "Tool: get_improvement_tips",
+    "id": "M6-005",
+    "story": "E6-S02",
+    "description": "SKILL.md (initial version exists at root) + docs/api-reference.md",
     "status": "in_progress",
-    "started_at": "2026-03-10T01:54:16.496Z",
+    "started_at": "2026-03-10T01:55:42.183Z",
     "files_touched": [],
     "notes": ""
   },
@@ -32,10 +32,10 @@
       "worktree": "C:\\Users\\mps19\\Documents\\Github\\okx-onchainox-credit-M6",
       "depends_on": ["M4", "M5"],
       "tasks_total": 9,
-      "tasks_done": 3,
+      "tasks_done": 4,
       "tasks_in_progress": 1,
       "tasks_blocked": 0,
-      "tasks_remaining": 6,
+      "tasks_remaining": 5,
       "tasks": [
         {
           "id": "M6-001",
@@ -68,16 +68,18 @@
           "id": "M6-004",
           "story": "E6-S01",
           "description": "Tool: get_improvement_tips",
-          "status": "in_progress",
-          "commit": null,
-          "started_at": "2026-03-10T01:54:16.496Z"
+          "status": "done",
+          "commit": "76b942b",
+          "started_at": "2026-03-10T01:54:16.496Z",
+          "completed_at": "2026-03-10T01:55:42.147Z"
         },
         {
           "id": "M6-005",
           "story": "E6-S02",
           "description": "SKILL.md (initial version exists at root) + docs/api-reference.md",
-          "status": "not_started",
-          "commit": null
+          "status": "in_progress",
+          "commit": null,
+          "started_at": "2026-03-10T01:55:42.183Z"
         },
         {
           "id": "M6-006",
