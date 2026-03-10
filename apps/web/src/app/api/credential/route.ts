@@ -22,7 +22,15 @@ export async function POST(request: Request) {
   }
 
   const requestId = request.headers.get('x-request-id') ?? undefined;
-  const body = (await request.json()) as CredentialRequestBody;
+
+  let body: CredentialRequestBody;
+  try {
+    body = (await request.json()) as CredentialRequestBody;
+  } catch {
+    const error = new ValidationError('Invalid request body');
+    return NextResponse.json(toErrorBody(error), { status: error.statusCode });
+  }
+
   const rawWallet = body.wallet?.trim();
 
   if (!rawWallet || !isAddress(rawWallet)) {

@@ -59,9 +59,14 @@ export function verifySessionToken(token: string): SessionPayload | null {
     return null;
   }
 
-  const payload = JSON.parse(
-    Buffer.from(encodedPayload, 'base64url').toString('utf-8')
-  ) as SessionPayload;
+  let payload: SessionPayload;
+  try {
+    payload = JSON.parse(
+      Buffer.from(encodedPayload, 'base64url').toString('utf-8')
+    ) as SessionPayload;
+  } catch {
+    return null;
+  }
   if (!payload.wallet || !payload.expiresAt) {
     return null;
   }

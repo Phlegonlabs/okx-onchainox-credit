@@ -3,7 +3,15 @@ import { type SignInPayload, verifySiwePayload } from '@/lib/siwe';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
-  const payload = (await request.json()) as Partial<SignInPayload>;
+  let payload: Partial<SignInPayload>;
+  try {
+    payload = (await request.json()) as Partial<SignInPayload>;
+  } catch {
+    return NextResponse.json(
+      { error: { code: 'INVALID_INPUT', message: 'Invalid request body.' } },
+      { status: 400 }
+    );
+  }
 
   if (!payload.message || !payload.signature) {
     return NextResponse.json(
