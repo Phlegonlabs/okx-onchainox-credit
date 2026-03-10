@@ -18,6 +18,14 @@ export interface DimensionDefinition {
   weight: number;
 }
 
+export interface ImprovementTip {
+  currentValue: number;
+  dimensionKey: DimensionKey;
+  estimatedPointGain: number;
+  label: string;
+  summary: string;
+}
+
 export const dimensionDefinitions: DimensionDefinition[] = [
   {
     key: 'walletAge',
@@ -56,6 +64,37 @@ export function getDimensionEntries(dimensions: ScoreDimensions) {
     ...definition,
     value: dimensions[definition.key],
   }));
+}
+
+function getTipSummary(key: DimensionKey): string {
+  switch (key) {
+    case 'walletAge':
+      return 'Keep the wallet active over longer windows and avoid starting from a fresh address for every protocol interaction.';
+    case 'assetScale':
+      return 'Increase retained portfolio depth and maintain higher average balance instead of cycling everything out immediately.';
+    case 'positionStability':
+      return 'Hold core positions longer and reduce rapid in-and-out trading that signals unstable capital.';
+    case 'repaymentHistory':
+      return 'Repay DeFi borrows cleanly and avoid letting open debt linger through volatile periods.';
+    case 'multichain':
+      return 'Build credible activity on more supported chains instead of staying concentrated on a single venue.';
+  }
+}
+
+export function getImprovementTips(dimensions: ScoreDimensions, limit = 3): ImprovementTip[] {
+  return getDimensionEntries(dimensions)
+    .map((entry) => ({
+      dimensionKey: entry.key,
+      label: entry.label,
+      currentValue: entry.value,
+      estimatedPointGain: Math.max(1, Math.round((100 - entry.value) * entry.weight * 5.5)),
+      summary: getTipSummary(entry.key),
+    }))
+    .sort(
+      (left, right) =>
+        right.estimatedPointGain - left.estimatedPointGain || left.currentValue - right.currentValue
+    )
+    .slice(0, limit);
 }
 
 export function clampCreditScore(score: number): number {

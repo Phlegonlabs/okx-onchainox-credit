@@ -4,6 +4,7 @@ import {
   getDimensionEntries,
   getGaugeProgress,
   getGaugeRotation,
+  getImprovementTips,
   getTierTheme,
 } from './dashboard-score';
 
@@ -46,6 +47,22 @@ describe('dashboard score helpers', () => {
       expect.objectContaining({ key: 'positionStability', label: 'Position stability', value: 63 }),
       expect.objectContaining({ key: 'repaymentHistory', label: 'Repayment history', value: 90 }),
       expect.objectContaining({ key: 'multichain', label: 'Multichain activity', value: 44 }),
+    ]);
+  });
+
+  it('ranks improvement tips by estimated point gain', () => {
+    expect(
+      getImprovementTips({
+        walletAge: 72,
+        assetScale: 61,
+        positionStability: 58,
+        repaymentHistory: 35,
+        multichain: 42,
+      })
+    ).toEqual([
+      expect.objectContaining({ dimensionKey: 'repaymentHistory', estimatedPointGain: 89 }),
+      expect.objectContaining({ dimensionKey: 'assetScale', estimatedPointGain: 54 }),
+      expect.objectContaining({ dimensionKey: 'positionStability', estimatedPointGain: 46 }),
     ]);
   });
 });

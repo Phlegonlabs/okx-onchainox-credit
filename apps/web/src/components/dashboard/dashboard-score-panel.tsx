@@ -1,6 +1,7 @@
 import { resolveWalletScore } from '@/lib/credit/score-service';
 import { logger } from '@/lib/logger';
 import { createWalletHash } from '@/lib/wallet/hash';
+import { ImprovementTips } from './improvement-tips';
 import { ScoreBreakdown } from './score-breakdown';
 import { ScoreGauge } from './score-gauge';
 
@@ -95,6 +96,7 @@ export async function DashboardScorePanel({ wallet }: { wallet: string }) {
         </section>
 
         <ScoreBreakdown dimensions={score.dimensions} tier={score.tier} />
+        <ImprovementTips dimensions={score.dimensions} tier={score.tier} />
       </div>
     );
   } catch (error) {
