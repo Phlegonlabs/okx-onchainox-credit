@@ -1,3 +1,4 @@
+import { DashboardScorePanel } from '@/components/dashboard/dashboard-score-panel';
 import { DashboardSessionCard } from '@/components/dashboard/dashboard-session-card';
 import { SESSION_COOKIE_NAME, verifySessionToken } from '@/lib/session';
 import { cookies } from 'next/headers';
@@ -16,6 +17,7 @@ export default async function DashboardPage() {
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(245,166,35,0.18),transparent_18%),linear-gradient(180deg,#0c1220_0%,#080c14_55%,#060910_100%)] px-5 py-6 md:px-8 md:py-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
         <DashboardSessionCard expiresAt={session.expiresAt} wallet={session.wallet} />
+        <DashboardScorePanel wallet={session.wallet} />
 
         <section className="grid gap-4 md:grid-cols-3">
           <article className="rounded-[24px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.82)] p-5">
