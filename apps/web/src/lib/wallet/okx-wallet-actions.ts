@@ -147,7 +147,7 @@ export async function walletSignTypedData(
   }
 
   const chainId = deps.chainId ?? defaultWalletChain.id;
-  const params = [address, JSON.stringify(typedData)];
+  const params = [address, typedData];
 
   if (deps.connectorType === 'extension') {
     const provider = getOkxExtensionProvider();
