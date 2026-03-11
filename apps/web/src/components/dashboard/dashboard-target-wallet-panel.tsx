@@ -1,11 +1,8 @@
 'use client';
 
+import { formatIsoDateTimeUtc } from '@/lib/date-format';
 import { truncateWalletAddress } from '@/lib/wallet/format';
 import { type FormEvent, useRef } from 'react';
-
-function formatTimestamp(value: string): string {
-  return new Date(value).toLocaleString();
-}
 
 export function DashboardTargetWalletPanel({
   onApplyTargetWallet,
@@ -99,7 +96,7 @@ export function DashboardTargetWalletPanel({
             {truncateWalletAddress(sessionWallet)}
           </span>
         </span>
-        <span>Expires: {formatTimestamp(sessionExpiresAt)}</span>
+        <span>Expires: {formatIsoDateTimeUtc(sessionExpiresAt)}</span>
       </div>
     </section>
   );

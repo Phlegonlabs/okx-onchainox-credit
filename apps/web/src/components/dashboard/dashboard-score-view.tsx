@@ -1,3 +1,4 @@
+import { formatIsoDateUtc } from '@/lib/date-format';
 import type { SignedScoreQueryPayload } from '@/lib/enterprise/score-payload';
 import { truncateWalletAddress } from '@/lib/wallet/format';
 import { ImprovementTips } from './improvement-tips';
@@ -48,21 +49,15 @@ export function DashboardScoreView({
               </div>
               <div>
                 <p className="text-xs text-[#666]">Computed</p>
-                <p className="mt-1 text-sm text-white">
-                  {new Date(score.computedAt).toLocaleDateString()}
-                </p>
+                <p className="mt-1 text-sm text-white">{formatIsoDateUtc(score.computedAt)}</p>
               </div>
               <div>
                 <p className="text-xs text-[#666]">Expires</p>
-                <p className="mt-1 text-sm text-white">
-                  {new Date(score.expiresAt).toLocaleDateString()}
-                </p>
+                <p className="mt-1 text-sm text-white">{formatIsoDateUtc(score.expiresAt)}</p>
               </div>
               <div>
                 <p className="text-xs text-[#666]">Session</p>
-                <p className="mt-1 text-sm text-white">
-                  {new Date(sessionExpiresAt).toLocaleDateString()}
-                </p>
+                <p className="mt-1 text-sm text-white">{formatIsoDateUtc(sessionExpiresAt)}</p>
               </div>
             </div>
 

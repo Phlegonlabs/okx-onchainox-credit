@@ -3,13 +3,10 @@
 import { parseCredentialApiResponse } from '@/lib/credential/client';
 import type { IssuedCredential } from '@/lib/credential/payload';
 import { getCredentialActionMessage } from '@/lib/credential/ui';
+import { formatUnixDateTimeUtc } from '@/lib/date-format';
 import type { PaymentRequiredDetails } from '@/lib/x402/payment-required';
 import { useState } from 'react';
 import { WalletPayButton } from './wallet-pay-button';
-
-function formatTimestamp(seconds: number): string {
-  return new Date(seconds * 1_000).toLocaleString();
-}
 
 function downloadCredential(credential: IssuedCredential) {
   const blob = new Blob([JSON.stringify(credential, null, 2)], {
@@ -179,11 +176,15 @@ export function CredentialIssuancePanel({
                 </div>
                 <div>
                   <p className="text-xs text-[#666]">Issued</p>
-                  <p className="mt-1 text-sm text-white">{formatTimestamp(credential.issuedAt)}</p>
+                  <p className="mt-1 text-sm text-white">
+                    {formatUnixDateTimeUtc(credential.issuedAt)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-[#666]">Expires</p>
-                  <p className="mt-1 text-sm text-white">{formatTimestamp(credential.expiresAt)}</p>
+                  <p className="mt-1 text-sm text-white">
+                    {formatUnixDateTimeUtc(credential.expiresAt)}
+                  </p>
                 </div>
               </div>
 

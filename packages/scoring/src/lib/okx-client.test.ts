@@ -100,8 +100,37 @@ describe('OkxClient', () => {
     const [firstUrl, firstInit] = fetchMock.mock.calls[0] ?? [];
     expect(String(firstUrl)).toContain('/api/v6/dex/post-transaction/transactions-by-address');
     expect(String(firstUrl)).toContain('address=0xabc');
+    expect(String(firstUrl)).toContain('limit=20');
     expect((firstInit?.headers as Record<string, string>)['OK-ACCESS-KEY']).toBe('key');
     expect((firstInit?.headers as Record<string, string>)['OK-ACCESS-SIGN']).toBeTruthy();
+  });
+
+  it('uses the larger history page size for single-chain requests', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      jsonResponse({
+        code: '0',
+        msg: '',
+        data: [
+          {
+            cursor: '',
+            transactionList: [],
+          },
+        ],
+      })
+    );
+    globalThis.fetch = fetchMock;
+
+    const client = new OkxClient({
+      apiKey: 'key',
+      secretKey: 'secret',
+      passphrase: 'pass',
+    });
+
+    await client.getWalletHistory('0xabc', '1');
+
+    const [firstUrl] = fetchMock.mock.calls[0] ?? [];
+    expect(String(firstUrl)).toContain('chains=1');
+    expect(String(firstUrl)).toContain('limit=100');
   });
 
   it('returns a typed DeFi position snapshot', async () => {

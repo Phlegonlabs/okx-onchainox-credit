@@ -1,6 +1,7 @@
 'use client';
 
 import { useOkxWallet } from '@/components/wallet/okx-wallet-context';
+import { formatIsoDateTimeUtc } from '@/lib/date-format';
 import { useRouter } from 'next/navigation';
 import { startTransition, useState } from 'react';
 
@@ -46,7 +47,7 @@ export function DashboardSessionCard({
       <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <p className="break-all font-mono text-sm text-white">{truncateAddress(wallet)}</p>
-          <p className="mt-1 text-xs text-[#666]">Expires {new Date(expiresAt).toLocaleString()}</p>
+          <p className="mt-1 text-xs text-[#666]">Expires {formatIsoDateTimeUtc(expiresAt)}</p>
         </div>
 
         <button

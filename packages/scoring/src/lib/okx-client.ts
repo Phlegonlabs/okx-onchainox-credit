@@ -15,6 +15,7 @@ import { extractTransactionPage, normalizeWalletHistoryPage } from './wallet-nor
 const OKX_BASE_URL = process.env.OKX_BASE_URL ?? 'https://web3.okx.com';
 const DEFAULT_TIMEOUT_MS = 3_000;
 const DEFAULT_HISTORY_PAGE_LIMIT = 100;
+const DEFAULT_MULTI_CHAIN_HISTORY_PAGE_LIMIT = 20;
 const MAX_HISTORY_PAGES = 10;
 const DEFAULT_CANDLE_LIMIT = 100;
 
@@ -59,6 +60,15 @@ type OkxCandleRow = [string, string, string, string, string, string?, string?, s
 function toNumber(value: string | number | undefined): number {
   const parsed = typeof value === 'number' ? value : Number(value ?? 0);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function getHistoryPageLimit(chains: string): number {
+  const chainCount = chains
+    .split(',')
+    .map((chain) => chain.trim())
+    .filter((chain) => chain.length > 0).length;
+
+  return chainCount > 1 ? DEFAULT_MULTI_CHAIN_HISTORY_PAGE_LIMIT : DEFAULT_HISTORY_PAGE_LIMIT;
 }
 
 export class OkxClient {
@@ -153,6 +163,7 @@ export class OkxClient {
   async getWalletHistory(wallet: string, chains = SCORING_CHAINS): Promise<WalletEvent[]> {
     const events: WalletEvent[] = [];
     let cursor: string | undefined;
+    const limit = getHistoryPageLimit(chains);
 
     for (let page = 0; page < MAX_HISTORY_PAGES; page++) {
       const result = await this.get<unknown>(
@@ -160,7 +171,7 @@ export class OkxClient {
         {
           address: wallet,
           chains,
-          limit: String(DEFAULT_HISTORY_PAGE_LIMIT),
+          limit: String(limit),
           ...(cursor ? { cursor } : {}),
         }
       );
@@ -231,6 +242,7 @@ export class OkxClient {
   async getDeFiHistory(wallet: string, chains = SCORING_CHAINS): Promise<DeFiEvent[]> {
     const transactions: OkxRawTx[] = [];
     let cursor: string | undefined;
+    const limit = getHistoryPageLimit(chains);
 
     for (let page = 0; page < MAX_HISTORY_PAGES; page++) {
       const result = await this.get<unknown>(
@@ -238,7 +250,7 @@ export class OkxClient {
         {
           address: wallet,
           chains,
-          limit: String(DEFAULT_HISTORY_PAGE_LIMIT),
+          limit: String(limit),
           ...(cursor ? { cursor } : {}),
         }
       );
