@@ -1,5 +1,5 @@
 import type { Chain } from 'viem';
-import { arbitrum, base, bsc, mainnet, optimism } from 'wagmi/chains';
+import { arbitrum, base, bsc, mainnet, optimism } from 'viem/chains';
 
 export const xLayer: Chain = {
   id: 196,
@@ -27,3 +27,23 @@ export const xLayer: Chain = {
 };
 
 export const supportedChains = [mainnet, arbitrum, optimism, base, bsc, xLayer] as const;
+
+export const defaultWalletChain = mainnet;
+
+export function findSupportedChain(chainId: number): Chain | undefined {
+  return supportedChains.find((chain) => chain.id === chainId);
+}
+
+export function toCaipChainId(chainId: number): string {
+  return `eip155:${chainId}`;
+}
+
+export const okxConnectNamespaces = {
+  eip155: {
+    chains: supportedChains.map((chain) => toCaipChainId(chain.id)),
+    defaultChain: defaultWalletChain.id.toString(),
+    rpcMap: Object.fromEntries(
+      supportedChains.map((chain) => [chain.id.toString(), chain.rpcUrls.default.http[0]])
+    ),
+  },
+} as const;

@@ -13,8 +13,8 @@
   "dependencies": {
     "@libsql/client": "^0.14.0",
     "@okx-credit/scoring": "workspace:*",
+    "@okxconnect/ui": "^1.9.1",
     "@radix-ui/react-slot": "^1.1.2",
-    "@tanstack/react-query": "^5.90.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.39.0",
@@ -26,8 +26,7 @@
     "react-dom": "^19.0.0",
     "siwe": "^2.3.2",
     "tailwind-merge": "^2.6.0",
-    "viem": "^2.23.0",
-    "wagmi": "^2.14.0"
+    "viem": "^2.23.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.5",

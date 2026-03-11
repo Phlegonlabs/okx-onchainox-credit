@@ -1,8 +1,8 @@
 'use client';
 
+import { useOkxWallet } from '@/components/wallet/okx-wallet-context';
 import { useRouter } from 'next/navigation';
 import { startTransition, useState } from 'react';
-import { useDisconnect } from 'wagmi';
 
 function truncateAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -16,7 +16,7 @@ export function DashboardSessionCard({
   wallet: string;
 }) {
   const router = useRouter();
-  const { disconnect } = useDisconnect();
+  const { disconnect } = useOkxWallet();
   const [isPending, setIsPending] = useState(false);
 
   async function handleSignOut() {
