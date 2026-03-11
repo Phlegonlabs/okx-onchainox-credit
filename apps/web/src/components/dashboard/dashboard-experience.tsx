@@ -9,12 +9,10 @@ import { DashboardTargetWalletPanel } from './dashboard-target-wallet-panel';
 
 export function DashboardExperience({
   isLocalMockMode = false,
-  localMockReceipt = null,
   sessionExpiresAt,
   sessionWallet,
 }: {
   isLocalMockMode?: boolean;
-  localMockReceipt?: string | null;
   sessionExpiresAt: string;
   sessionWallet: string;
 }) {
@@ -61,7 +59,6 @@ export function DashboardExperience({
           <DashboardScorePanel
             key={`score-${targetWallet ?? 'empty'}`}
             isLocalMockMode={isLocalMockMode}
-            localMockReceipt={localMockReceipt}
             onScoreUnlocked={setUnlockedScore}
             sessionExpiresAt={sessionExpiresAt}
             targetWallet={targetWallet}
@@ -77,7 +74,6 @@ export function DashboardExperience({
                 : 'Select a target wallet first.'
             }
             isLocalMockMode={isLocalMockMode}
-            localMockReceipt={localMockReceipt}
             wallet={targetWallet}
           />
         </>

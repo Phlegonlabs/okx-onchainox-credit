@@ -10,9 +10,10 @@ const TOKEN_ADDRESS_ENV: Record<X402TokenSymbol, string> = {
   USDC: 'X402_USDC_ADDRESS',
   USDG: 'X402_USDG_ADDRESS',
   USDT: 'X402_USDT_ADDRESS',
+  USDT0: 'X402_USDT0_ADDRESS',
 };
 
-export type X402TokenSymbol = 'USDC' | 'USDG' | 'USDT';
+export type X402TokenSymbol = 'USDC' | 'USDG' | 'USDT' | 'USDT0';
 
 export interface X402Config {
   chainId: number;
@@ -48,7 +49,7 @@ function readToken(): X402TokenSymbol {
     'USDC') as X402TokenSymbol;
 
   if (!(rawToken in TOKEN_ADDRESS_ENV)) {
-    throw new Error('X402_PAYMENT_TOKEN must be one of USDG, USDT, or USDC');
+    throw new Error('X402_PAYMENT_TOKEN must be one of USDG, USDT, USDT0, or USDC');
   }
 
   return rawToken;

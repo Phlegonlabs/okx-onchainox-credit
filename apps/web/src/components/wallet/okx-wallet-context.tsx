@@ -21,6 +21,12 @@ import {
 } from '@okxconnect/ui';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
+export interface TransactionParams {
+  to: string;
+  data: string;
+  value?: string;
+}
+
 interface OkxWalletContextValue {
   address: string | null;
   chainId: number | null;
@@ -35,6 +41,7 @@ interface OkxWalletContextValue {
   connectApp: () => Promise<void>;
   connectExtension: () => Promise<void>;
   disconnect: () => Promise<void>;
+  sendTransaction: (params: TransactionParams) => Promise<string>;
   signMessage: (message: string) => Promise<string>;
 }
 
@@ -357,6 +364,51 @@ export function OkxWalletProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function sendTransaction(params: TransactionParams): Promise<string> {
+    const address = walletState.address;
+    if (!address) {
+      throw new Error('Connect an OKX wallet before sending a transaction.');
+    }
+
+    const chainId = walletState.chainId ?? defaultWalletChain.id;
+    const txParams = {
+      from: address,
+      to: params.to,
+      data: params.data,
+      value: params.value ?? '0x0',
+    };
+
+    if (walletState.connectorType === 'extension') {
+      const provider = getOkxExtensionProvider();
+      if (!provider) {
+        throw new Error('OKX Wallet extension is not available in this browser.');
+      }
+
+      try {
+        return await provider.request<string>({
+          method: 'eth_sendTransaction',
+          params: [txParams],
+        });
+      } catch (error) {
+        throw new Error(getWalletErrorMessage(error, 'Transaction rejected.'));
+      }
+    }
+
+    const ui = await getUniversalUi();
+    try {
+      return await ui.request<string>(
+        {
+          method: 'eth_sendTransaction',
+          params: [txParams],
+        },
+        toCaipChainId(chainId),
+        REQUEST_ACTIONS
+      );
+    } catch (error) {
+      throw new Error(getWalletErrorMessage(error, 'Transaction rejected.'));
+    }
+  }
+
   async function signMessage(message: string): Promise<string> {
     const address = walletState.address;
     if (!address) {
@@ -413,6 +465,7 @@ export function OkxWalletProvider({ children }: { children: React.ReactNode }) {
         connectApp,
         connectExtension,
         disconnect,
+        sendTransaction,
         signMessage,
       }}
     >

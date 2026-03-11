@@ -8,16 +8,15 @@ import { truncateWalletAddress } from '@/lib/wallet/format';
 import type { PaymentRequiredDetails } from '@/lib/x402/payment-required';
 import { useState } from 'react';
 import { DashboardScoreView } from './dashboard-score-view';
+import { WalletPayButton } from './wallet-pay-button';
 
 export function DashboardScorePanel({
   isLocalMockMode = false,
-  localMockReceipt = null,
   onScoreUnlocked,
   sessionExpiresAt,
   targetWallet,
 }: {
   isLocalMockMode?: boolean;
-  localMockReceipt?: string | null;
   onScoreUnlocked?: (score: SignedScoreQueryPayload) => void;
   sessionExpiresAt: string;
   targetWallet: string | null;
@@ -26,10 +25,8 @@ export function DashboardScorePanel({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentHeader, setPaymentHeader] = useState('Payment-Signature');
-  const [paymentReceipt, setPaymentReceipt] = useState('');
   const [paymentRequired, setPaymentRequired] = useState<PaymentRequiredDetails | null>(null);
 
-  const hasReceipt = paymentReceipt.trim().length > 0;
   const canRequestScore = targetWallet !== null;
 
   async function requestPaidScore(receipt?: string) {
@@ -61,7 +58,6 @@ export function DashboardScorePanel({
       if (result.kind === 'paid_score') {
         setScore(result.score);
         setPaymentRequired(null);
-        setPaymentReceipt('');
         onScoreUnlocked?.(result.score);
         return;
       }
@@ -70,7 +66,6 @@ export function DashboardScorePanel({
         setScore(null);
         setPaymentHeader(result.paymentRequired.header);
         setPaymentRequired(result.paymentRequired);
-        setPaymentReceipt(isLocalMockMode ? (localMockReceipt ?? '') : paymentReceipt);
         setErrorMessage(
           result.error.code === 'PAYMENT_REQUIRED' ? null : getScoreActionMessage(result.error)
         );
@@ -165,31 +160,11 @@ export function DashboardScorePanel({
               </p>
             </div>
 
-            <details
-              className="rounded-md border border-[#2a2a2a] bg-black p-4"
-              open={isLocalMockMode}
-            >
-              <summary className="cursor-pointer text-xs text-[#666]">
-                Manual settlement bridge
-              </summary>
-              <label className="mt-3 block">
-                <span className="text-xs text-[#666]">Receipt payload</span>
-                <textarea
-                  className="mt-1.5 min-h-20 w-full rounded-md border border-[#2a2a2a] bg-transparent px-3 py-2 text-sm text-white outline-none transition focus:border-[#555]"
-                  onChange={(event) => setPaymentReceipt(event.target.value)}
-                  placeholder="Paste x402 receipt"
-                  value={paymentReceipt}
-                />
-              </label>
-              <button
-                className="mt-3 w-full rounded-md border border-[#333] px-4 py-2 text-sm text-white transition hover:bg-[#111] disabled:opacity-60"
-                disabled={isSubmitting || !hasReceipt}
-                onClick={() => requestPaidScore(paymentReceipt.trim())}
-                type="button"
-              >
-                {isSubmitting ? 'Unlocking...' : 'Submit Receipt'}
-              </button>
-            </details>
+            <WalletPayButton
+              disabled={isSubmitting}
+              onPaid={(txHash) => requestPaidScore(txHash)}
+              payment={paymentRequired}
+            />
           </div>
         ) : null}
 

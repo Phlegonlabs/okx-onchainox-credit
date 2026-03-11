@@ -5,6 +5,7 @@ import type { IssuedCredential } from '@/lib/credential/payload';
 import { getCredentialActionMessage } from '@/lib/credential/ui';
 import type { PaymentRequiredDetails } from '@/lib/x402/payment-required';
 import { useState } from 'react';
+import { WalletPayButton } from './wallet-pay-button';
 
 function formatTimestamp(seconds: number): string {
   return new Date(seconds * 1_000).toLocaleString();
@@ -26,22 +27,18 @@ export function CredentialIssuancePanel({
   disabled = false,
   disabledReason = null,
   isLocalMockMode = false,
-  localMockReceipt = null,
   wallet,
 }: {
   disabled?: boolean;
   disabledReason?: string | null;
   isLocalMockMode?: boolean;
-  localMockReceipt?: string | null;
   wallet: string | null;
 }) {
   const [credential, setCredential] = useState<IssuedCredential | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentHeader, setPaymentHeader] = useState('Payment-Signature');
-  const [paymentReceipt, setPaymentReceipt] = useState('');
   const [paymentRequired, setPaymentRequired] = useState<PaymentRequiredDetails | null>(null);
-  const hasReceipt = paymentReceipt.trim().length > 0;
 
   async function requestCredential(receipt?: string) {
     if (disabled || !wallet) {
@@ -70,7 +67,6 @@ export function CredentialIssuancePanel({
       if (result.kind === 'issued') {
         setCredential(result.credential);
         setPaymentRequired(null);
-        setPaymentReceipt('');
         return;
       }
 
@@ -81,7 +77,6 @@ export function CredentialIssuancePanel({
         setErrorMessage(
           result.error.code === 'PAYMENT_REQUIRED' ? null : getCredentialActionMessage(result.error)
         );
-        setPaymentReceipt(isLocalMockMode ? (localMockReceipt ?? '') : '');
         return;
       }
 
@@ -139,29 +134,11 @@ export function CredentialIssuancePanel({
                 </p>
               </div>
 
-              <details
-                className="rounded-md border border-[#2a2a2a] bg-black p-3"
-                open={isLocalMockMode}
-              >
-                <summary className="cursor-pointer text-xs text-[#666]">Settlement bridge</summary>
-                <label className="mt-3 block">
-                  <span className="text-xs text-[#666]">Receipt</span>
-                  <textarea
-                    className="mt-1 min-h-20 w-full rounded-md border border-[#2a2a2a] bg-transparent px-3 py-2 text-sm text-white outline-none transition focus:border-[#555]"
-                    onChange={(event) => setPaymentReceipt(event.target.value)}
-                    placeholder="Paste x402 receipt"
-                    value={paymentReceipt}
-                  />
-                </label>
-                <button
-                  className="mt-2 w-full rounded-md border border-[#333] px-4 py-2 text-sm text-white transition hover:bg-[#111] disabled:opacity-60"
-                  disabled={disabled || isSubmitting || !hasReceipt}
-                  onClick={() => requestCredential(paymentReceipt.trim())}
-                  type="button"
-                >
-                  {isSubmitting ? 'Issuing...' : 'Submit Receipt'}
-                </button>
-              </details>
+              <WalletPayButton
+                disabled={disabled || isSubmitting}
+                onPaid={(txHash) => requestCredential(txHash)}
+                payment={paymentRequired}
+              />
             </div>
           ) : !disabled && !credential ? (
             <p className="text-sm text-[#888]">
