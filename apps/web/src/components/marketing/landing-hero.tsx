@@ -59,9 +59,9 @@ export function LandingHero() {
                 className="animate-rise max-w-2xl text-base leading-8 text-[var(--okx-text-muted)] md:text-lg"
                 style={{ animationDelay: '120ms' }}
               >
-                OKX OnchainOS Credit transforms live wallet history into a FICO-equivalent score,
-                then seals it as a verifiable credential protocols can trust without waiting on
-                off-chain paperwork.
+                OKX OnchainOS Credit transforms live wallet history into a paid, lender-readable
+                score surface, then seals the result as a verifiable credential protocols can trust
+                without waiting on off-chain paperwork.
               </p>
             </div>
 

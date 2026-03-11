@@ -51,7 +51,7 @@ The smoke script checks:
 - `/api/health`
 - `/api/auth/nonce`
 - retail credential `402` challenge
-- enterprise score `402` challenge
+- paid score query `402` challenge
 - enterprise credential verify `402` challenge
 
 ## 5. Manual Preview Checks
@@ -59,6 +59,7 @@ The smoke script checks:
 Do these after the automated smoke passes:
 - Connect a real wallet and confirm `/api/auth/nonce` plus SIWE sign-in succeeds.
 - Replay the same SIWE message and signature and confirm the second request fails.
+- Complete one real retail score unlock: `402 -> verify -> settle -> score payload`.
 - Complete one real retail credential purchase: `402 -> verify -> settle -> issue`.
 - Complete one real enterprise score query: `402 -> verify -> settle -> response`.
 - Confirm invalid input and rate-limited requests do not settle payments.
@@ -80,6 +81,7 @@ Keep the first 24 hours as a monitored soft launch. Watch:
 - Vercel logs for auth, x402 verify, and x402 settle failures
 - `401`, `402`, `429`, and `500` rates
 - Turso write health and rate-limit growth
+- paid score unlock success rate
 - credential issuance success rate
 - enterprise query success rate
 

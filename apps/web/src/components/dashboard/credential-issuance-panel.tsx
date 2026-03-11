@@ -3,6 +3,7 @@
 import { parseCredentialApiResponse } from '@/lib/credential/client';
 import type { IssuedCredential } from '@/lib/credential/payload';
 import { getCredentialActionMessage } from '@/lib/credential/ui';
+import type { PaymentRequiredDetails } from '@/lib/x402/payment-required';
 import { useState } from 'react';
 
 function formatTimestamp(seconds: number): string {
@@ -22,10 +23,14 @@ function downloadCredential(credential: IssuedCredential) {
 }
 
 export function CredentialIssuancePanel({
+  disabled = false,
+  disabledReason = null,
   isLocalMockMode = false,
   localMockReceipt = null,
   wallet,
 }: {
+  disabled?: boolean;
+  disabledReason?: string | null;
   isLocalMockMode?: boolean;
   localMockReceipt?: string | null;
   wallet: string;
@@ -35,19 +40,14 @@ export function CredentialIssuancePanel({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentHeader, setPaymentHeader] = useState('Payment-Signature');
   const [paymentReceipt, setPaymentReceipt] = useState('');
-  const [paymentRequired, setPaymentRequired] = useState<{
-    amount: string;
-    chainId: number;
-    header: string;
-    network: string;
-    recipient: string;
-    resource: string;
-    token: string;
-    tokenAddress: string;
-  } | null>(null);
+  const [paymentRequired, setPaymentRequired] = useState<PaymentRequiredDetails | null>(null);
   const hasReceipt = paymentReceipt.trim().length > 0;
 
   async function requestCredential(receipt?: string) {
+    if (disabled) {
+      return;
+    }
+
     setErrorMessage(null);
     setIsSubmitting(true);
 
@@ -78,7 +78,9 @@ export function CredentialIssuancePanel({
         setCredential(null);
         setPaymentHeader(result.paymentRequired.header);
         setPaymentRequired(result.paymentRequired);
-        setErrorMessage(null);
+        setErrorMessage(
+          result.error.code === 'PAYMENT_REQUIRED' ? null : getCredentialActionMessage(result.error)
+        );
         setPaymentReceipt(isLocalMockMode ? (localMockReceipt ?? '') : '');
         return;
       }
@@ -108,11 +110,15 @@ export function CredentialIssuancePanel({
 
         <button
           className="min-h-[52px] w-full rounded-full bg-[var(--okx-accent)] px-5 py-3 text-sm font-semibold text-[#080c14] transition hover:bg-[#ffb84d] disabled:opacity-60 md:w-auto"
-          disabled={isSubmitting}
+          disabled={disabled || isSubmitting}
           onClick={() => requestCredential()}
           type="button"
         >
-          {isSubmitting ? 'Requesting payment...' : 'Get Credential'}
+          {disabled
+            ? 'Unlock Paid Score First'
+            : isSubmitting
+              ? 'Requesting payment...'
+              : 'Get Credential'}
         </button>
       </div>
 
@@ -133,6 +139,12 @@ export function CredentialIssuancePanel({
             </li>
             <li>4. Download the ECDSA-signed credential JSON.</li>
           </ol>
+
+          {disabled && disabledReason ? (
+            <div className="mt-6 rounded-[22px] border border-[rgba(59,130,246,0.22)] bg-[rgba(59,130,246,0.08)] p-4 text-sm leading-7 text-[var(--okx-text-muted)]">
+              {disabledReason}
+            </div>
+          ) : null}
 
           {isLocalMockMode ? (
             <div className="mt-6 rounded-[22px] border border-[rgba(245,166,35,0.22)] bg-[rgba(245,166,35,0.08)] p-4 text-sm leading-7 text-[var(--okx-text-muted)]">
@@ -184,7 +196,7 @@ export function CredentialIssuancePanel({
 
               <button
                 className="mt-4 min-h-[52px] w-full rounded-full border border-[var(--okx-border-light)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-sm font-medium text-[var(--color-foreground)] transition hover:border-[var(--okx-accent)] disabled:opacity-60"
-                disabled={isSubmitting || !hasReceipt}
+                disabled={disabled || isSubmitting || !hasReceipt}
                 onClick={() => requestCredential(paymentReceipt.trim())}
                 type="button"
               >
@@ -193,8 +205,14 @@ export function CredentialIssuancePanel({
             </div>
           ) : (
             <div className="mt-5 rounded-[22px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.02)] p-4 text-sm leading-7 text-[var(--okx-text-muted)]">
-              Click <span className="text-[var(--color-foreground)]">Get Credential</span> to fetch
-              the current x402 payment requirements for this wallet.
+              {disabled ? (
+                'Unlock the paid score first. The dashboard only opens credential issuance after the score query settles.'
+              ) : (
+                <>
+                  Click <span className="text-[var(--color-foreground)]">Get Credential</span> to
+                  fetch the current x402 payment requirements for this wallet.
+                </>
+              )}
             </div>
           )}
 

@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet transaction history, DeFi repayment behavior, and portfolio quality from OKX OnchainOS APIs to generate a verifiable 300–850 credit score (FICO-equivalent). Retail DeFi users connect their wallet to check and improve their score, then pay via x402 to receive an ECDSA-signed verifiable credential. DeFi protocols and Neo Banks query wallet scores through a pay-per-use x402 enterprise API to enable under-collateralized lending. AI agents and developers interact with the system via an MCP server (OpenClaw Skill) and CLI tool.
+OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet transaction history, DeFi repayment behavior, and portfolio quality from OKX OnchainOS APIs to generate a verifiable 300–850 credit score (FICO-equivalent). Retail DeFi users connect their wallet, authenticate with SIWE, then pay via x402 to unlock the score and optionally receive an ECDSA-signed verifiable credential. DeFi protocols and Neo Banks query wallet scores through a pay-per-use x402 enterprise API to enable under-collateralized lending. AI agents and developers interact with the same paid API surface directly, while the MCP server and CLI remain preview/internal tooling.
 
 **Launch scope:** Production release targets the web app and enterprise API first. MCP and CLI are included in-repo but treated as preview/internal tooling until they share the same cache/fallback contract and packaged distribution flow.
 
@@ -16,7 +16,7 @@ OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet tra
 |---------|------|-------------|------------|
 | DeFi Retail User | Wallet owner with on-chain history | Understand and improve credit score to unlock better loan terms | No way to leverage years of on-chain activity for financial credibility |
 | DeFi Protocol / Neo Bank | API consumer (borrowing/lending platform) | Assess borrower creditworthiness without requiring full collateral | Either require 150%+ collateral (bad UX) or take on unknown credit risk |
-| Developer / AI Agent | API/MCP consumer | Analyze wallet creditworthiness programmatically, automate lending decisions | No agent-callable credit scoring API exists |
+| Developer / AI Agent | Paid API consumer | Analyze wallet creditworthiness programmatically, automate lending decisions | No agent-callable credit scoring API exists |
 
 ---
 
@@ -28,11 +28,12 @@ OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet tra
 - Steps:
   1. User lands on dashboard → connects wallet (WalletConnect)
   2. User signs SIWE message → authenticated
-  3. System checks cache → if stale/miss, calls OKX OnchainOS APIs to compute score
-  4. Score (300–850) + breakdown (5 dimensions) + improvement tips displayed
-  5. User optionally pays via x402 (USDC on X Layer (Chain ID: 196)) → ECDSA-signed credential issued
-  6. User shares/submits credential to lending protocol
-- Success state: User has score + optional verifiable credential
+  3. User requests the paid score query via x402 (USDC on X Layer (Chain ID: 196))
+  4. System checks cache → if stale/miss, calls OKX OnchainOS APIs to compute score
+  5. Score (300–850) + breakdown (5 dimensions) + improvement tips displayed after payment settles
+  6. User optionally pays again via x402 → ECDSA-signed credential issued
+  7. User shares/submits credential to lending protocol
+- Success state: User has paid score access + optional verifiable credential
 - Error states: Wallet has no on-chain history (score = 300 minimum with explanation), x402 payment fails (retry), OKX API timeout (show cached score or error)
 
 **Journey: Protocol Queries a Wallet Score**
@@ -47,13 +48,14 @@ OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet tra
 - Success state: Protocol receives score, user gets better loan terms
 - Error states: Wallet not found (returns 300 base score), x402 payment invalid (402), rate limit exceeded (429)
 
-**Journey: AI Agent Analyzes Credit**
+**Journey: AI Agent Queries Paid Score API**
 - Persona: AI Agent / Developer
 - Trigger: User asks agent: "分析这个钱包的链上信用情况"
 - Steps:
-  1. Agent calls MCP tool `analyze_credit` with wallet address
-  2. Tool fetches score, breakdown, improvement tips
-  3. Agent returns natural language analysis with actionable advice
+  1. Agent calls `GET /api/v1/score?wallet=0xABCD`
+  2. Server responds with `402` + payment requirements when `Payment-Signature` is missing
+  3. Agent obtains a valid x402 receipt, retries with `Payment-Signature`, and receives score + breakdown JSON + ECDSA signature
+  4. Agent returns natural language analysis with actionable advice
 - Success state: Agent delivers complete credit analysis in natural language
 - Error states: Invalid wallet address (structured error), API unavailable (graceful degradation)
 
@@ -64,7 +66,7 @@ OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet tra
 | ID | Requirement | Acceptance Criteria | Priority | Journey |
 |----|-------------|-------------------|----------|---------|
 | FR-001 | Wallet connection via WalletConnect | User can connect any EVM wallet; server issues a one-time SIWE nonce; session persisted in cookie; disconnect clears session | Must | All |
-| FR-002 | Credit score generation | Score 300–850 computed from 5 dimensions using OKX OnchainOS APIs; returns within 5s; score + dimension breakdown returned | Must | Retail, Protocol |
+| FR-002 | Credit score generation | Score 300–850 computed from 5 dimensions using OKX OnchainOS APIs; returns within 5s; score + dimension breakdown returned after x402 settlement | Must | Retail, Protocol |
 | FR-003 | Score dimension: wallet age + activity | Wallet creation date + transaction frequency scored; oldest active wallets score highest | Must | Score Engine |
 | FR-004 | Score dimension: asset scale | Total portfolio value in USD via OKX Market API; recency-weighted | Must | Score Engine |
 | FR-005 | Score dimension: position stability | Avg holding duration + volatility exposure; HODLers score higher | Must | Score Engine |
@@ -72,7 +74,7 @@ OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet tra
 | FR-007 | Score dimension: multi-chain activity | Number of chains active on (60+ supported by OKX) + cross-chain volume | Must | Score Engine |
 | FR-008 | Score caching | Scores cached in Turso with 24h TTL; cache invalidated on significant wallet event | Must | Performance |
 | FR-009 | x402 credential issuance (retail) | User pays USDC via x402; ECDSA-signed JSON credential issued; downloadable; expires in 30 days | Must | Retail |
-| FR-010 | Score dashboard | Score gauge (300–850 visual), breakdown per dimension, percentile rank, improvement tips | Must | Retail |
+| FR-010 | Score dashboard | Score gauge (300–850 visual), breakdown per dimension, percentile rank, improvement tips; hidden until the paid score query settles | Must | Retail |
 | FR-011 | Improvement tips | Personalized tips based on lowest-scoring dimensions (e.g., "Repay outstanding Aave loan to +45 pts") | Should | Retail |
 | FR-012 | x402 enterprise API | GET /api/v1/score — x402 gated, returns score + breakdown + ECDSA signature; rate limited per payer | Must | Protocol |
 | FR-013 | Credential verification endpoint | GET /api/v1/credential/verify — verify ECDSA signature on a credential JSON | Should | Protocol |

@@ -2,7 +2,7 @@
 
 On-chain credit scoring platform. Uses OKX OnchainOS APIs (Wallet + DeFi + Market) to compute a **300–850 FICO-equivalent credit score** from wallet history across 60+ chains.
 
-Retail users pay via **x402** (USDC on X Layer (Chain ID: 196)) to receive an **ECDSA-signed verifiable credential**. DeFi protocols query scores through a **pay-per-use enterprise API**. AI agents interact via an **MCP server** (OpenClaw Skill).
+Retail users connect a wallet, authenticate with **SIWE**, and then unlock their score via **x402** (USDC on X Layer (Chain ID: 196)). After the paid score query settles, they can optionally mint an **ECDSA-signed verifiable credential**. DeFi protocols and agent infrastructure query scores through the same **pay-per-use API**. The MCP package remains preview/internal and is not part of the paid score path.
 
 ## Scoring Dimensions
 
@@ -21,7 +21,8 @@ Retail users pay via **x402** (USDC on X Layer (Chain ID: 196)) to receive an **
 - **Auth**: SIWE (Sign-In with Ethereum)
 - **Payments**: x402 (OKX X Layer native, zero gas)
 - **Data**: OKX OnchainOS APIs
-- **Agent**: MCP Server (TypeScript, preview/internal)
+- **Agent/API**: paid REST score API for protocol or agent callers
+- **Agent tooling**: MCP Server (TypeScript, preview/internal)
 - **CLI**: `okx-credit` (workspace CLI, preview/internal)
 - **Monorepo**: bun workspaces
 
@@ -36,7 +37,7 @@ bun run dev           # http://localhost:3000
 
 ## Production Notes
 
-- `SIWE_SESSION_SECRET`, `ECDSA_PRIVATE_KEY`, and `ECDSA_PUBLIC_ADDRESS` are required for any authenticated or credential flow.
+- `SIWE_SESSION_SECRET`, `ECDSA_PRIVATE_KEY`, and `ECDSA_PUBLIC_ADDRESS` are required for wallet auth, paid score unlock, and credential flows.
 - `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` are required in production. The local `file:local.db` fallback is development-only.
 - `NEXT_PUBLIC_APP_URL` must be the exact HTTPS origin of the deployed app in preview and production.
 - `LOCAL_INTEGRATION_MODE=mock` is development-only and now fails closed for release targets.
@@ -72,7 +73,7 @@ Notes:
 - `LOCAL_INTEGRATION_MODE=mock` short-circuits live OKX score retrieval and x402 settlement.
 - `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` can be left unset for local work; the app falls back to `file:local.db`.
 - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` can stay unset if you only use an injected browser wallet.
-- In local mock mode, the dashboard pre-fills a demo x402 receipt so credential issuance can be exercised without the live payment network.
+- In local mock mode, the dashboard pre-fills a demo x402 receipt so both paid score unlock and credential issuance can be exercised without the live payment network.
 
 ## Development
 

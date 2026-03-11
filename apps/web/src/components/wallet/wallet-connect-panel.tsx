@@ -136,7 +136,7 @@ export function WalletConnectPanel() {
           Connect a wallet and open the credit session.
         </h2>
         <p className="text-sm leading-7 text-[var(--okx-text-muted)]">
-          The connected address becomes the analysis subject for SIWE, score retrieval, and
+          The connected address becomes the analysis subject for SIWE, paid score retrieval, and
           credential issuance.
         </p>
       </div>
@@ -200,7 +200,9 @@ export function WalletConnectPanel() {
                   ? 'Connector unavailable in this environment.'
                   : isPending
                     ? 'Waiting for wallet approval...'
-                    : 'Connect and expose the wallet address through wagmi context.'}
+                    : connector.type === 'injected'
+                      ? 'Connect the OKX browser extension or another injected EVM wallet.'
+                      : 'Scan with the OKX app or another WalletConnect-compatible wallet.'}
               </p>
             </button>
           ))}
@@ -213,7 +215,7 @@ export function WalletConnectPanel() {
             ? authError
             : hasActiveSession
               ? 'Session cookie is active. Continue into the dashboard.'
-              : 'After connecting, request a one-time SIWE challenge, sign it, and continue to the dashboard.'}
+              : 'After connecting, request a one-time SIWE challenge, sign it, and continue to the paid score dashboard.'}
         </div>
       ) : null}
     </section>

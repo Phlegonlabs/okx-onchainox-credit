@@ -7,7 +7,7 @@ const pillars = [
   {
     eyebrow: '02 / Signed proof',
     title: 'Every score can be converted into an ECDSA credential with a clear expiry.',
-    body: 'Users pay once over x402, receive a compact credential, and reuse that proof with protocols that need verifiable underwriting without direct raw history access.',
+    body: 'Users first unlock the score over x402, then optionally mint a compact credential for protocols that need verifiable underwriting without direct raw history access.',
   },
   {
     eyebrow: '03 / Protocol integration',
@@ -23,7 +23,7 @@ const workflow = [
   },
   {
     step: 'Analyze',
-    detail: 'Pull OKX OnchainOS wallet, DeFi, and market views into a single normalized profile.',
+    detail: 'Request the paid x402 score query and unlock the normalized OKX OnchainOS profile.',
   },
   {
     step: 'Issue',
@@ -32,9 +32,12 @@ const workflow = [
 ];
 
 const operatingModes = [
-  ['Retail', 'See your score, understand the weak dimensions, and mint a portable credential.'],
+  ['Retail', 'Connect a wallet, settle the paid score query, then mint a portable credential.'],
   ['Protocols', 'Query paid score APIs and verify credentials without storing raw wallet traces.'],
-  ['Agents', 'Use the same credit surface through MCP tools for autonomous underwriting flows.'],
+  [
+    'Agents',
+    'Call the same paid score API directly from agent infrastructure without relying on MCP.',
+  ],
 ];
 
 export function LandingContent() {
@@ -54,8 +57,8 @@ export function LandingContent() {
             </h2>
           </div>
           <p className="max-w-md text-sm leading-7 text-[var(--okx-text-muted)]">
-            This flow stays wallet-native from session creation through score retrieval and
-            credential issuance.
+            This flow stays wallet-native from session creation through paid score retrieval and
+            optional credential issuance.
           </p>
         </div>
 
@@ -84,7 +87,7 @@ export function LandingContent() {
                 Operating sequence
               </p>
               <h3 className="mt-4 text-3xl tracking-[-0.03em] [font-family:var(--font-display)]">
-                A three-step flow that stays native to wallets.
+                A three-step flow that stays native to wallets and paid APIs.
               </h3>
             </div>
 
@@ -136,8 +139,8 @@ export function LandingContent() {
               Credit visibility for the next million on-chain balance sheets.
             </h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--okx-text-muted)]">
-              The landing surface is only the first layer. From here the dashboard, credential
-              issuance, and enterprise API all resolve from the same scoring engine.
+              The landing surface is only the first layer. From here the paid dashboard, credential
+              issuance, and agent-facing API all resolve from the same scoring engine.
             </p>
           </div>
 

@@ -1,0 +1,81 @@
+import { describe, expect, it } from 'vitest';
+import { parseScoreApiResponse } from './score-client';
+
+describe('parseScoreApiResponse', () => {
+  it('recognizes a signed paid score payload', () => {
+    const result = parseScoreApiResponse(200, {
+      breakdown: {
+        assetScale: 82,
+        multichain: 63,
+        positionStability: 74,
+        repaymentHistory: 88,
+        walletAge: 79,
+      },
+      computedAt: '2026-03-11T12:00:00.000Z',
+      dataGaps: ['no_defi_history'],
+      expiresAt: '2026-03-12T12:00:00.000Z',
+      issuer: 'okx-onchainos-credit',
+      score: 742,
+      signature: '0xsigned',
+      stale: false,
+      tier: 'good',
+      version: '1.0',
+      wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
+    });
+
+    expect(result).toEqual({
+      kind: 'paid_score',
+      score: expect.objectContaining({
+        score: 742,
+        signature: '0xsigned',
+      }),
+    });
+  });
+
+  it('recognizes payment requirements from a 402 response', () => {
+    const result = parseScoreApiResponse(402, {
+      error: {
+        code: 'PAYMENT_REQUIRED',
+        message: 'x402 payment required for this resource',
+      },
+      paymentRequired: {
+        amount: '0.10',
+        chainId: 196,
+        header: 'Payment-Signature',
+        network: 'xlayer',
+        recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
+        resource: 'score_query',
+        token: 'USDC',
+        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
+      },
+    });
+
+    expect(result).toEqual({
+      error: {
+        code: 'PAYMENT_REQUIRED',
+        message: 'x402 payment required for this resource',
+      },
+      kind: 'payment_required',
+      paymentRequired: expect.objectContaining({
+        resource: 'score_query',
+      }),
+    });
+  });
+
+  it('falls back to a generic error shape for non-score payloads', () => {
+    const result = parseScoreApiResponse(429, {
+      error: {
+        code: 'RATE_LIMITED',
+        message: 'Enterprise API rate limit exceeded.',
+      },
+    });
+
+    expect(result).toEqual({
+      error: {
+        code: 'RATE_LIMITED',
+        message: 'Enterprise API rate limit exceeded.',
+      },
+      kind: 'error',
+    });
+  });
+});
