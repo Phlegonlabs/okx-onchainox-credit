@@ -73,57 +73,73 @@ function createSignedPaymentHeader() {
 }
 
 function mockSuccessfulPaymentLifecycle() {
-  globalThis.fetch = vi.fn().mockImplementation(async (input: RequestInfo | URL) => {
-    const url =
-      typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+  globalThis.fetch = vi
+    .fn()
+    .mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url =
+        typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
 
-    if (url.endsWith('/api/v6/payments/verify')) {
-      return new Response(
-        JSON.stringify({
-          code: '0',
-          data: [
-            {
-              isValid: true,
-              payerAddress: '0xpayer',
-              txHash: '0xtx',
+      if (url.endsWith('/api/v6/x402/verify')) {
+        const body = JSON.parse(String(init?.body ?? '{}'));
+
+        expect(body).toMatchObject({
+          chainIndex: '196',
+          x402Version: 1,
+        });
+
+        return new Response(
+          JSON.stringify({
+            code: '0',
+            data: [
+              {
+                isValid: true,
+                payerAddress: '0xpayer',
+                txHash: '0xtx',
+              },
+            ],
+            msg: '',
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
             },
-          ],
-          msg: '',
-        }),
-        {
-          headers: {
-            'content-type': 'application/json',
-          },
-          status: 200,
-        }
-      );
-    }
+            status: 200,
+          }
+        );
+      }
 
-    if (url.endsWith('/api/v6/payments/settle')) {
-      return new Response(
-        JSON.stringify({
-          code: '0',
-          data: [
-            {
-              isSettled: true,
-              payerAddress: '0xpayer',
-              settlementId: 'settlement-1',
-              txHash: '0xtx',
+      if (url.endsWith('/api/v6/x402/settle')) {
+        const body = JSON.parse(String(init?.body ?? '{}'));
+
+        expect(body).toMatchObject({
+          chainIndex: '196',
+          x402Version: 1,
+        });
+
+        return new Response(
+          JSON.stringify({
+            code: '0',
+            data: [
+              {
+                isSettled: true,
+                payerAddress: '0xpayer',
+                settlementId: 'settlement-1',
+                txHash: '0xtx',
+              },
+            ],
+            msg: '',
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
             },
-          ],
-          msg: '',
-        }),
-        {
-          headers: {
-            'content-type': 'application/json',
-          },
-          status: 200,
-        }
-      );
-    }
+            status: 200,
+          }
+        );
+      }
 
-    throw new Error(`Unexpected fetch target: ${url}`);
-  }) as typeof fetch;
+      throw new Error(`Unexpected fetch target: ${url}`);
+    }) as typeof fetch;
 }
 
 beforeEach(() => {

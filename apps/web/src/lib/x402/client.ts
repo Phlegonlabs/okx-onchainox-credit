@@ -3,6 +3,8 @@ import type { X402PaymentPayload, X402PaymentRequirements } from './payload';
 
 const DEFAULT_OKX_BASE_URL = process.env.OKX_BASE_URL ?? 'https://web3.okx.com';
 const DEFAULT_TIMEOUT_MS = 3_000;
+const OKX_X402_SETTLE_PATH = '/api/v6/x402/settle';
+const OKX_X402_VERIFY_PATH = '/api/v6/x402/verify';
 
 interface OkxApiEnvelope<T> {
   code: string;
@@ -105,6 +107,18 @@ function isRejectedVerification(record: Record<string, unknown>): boolean {
   return status === 'failed' || status === 'invalid' || status === 'rejected';
 }
 
+function buildX402RequestBody(
+  paymentPayload: X402PaymentPayload,
+  paymentRequirements: X402PaymentRequirements
+) {
+  return {
+    chainIndex: paymentPayload.chainIndex,
+    paymentPayload,
+    paymentRequirements,
+    x402Version: paymentPayload.x402Version,
+  };
+}
+
 export class OkxX402Client implements X402Client {
   private config: Required<OkxX402ClientConfig>;
 
@@ -180,16 +194,21 @@ export class OkxX402Client implements X402Client {
     paymentPayload: X402PaymentPayload,
     paymentRequirements: X402PaymentRequirements
   ): Promise<X402PaymentVerification> {
-    const data = await this.post<unknown>('/api/v6/payments/verify', {
-      paymentPayload,
-      paymentRequirements,
-      x402Version: paymentPayload.x402Version,
-    });
+    const data = await this.post<unknown>(
+      OKX_X402_VERIFY_PATH,
+      buildX402RequestBody(paymentPayload, paymentRequirements)
+    );
     const record = unwrapOkxResult(data);
 
     const isValid =
       readBoolean(record, ['isValid', 'verified', 'valid']) ?? !isRejectedVerification(record);
-    const invalidReason = readString(record, ['invalidReason', 'reason', 'message']);
+    const invalidReason = readString(record, [
+      'errorReason',
+      'invalidReason',
+      'reason',
+      'message',
+      'errorMsg',
+    ]);
 
     return {
       invalidReason,
@@ -206,15 +225,20 @@ export class OkxX402Client implements X402Client {
     paymentPayload: X402PaymentPayload,
     paymentRequirements: X402PaymentRequirements
   ): Promise<X402PaymentSettlement> {
-    const data = await this.post<unknown>('/api/v6/payments/settle', {
-      paymentPayload,
-      paymentRequirements,
-      x402Version: paymentPayload.x402Version,
-    });
+    const data = await this.post<unknown>(
+      OKX_X402_SETTLE_PATH,
+      buildX402RequestBody(paymentPayload, paymentRequirements)
+    );
     const record = unwrapOkxResult(data);
 
     return {
-      invalidReason: readString(record, ['invalidReason', 'reason', 'message']),
+      invalidReason: readString(record, [
+        'errorReason',
+        'invalidReason',
+        'reason',
+        'message',
+        'errorMsg',
+      ]),
       payer: readString(record, ['payer', 'payerAddress', 'fromAddress']),
       paymentPayload,
       raw: data,
