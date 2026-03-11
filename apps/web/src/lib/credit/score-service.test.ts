@@ -35,11 +35,26 @@ describe('resolveWalletScore', () => {
   it('returns a local mock score when LOCAL_INTEGRATION_MODE=mock', async () => {
     vi.stubEnv('LOCAL_INTEGRATION_MODE', 'mock');
     vi.stubEnv('NODE_ENV', 'development');
+    resolveScoreWithCache.mockImplementation(async (options) => {
+      const data = await options.walletDataLoader();
+      return {
+        ...(await options.scoreComputer(data)),
+        cacheHit: false,
+        stale: false,
+        walletHash: 'mock-wallet-hash',
+      };
+    });
 
     const { resolveWalletScore } = await import('./score-service');
     const result = await resolveWalletScore(TEST_WALLET);
 
-    expect(resolveScoreWithCache).not.toHaveBeenCalled();
+    expect(resolveScoreWithCache).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scoreComputer: expect.any(Function),
+        wallet: TEST_WALLET,
+        walletDataLoader: expect.any(Function),
+      })
+    );
     expect(result).toMatchObject({
       score: 742,
       stale: false,

@@ -21,12 +21,7 @@ import {
   walletSignTypedData,
   walletSwitchChain,
 } from '@/lib/wallet/okx-wallet-actions';
-import {
-  type ActionConfiguration,
-  OKXUniversalConnectUI,
-  type SessionTypes,
-  THEME,
-} from '@okxconnect/ui';
+import type { ActionConfiguration, OKXUniversalConnectUI, SessionTypes } from '@okxconnect/ui';
 import {
   createContext,
   useCallback,
@@ -119,23 +114,26 @@ export function OkxWalletProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (!universalUiPromiseRef.current) {
-      const initOptions = {
-        dappMetaData: {
-          name: 'OKX OnchainOS Credit',
-          icon: `${window.location.origin}/favicon.ico`,
-        },
-        actionsConfiguration: REQUEST_ACTIONS,
-        language: 'en_US',
-        restoreConnection: true,
-        uiPreferences: {
-          theme: THEME.DARK,
-        },
-      } as Parameters<typeof OKXUniversalConnectUI.init>[0];
+      universalUiPromiseRef.current = import('@okxconnect/ui').then(
+        async ({ OKXUniversalConnectUI, THEME }) => {
+          const initOptions = {
+            dappMetaData: {
+              name: 'OKX OnchainOS Credit',
+              icon: `${window.location.origin}/favicon.ico`,
+            },
+            actionsConfiguration: REQUEST_ACTIONS,
+            language: 'en_US',
+            restoreConnection: true,
+            uiPreferences: {
+              theme: THEME.DARK,
+            },
+          } as Parameters<typeof OKXUniversalConnectUI.init>[0];
+          const ui = await OKXUniversalConnectUI.init(initOptions);
 
-      universalUiPromiseRef.current = OKXUniversalConnectUI.init(initOptions).then((ui) => {
-        universalUiRef.current = ui;
-        return ui;
-      });
+          universalUiRef.current = ui;
+          return ui;
+        }
+      );
     }
 
     return universalUiPromiseRef.current;

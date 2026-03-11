@@ -1,5 +1,14 @@
 import { SiweMessage } from 'siwe';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+const { consumeSiweNonce } = vi.hoisted(() => ({
+  consumeSiweNonce: vi.fn(),
+}));
+
+vi.mock('@/lib/auth/nonce-store', () => ({
+  consumeSiweNonce,
+}));
+
 import { GET as getNonce } from '../nonce/route';
 import { GET as getSession } from '../session/route';
 import { POST as postSignIn } from './route';
@@ -35,6 +44,12 @@ async function issueNonce(): Promise<{ cookie: string; nonce: string }> {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.clearAllMocks();
+});
+
+beforeEach(() => {
+  consumeSiweNonce.mockReset();
+  consumeSiweNonce.mockResolvedValue(true);
 });
 
 describe('auth routes', () => {
@@ -165,7 +180,7 @@ describe('auth routes', () => {
     expect(response.status).toBe(401);
   });
 
-  it('rejects replaying the same SIWE message after the nonce cookie is consumed', async () => {
+  it('rejects replaying the same SIWE message when the original nonce cookie is reused', async () => {
     process.env.SIWE_SESSION_SECRET = 'test-secret';
     const challenge = await issueNonce();
 
@@ -183,6 +198,7 @@ describe('auth routes', () => {
       success: true,
       data: new SiweMessage(message),
     });
+    consumeSiweNonce.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
 
     const firstResponse = await postSignIn(
       createRequest(
@@ -196,10 +212,13 @@ describe('auth routes', () => {
     expect(firstResponse.status).toBe(200);
 
     const replayResponse = await postSignIn(
-      createRequest({
-        message,
-        signature: '0xsigned',
-      })
+      createRequest(
+        {
+          message,
+          signature: '0xsigned',
+        },
+        challenge.cookie
+      )
     );
 
     expect(replayResponse.status).toBe(401);
@@ -208,5 +227,6 @@ describe('auth routes', () => {
         code: 'SIWE_VERIFICATION_FAILED',
       },
     });
+    expect(consumeSiweNonce).toHaveBeenCalledTimes(2);
   });
 });

@@ -1,4 +1,5 @@
 import { SIWE_NONCE_COOKIE_NAME, verifySiweNonceChallenge } from '@/lib/auth/nonce';
+import { consumeSiweNonce } from '@/lib/auth/nonce-store';
 import { logger } from '@/lib/logger';
 import { SESSION_COOKIE_NAME, createSessionToken } from '@/lib/session';
 import {
@@ -102,6 +103,38 @@ export async function POST(request: Request) {
       },
       'SIWE signature verification failed'
     );
+    const response = NextResponse.json(
+      { error: { code: 'SIWE_VERIFICATION_FAILED', message: 'Unable to verify SIWE signature.' } },
+      { status: 401 }
+    );
+
+    clearNonceCookie(response);
+    return response;
+  }
+
+  try {
+    const nonceConsumed = await consumeSiweNonce(expectedNonce);
+    if (!nonceConsumed) {
+      logger.warn(
+        {
+          operation: 'siwe_sign_in',
+          wallet: verification.wallet,
+          expectedNonce: expectedNonce.slice(0, 8),
+        },
+        'Rejected replayed SIWE nonce'
+      );
+      const response = NextResponse.json(
+        {
+          error: { code: 'SIWE_VERIFICATION_FAILED', message: 'Unable to verify SIWE signature.' },
+        },
+        { status: 401 }
+      );
+
+      clearNonceCookie(response);
+      return response;
+    }
+  } catch (error) {
+    logger.error({ error, operation: 'siwe_sign_in' }, 'Failed to persist SIWE nonce usage');
     const response = NextResponse.json(
       { error: { code: 'SIWE_VERIFICATION_FAILED', message: 'Unable to verify SIWE signature.' } },
       { status: 401 }

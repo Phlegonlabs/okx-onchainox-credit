@@ -212,7 +212,7 @@ Client                    Next.js API Route           OKX x402 APIs
   │◀─────────────── score JSON ─│
 ```
 
-x402 helpers live in `apps/web/src/lib/x402.ts`. Routes now validate request input first, verify receipt terms, and settle only after cheap rejects and rate limiting pass.
+x402 helpers live in `apps/web/src/lib/x402/`. Routes now validate request input first, verify receipt terms, and settle only after cheap rejects and rate limiting pass.
 Payments accepted: USDC/USDT/USDG on X Layer (Chain ID: 196, zero gas). OKX's own x402 API — NOT the Coinbase @coinbase/x402 package.
 Prices: Retail credential = $0.50; Enterprise score query = $0.10.
 

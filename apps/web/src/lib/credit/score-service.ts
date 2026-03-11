@@ -54,12 +54,26 @@ export async function loadRawWalletData(
   };
 }
 
+function createLocalMockWalletData(wallet: string): RawWalletData {
+  return {
+    wallet,
+    events: [],
+    defiEvents: [],
+    positions: [],
+    totalValueUsd: 0,
+    hasDeFiPositions: false,
+    activeChains: [],
+  };
+}
+
 export async function resolveWalletScore(wallet: string) {
   if (isLocalMockMode()) {
-    return {
-      ...createLocalMockScore(wallet),
-      stale: false,
-    };
+    return resolveScoreWithCache({
+      wallet,
+      walletDataLoader: async () => createLocalMockWalletData(wallet),
+      // Persist mock scores so local end-to-end checks exercise the same cache tables as live mode.
+      scoreComputer: async () => createLocalMockScore(wallet),
+    });
   }
 
   return resolveScoreWithCache({

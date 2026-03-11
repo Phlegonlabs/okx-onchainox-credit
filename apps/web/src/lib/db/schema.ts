@@ -57,8 +57,22 @@ export const apiRateLimits = sqliteTable(
   })
 );
 
+export const siweNonceUses = sqliteTable(
+  'siwe_nonce_uses',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    nonceHash: text('nonce_hash').notNull(),
+    createdAt: text('created_at').notNull(),
+  },
+  (table) => ({
+    nonceHashIdx: uniqueIndex('siwe_nonce_uses_nonce_hash_idx').on(table.nonceHash),
+    createdAtIdx: index('siwe_nonce_uses_created_at_idx').on(table.createdAt),
+  })
+);
+
 export const schema = {
   apiRateLimits,
   auditLog,
   creditScores,
+  siweNonceUses,
 };
