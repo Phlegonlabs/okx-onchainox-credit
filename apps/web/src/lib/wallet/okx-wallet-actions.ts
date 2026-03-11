@@ -11,6 +11,7 @@ export interface TransactionParams {
   to: string;
   data: string;
   value?: string;
+  chainId?: number;
 }
 
 export interface WalletActionDeps {
@@ -60,7 +61,7 @@ export async function walletSendTransaction(
     throw new Error('Connect an OKX wallet before sending a transaction.');
   }
 
-  const chainId = deps.chainId ?? defaultWalletChain.id;
+  const chainId = params.chainId ?? deps.chainId ?? defaultWalletChain.id;
   const txParams = {
     from: address,
     to: params.to,

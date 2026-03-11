@@ -28,6 +28,7 @@ export function WalletPayButton({
       const txHash = await sendTransaction({
         to: payment.tokenAddress,
         data,
+        chainId: payment.chainId,
       });
       onPaid(txHash);
     } catch (error) {

@@ -47,7 +47,7 @@ export function getLocalMockX402Config(): X402Config {
     chainId: 196,
     network: 'xlayer',
     recipient: DEFAULT_LOCAL_RECIPIENT,
-    token: 'USDC',
+    token: 'USDT0',
     tokenAddress: DEFAULT_LOCAL_TOKEN_ADDRESS,
   };
 }

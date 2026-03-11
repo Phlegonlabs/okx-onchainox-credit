@@ -46,7 +46,7 @@ function parsePositiveAmount(value: string | undefined, envName: string, fallbac
 
 function readToken(): X402TokenSymbol {
   const rawToken = (process.env.X402_PAYMENT_TOKEN?.trim().toUpperCase() ||
-    'USDC') as X402TokenSymbol;
+    'USDT0') as X402TokenSymbol;
 
   if (!(rawToken in TOKEN_ADDRESS_ENV)) {
     throw new Error('X402_PAYMENT_TOKEN must be one of USDG, USDT, USDT0, or USDC');

@@ -155,7 +155,7 @@ describe('verifyX402Payment', () => {
         chainId: 196,
         network: 'xlayer',
         recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
-        token: 'USDC',
+        token: 'USDT0',
         tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
       },
     });
