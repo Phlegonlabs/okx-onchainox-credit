@@ -53,7 +53,14 @@ export function DashboardScorePanel({
         requestInit
       );
       const payload = (await response.json()) as unknown;
+      // biome-ignore lint/suspicious/noConsole: diagnostic for x402 payment flow
+      console.info('[score] API response', { status: response.status, payload });
       const result = parseScoreApiResponse(response.status, payload);
+      // biome-ignore lint/suspicious/noConsole: diagnostic for x402 payment flow
+      console.info('[score] parsed result', {
+        kind: result.kind,
+        ...(result.kind !== 'paid_score' ? { error: (result as { error: unknown }).error } : {}),
+      });
 
       if (result.kind === 'paid_score') {
         setScore(result.score);
@@ -73,7 +80,9 @@ export function DashboardScorePanel({
       }
 
       setErrorMessage(getScoreActionMessage(result.error));
-    } catch (_error) {
+    } catch (caughtError) {
+      // biome-ignore lint/suspicious/noConsole: diagnostic for x402 payment flow
+      console.error('[score] requestPaidScore failed', caughtError);
       setErrorMessage(getScoreActionMessage(undefined));
     } finally {
       setIsSubmitting(false);

@@ -4,6 +4,7 @@ import { logEnterpriseApiQuery } from '@/lib/enterprise/audit';
 import { checkEnterpriseRateLimit } from '@/lib/enterprise/rate-limit';
 import { createScoreQueryPayload } from '@/lib/enterprise/score-payload';
 import { ValidationError, toErrorBody } from '@/lib/errors';
+import { isLocalMockMode } from '@/lib/local-integration';
 import { logger } from '@/lib/logger';
 import { classifyPaidOperationFailure } from '@/lib/paid-operation-failure';
 import { createWalletHash } from '@/lib/wallet/hash';
@@ -67,7 +68,9 @@ export async function GET(request: Request) {
   try {
     const score = await resolveWalletScore(wallet);
     payload = createScoreQueryPayload(wallet, score);
-    signature = await signCredential(payload);
+    signature = isLocalMockMode()
+      ? '0xlocalmockcredentialsignature'
+      : await signCredential(payload);
     scoreTier = score.tier;
   } catch (error) {
     const reason = classifyPaidOperationFailure(error, 'score_preparation_failed');
@@ -104,7 +107,27 @@ export async function GET(request: Request) {
     resource: 'score_query',
   });
   if (!paymentSettlement.ok) {
-    return paymentSettlement.response;
+    logger.error(
+      {
+        operation: 'api.score.settlement',
+        payer,
+        requestId,
+        txHash: verificationTxHash,
+        walletHash,
+      },
+      'x402 settlement failed after successful verification'
+    );
+
+    return NextResponse.json(
+      {
+        error: {
+          code: 'SETTLEMENT_FAILED',
+          message:
+            'Payment was verified but settlement failed. Your funds were not charged. Please retry.',
+        },
+      },
+      { status: 500 }
+    );
   }
 
   const settledPayer = paymentSettlement.payment.payer ?? payer;

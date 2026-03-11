@@ -10,6 +10,8 @@ const scoreActionMessages: Record<string, string> = {
   RATE_LIMITED:
     'This payer hit the score query limit. Wait for the retry window, then resubmit the receipt.',
   SCORE_QUERY_FAILED: 'Score retrieval did not complete. Retry the paid query in a moment.',
+  SETTLEMENT_FAILED:
+    'Payment was verified but settlement failed. Your funds were not charged. Please retry.',
   UNAUTHORIZED: 'The wallet session expired. Reconnect the wallet from the home screen and retry.',
 };
 
