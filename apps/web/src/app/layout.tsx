@@ -25,8 +25,10 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body>
-        <SiteHeader sessionWallet={session?.wallet ?? null} />
-        <WalletProvider>{children}</WalletProvider>
+        <WalletProvider>
+          <SiteHeader sessionWallet={session?.wallet ?? null} />
+          {children}
+        </WalletProvider>
       </body>
     </html>
   );
