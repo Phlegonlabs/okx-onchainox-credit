@@ -119,17 +119,26 @@ export function WalletConnectPanel() {
     setIsAuthenticating(true);
 
     try {
+      // biome-ignore lint/suspicious/noConsole: step-by-step SIWE diagnostics
+      console.info('[SIWE] step 1: fetching nonce...');
       const nonceResponse = await fetch('/api/auth/nonce', {
         cache: 'no-store',
       });
       if (!nonceResponse.ok) {
-        throw new Error('Unable to create a secure wallet challenge.');
+        throw new Error(`Nonce request failed: ${nonceResponse.status}`);
       }
 
       const noncePayload = (await nonceResponse.json()) as { nonce?: string };
       if (!noncePayload.nonce) {
         throw new Error('Secure wallet challenge is unavailable.');
       }
+      // biome-ignore lint/suspicious/noConsole: step-by-step SIWE diagnostics
+      console.info(
+        '[SIWE] step 2: nonce OK, creating message for',
+        address,
+        'domain:',
+        window.location.host
+      );
 
       const message = createSiweMessage({
         address,
@@ -138,7 +147,13 @@ export function WalletConnectPanel() {
         nonce: noncePayload.nonce,
         uri: window.location.origin,
       });
+
+      // biome-ignore lint/suspicious/noConsole: step-by-step SIWE diagnostics
+      console.info('[SIWE] step 3: requesting signature...');
       const signature = await signMessage(message);
+      // biome-ignore lint/suspicious/noConsole: step-by-step SIWE diagnostics
+      console.info('[SIWE] step 4: signature received, posting to sign-in...');
+
       const response = await fetch('/api/auth/sign-in', {
         method: 'POST',
         headers: {
@@ -150,27 +165,28 @@ export function WalletConnectPanel() {
         }),
       });
 
+      const body = await response.text();
+      // biome-ignore lint/suspicious/noConsole: step-by-step SIWE diagnostics
+      console.info('[SIWE] step 5: sign-in response:', response.status, body);
+
       if (!response.ok) {
-        const body = await response.text();
-        // biome-ignore lint/suspicious/noConsole: intentional client-side diagnostic for SIWE failures
-        console.error('[SIWE] sign-in response:', response.status, body);
-        let serverMessage = 'Unable to verify wallet signature.';
+        let serverMessage = `Server returned ${response.status}`;
         try {
-          const parsed = JSON.parse(body) as { error?: { message?: string } };
-          serverMessage = parsed.error?.message ?? serverMessage;
+          const parsed = JSON.parse(body) as { error?: { code?: string; message?: string } };
+          serverMessage = `${parsed.error?.code ?? 'UNKNOWN'}: ${parsed.error?.message ?? body}`;
         } catch {
-          // response was not JSON
+          serverMessage = `Server returned ${response.status}: ${body.slice(0, 200)}`;
         }
         throw new Error(serverMessage);
       }
 
-      const payload = (await response.json()) as { wallet: string };
+      const payload = JSON.parse(body) as { wallet: string };
       setSessionWallet(payload.wallet);
       navigateToDashboard();
     } catch (error) {
-      // biome-ignore lint/suspicious/noConsole: intentional client-side diagnostic for SIWE failures
+      // biome-ignore lint/suspicious/noConsole: step-by-step SIWE diagnostics
       console.error(
-        '[SIWE] sign-in failed:',
+        '[SIWE] FAILED:',
         error instanceof Error ? error.message : JSON.stringify(error)
       );
       setAuthError(extractErrorMessage(error, 'Unable to start the credit session.'));
