@@ -2,6 +2,7 @@
 
 import { useOkxWallet } from '@/components/wallet/okx-wallet-context';
 import { createSiweMessage } from '@/lib/auth/siwe-message';
+import { defaultWalletChain } from '@/lib/wallet/chains';
 import { truncateWalletAddress } from '@/lib/wallet/format';
 import { useRouter } from 'next/navigation';
 import { startTransition, useEffect, useState } from 'react';
@@ -142,7 +143,7 @@ export function WalletConnectPanel() {
 
       const message = createSiweMessage({
         address,
-        chainId: chainId ?? 1,
+        chainId: chainId ?? defaultWalletChain.id,
         domain: window.location.host,
         nonce: noncePayload.nonce,
         uri: window.location.origin,
@@ -242,7 +243,7 @@ export function WalletConnectPanel() {
               ? 'Open Dashboard'
               : isAuthenticating
                 ? 'Requesting signature...'
-                : 'Sign In With Ethereum'}
+                : 'Sign In With Wallet'}
           </button>
 
           <button
