@@ -13,62 +13,39 @@ export function ImprovementTips({
 
   return (
     <div className="min-w-0">
-      <div className="flex flex-col gap-3 border-b border-[rgba(36,51,82,0.72)] pb-5 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
-            Improvement queue
-          </p>
-          <h2 className="mt-3 text-3xl tracking-[-0.04em] text-balance [font-family:var(--font-display)]">
-            The fastest available ways to move the score upward.
-          </h2>
-        </div>
-
-        <div
-          className="self-start rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.24em]"
-          style={{
-            borderColor: theme.glow,
-            color: theme.accent,
-          }}
-        >
-          Ranked by estimated point gain
-        </div>
+      <div className="border-b border-[#2a2a2a] pb-4">
+        <h3 className="text-base font-medium text-white">Improvement Tips</h3>
       </div>
 
-      <div className="mt-6 grid gap-4">
+      <div className="mt-4 grid gap-4">
         {tips.map((tip, index) => (
-          <article
-            className="min-w-0 border-b border-[rgba(36,51,82,0.72)] pb-4 last:border-none last:pb-0"
+          <div
+            className="border-b border-[#2a2a2a] pb-4 last:border-none last:pb-0"
             key={tip.dimensionKey}
           >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
-                  Priority 0{index + 1}
-                </p>
-                <h3 className="mt-3 text-2xl tracking-[-0.03em] [font-family:var(--font-display)]">
-                  {tip.label}
-                </h3>
+                <p className="text-xs text-[#666]">#{index + 1}</p>
+                <p className="mt-1 text-sm font-medium text-white">{tip.label}</p>
               </div>
-              <div
-                className="self-start rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.22em]"
+              <span
+                className="rounded-md border px-2 py-0.5 text-xs"
                 style={{
-                  borderColor: theme.glow,
+                  borderColor: `color-mix(in srgb, ${theme.accent} 30%, transparent)`,
                   color: theme.accent,
                 }}
               >
                 +{tip.estimatedPointGain} pts
-              </div>
+              </span>
             </div>
 
-            <p className="mt-4 text-sm leading-7 text-[var(--okx-text-muted)]">{tip.summary}</p>
+            <p className="mt-2 text-sm text-[#888]">{tip.summary}</p>
 
-            <div className="mt-5 rounded-[20px] border border-[rgba(36,51,82,0.72)] bg-[rgba(255,255,255,0.03)] px-4 py-3">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
-                Current dimension score
-              </p>
-              <p className="mt-3 text-3xl [font-family:var(--font-display)]">{tip.currentValue}</p>
+            <div className="mt-3 rounded-md border border-[#2a2a2a] bg-black px-3 py-2">
+              <span className="text-xs text-[#666]">Current: </span>
+              <span className="font-mono text-sm text-white">{tip.currentValue}/100</span>
             </div>
-          </article>
+          </div>
         ))}
       </div>
     </div>

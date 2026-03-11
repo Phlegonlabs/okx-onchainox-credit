@@ -16,8 +16,8 @@ export default async function DashboardPage() {
   const localMockMode = isLocalMockMode();
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(245,166,35,0.18),transparent_18%),linear-gradient(180deg,#0c1220_0%,#080c14_55%,#060910_100%)] px-5 pb-10 pt-5 md:px-8 md:pb-12 md:pt-6">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
+    <main className="min-h-screen bg-black px-5 pb-10 pt-6 md:px-8 md:pb-12 md:pt-8">
+      <div className="mx-auto flex max-w-5xl flex-col gap-6">
         <DashboardExperience
           isLocalMockMode={localMockMode}
           localMockReceipt={localMockMode ? LOCAL_MOCK_PAYMENT_RECEIPT : null}

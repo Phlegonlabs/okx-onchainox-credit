@@ -26,7 +26,7 @@ export function HeaderSignOutButton() {
 
   return (
     <button
-      className="rounded-full bg-[var(--okx-accent)] px-4 py-2 text-sm font-semibold text-[#080c14] transition hover:bg-[#ffb84d] disabled:opacity-60"
+      className="rounded-md text-sm text-[#888] transition hover:text-white disabled:opacity-60"
       disabled={isSigningOut}
       onClick={handleSignOut}
       type="button"

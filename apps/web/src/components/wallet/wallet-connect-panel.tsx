@@ -14,6 +14,10 @@ function isSameWallet(left: string | null, right: string | null): boolean {
   return left.toLowerCase() === right.toLowerCase();
 }
 
+function navigateToDashboard() {
+  window.location.assign('/dashboard');
+}
+
 export function WalletConnectPanel() {
   const router = useRouter();
   const {
@@ -133,8 +137,7 @@ export function WalletConnectPanel() {
 
       const payload = (await response.json()) as { wallet: string };
       setSessionWallet(payload.wallet);
-      startTransition(() => router.push('/dashboard'));
-      startTransition(() => router.refresh());
+      navigateToDashboard();
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Unable to start the credit session.');
     } finally {
@@ -158,119 +161,99 @@ export function WalletConnectPanel() {
 
   return (
     <section
-      className="relative overflow-hidden rounded-[28px] border border-[var(--okx-border-light)] bg-[linear-gradient(180deg,rgba(13,20,32,0.96),rgba(8,12,20,0.98))] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
+      className="rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-5"
       id="connect-credit-wallet"
     >
-      <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(245,166,35,0.65),transparent)]" />
-      <div className="space-y-3 border-b border-[var(--okx-border)] pb-5">
-        <p className="font-mono text-[11px] uppercase tracking-[0.34em] text-[var(--okx-accent)]">
-          Wallet entry
-        </p>
-        <h2 className="text-3xl leading-tight tracking-[-0.03em] [font-family:var(--font-display)]">
-          Connect through the official OKX wallet rails.
-        </h2>
-        <p className="text-sm leading-7 text-[var(--okx-text-muted)]">
-          The connected address becomes the analysis subject for SIWE, paid score retrieval, and
-          credential issuance. Browser extension uses the OKX injected provider; mobile and scan
-          flows use OKX Connect.
-        </p>
+      <div className="space-y-1 border-b border-[#2a2a2a] pb-4">
+        <h2 className="text-lg font-medium text-white">Connect Wallet</h2>
+        <p className="text-sm text-[#666]">Connect your OKX wallet to sign in and start scoring.</p>
       </div>
 
       {isConnected && address ? (
-        <div className="mt-5 grid gap-4 md:grid-cols-[1.3fr_0.7fr]">
-          <div className="rounded-[24px] border border-[var(--okx-border)] bg-[rgba(17,24,39,0.72)] p-5">
-            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
-              Connected Wallet
-            </p>
-            <p className="mt-4 font-mono text-2xl text-[var(--color-foreground)]" title={address}>
+        <div className="mt-4 space-y-3">
+          <div className="rounded-md border border-[#2a2a2a] bg-black p-4">
+            <p className="text-xs text-[#666]">Connected wallet</p>
+            <p className="mt-1 font-mono text-sm text-white" title={address}>
               {truncateWalletAddress(address)}
             </p>
-            <p className="mt-2 text-sm text-[var(--okx-text-muted)]">
-              {walletLabel && chainName
-                ? `${walletLabel} · ${chainName} · chain ${chainId ?? 'pending'}`
-                : (walletLabel ?? 'Chain pending')}
-            </p>
+            {walletLabel && chainName ? (
+              <p className="mt-1 text-xs text-[#666]">
+                {walletLabel} · {chainName} · chain {chainId ?? 'pending'}
+              </p>
+            ) : null}
           </div>
-          <div className="grid gap-3">
-            <button
-              className="rounded-[24px] border border-[var(--okx-border-light)] bg-[var(--okx-accent)] px-5 py-4 text-sm font-semibold text-[#080c14] transition hover:bg-[#ffb84d] disabled:opacity-60"
-              disabled={isBusy}
-              onClick={hasActiveSession ? () => router.push('/dashboard') : handleAuthenticate}
-              type="button"
-            >
-              {hasActiveSession
-                ? 'Open Dashboard'
-                : isAuthenticating
-                  ? 'Requesting OKX signature...'
-                  : 'Sign In With Ethereum'}
-            </button>
+          <button
+            className="w-full rounded-md bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-[#e5e5e5] disabled:opacity-60"
+            disabled={isBusy}
+            onClick={hasActiveSession ? navigateToDashboard : handleAuthenticate}
+            type="button"
+          >
+            {hasActiveSession
+              ? 'Open Dashboard'
+              : isAuthenticating
+                ? 'Requesting signature...'
+                : 'Sign In With Ethereum'}
+          </button>
 
-            <button
-              className="rounded-[24px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.03)] px-5 py-4 text-sm font-medium text-[var(--color-foreground)] transition hover:border-[var(--okx-accent)]"
-              disabled={isBusy}
-              onClick={handleDisconnect}
-              type="button"
-            >
-              Disconnect
-            </button>
-          </div>
+          <button
+            className="w-full rounded-md border border-[#333] px-4 py-2.5 text-sm text-white transition hover:bg-[#111]"
+            disabled={isBusy}
+            onClick={handleDisconnect}
+            type="button"
+          >
+            Disconnect
+          </button>
         </div>
       ) : (
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
+        <div className="mt-4 grid gap-3">
           <button
-            className="group min-h-40 rounded-[24px] border border-[var(--okx-border)] bg-[rgba(17,24,39,0.72)] p-5 text-left transition hover:border-[var(--okx-accent)] hover:bg-[rgba(245,166,35,0.06)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-md border border-[#2a2a2a] bg-black p-4 text-left transition hover:border-[#444] disabled:cursor-not-allowed disabled:opacity-60"
             disabled={!extensionAvailable || isBusy}
             onClick={handleConnectExtension}
             type="button"
           >
-            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
-              Browser extension
-            </p>
-            <p className="mt-5 text-2xl leading-tight tracking-[-0.03em] text-[var(--color-foreground)] [font-family:var(--font-display)]">
-              OKX Extension
-            </p>
-            <p className="mt-2 text-sm text-[var(--okx-text-muted)]">
+            <p className="text-sm font-medium text-white">Browser Extension</p>
+            <p className="mt-1 text-sm text-[#666]">
               {!extensionAvailable
-                ? 'Install the official OKX extension to use the injected browser flow.'
+                ? 'Install the OKX extension first.'
                 : pendingConnector === 'extension'
-                  ? 'Waiting for extension approval...'
-                  : 'Connect directly through the official OKX injected provider.'}
+                  ? 'Waiting for approval...'
+                  : 'Connect via OKX injected provider.'}
             </p>
           </button>
 
           <button
-            className="group min-h-40 rounded-[24px] border border-[var(--okx-border)] bg-[rgba(17,24,39,0.72)] p-5 text-left transition hover:border-[var(--okx-accent)] hover:bg-[rgba(59,130,246,0.08)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-md border border-[#2a2a2a] bg-black p-4 text-left transition hover:border-[#444] disabled:cursor-not-allowed disabled:opacity-60"
             disabled={isBusy}
             onClick={handleConnectApp}
             type="button"
           >
-            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
-              App / mobile
-            </p>
-            <p className="mt-5 text-2xl leading-tight tracking-[-0.03em] text-[var(--color-foreground)] [font-family:var(--font-display)]">
-              OKX App
-            </p>
-            <p className="mt-2 text-sm text-[var(--okx-text-muted)]">
+            <p className="text-sm font-medium text-white">OKX App</p>
+            <p className="mt-1 text-sm text-[#666]">
               {pendingConnector === 'app'
                 ? 'Opening OKX Connect...'
                 : isRestoring
-                  ? 'Restoring the last OKX Connect session...'
-                  : 'Open the OKX app or scan through OKX Connect for mobile signing.'}
+                  ? 'Restoring session...'
+                  : 'Mobile or scan via OKX Connect.'}
             </p>
           </button>
         </div>
       )}
 
-      {isConnected || authError ? (
-        <div className="mt-4 rounded-[20px] border border-[rgba(36,51,82,0.72)] bg-[rgba(255,255,255,0.02)] px-4 py-3 text-sm text-[var(--okx-text-muted)]">
-          {authError
-            ? authError
-            : hasActiveSession
-              ? 'Session cookie is active. Continue into the dashboard.'
-              : connectorType === 'app'
-                ? 'OKX App is connected. Request the SIWE challenge, sign through OKX Connect, then continue to the paid score dashboard.'
-                : 'After connecting, request a one-time SIWE challenge, sign it through OKX Extension, and continue to the paid score dashboard.'}
+      {authError ? (
+        <div className="mt-3 rounded-md border border-[rgba(220,38,38,0.3)] bg-[rgba(220,38,38,0.08)] px-3 py-2 text-sm text-red-400">
+          {authError}
         </div>
+      ) : null}
+
+      {isConnected && !authError ? (
+        <p className="mt-3 text-xs text-[#666]">
+          {hasActiveSession
+            ? 'Session active. Open the dashboard to begin.'
+            : connectorType === 'app'
+              ? 'Sign the SIWE challenge to continue.'
+              : 'Sign the SIWE challenge to start your session.'}
+        </p>
       ) : null}
     </section>
   );

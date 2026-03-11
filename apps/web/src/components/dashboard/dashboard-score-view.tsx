@@ -15,112 +15,64 @@ export function DashboardScoreView({
 }) {
   return (
     <div className="grid gap-6">
-      <section className="rounded-[32px] border border-[var(--okx-border-light)] bg-[linear-gradient(180deg,rgba(12,18,32,0.96),rgba(8,12,20,0.98))] p-5 shadow-[0_24px_90px_rgba(0,0,0,0.42)] md:p-6">
-        <div className="flex flex-col gap-4 border-b border-[var(--okx-border)] pb-6 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[var(--okx-accent)]">
-              Paid score unlocked
-            </p>
-            <h1 className="mt-3 text-3xl tracking-[-0.04em] text-balance [font-family:var(--font-display)] md:text-5xl">
-              The wallet cleared x402 settlement and the score surface is now visible.
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--okx-text-muted)]">
-              Wallet auth proves who paid for the session. x402 settlement unlocks the investigated
-              wallet&apos;s scored dimensions, the signed score payload, and the downstream
-              credential flow.
-            </p>
-          </div>
-
+      <section className="rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-5 md:p-6">
+        <div className="flex flex-col gap-3 border-b border-[#2a2a2a] pb-5 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-medium text-white">Score Report</h2>
           <div className="flex flex-wrap items-center gap-2">
             {isLocalMockMode ? (
-              <div className="self-start rounded-full border border-[rgba(245,166,35,0.28)] bg-[rgba(245,166,35,0.12)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-accent)]">
-                Local mock mode
-              </div>
+              <span className="rounded-md border border-[#333] px-2 py-1 text-xs text-[#888]">
+                Mock mode
+              </span>
             ) : null}
-            <div className="self-start rounded-full border border-[rgba(16,185,129,0.24)] bg-[rgba(16,185,129,0.08)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-score-excellent)]">
+            <span className="rounded-md border border-[rgba(5,150,105,0.3)] px-2 py-1 text-xs text-[var(--score-excellent)]">
               x402 settled
-            </div>
-            <div className="self-start rounded-full border border-[var(--okx-border)] bg-[rgba(255,255,255,0.03)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-muted)]">
-              {score.stale ? 'Serving stale cache' : 'Fresh within 24h'}
-            </div>
+            </span>
+            <span className="rounded-md border border-[#2a2a2a] px-2 py-1 text-xs text-[#666]">
+              {score.stale ? 'Stale cache' : 'Fresh'}
+            </span>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-8 xl:grid-cols-[minmax(260px,340px)_minmax(0,1.02fr)_minmax(280px,0.82fr)] xl:items-stretch">
-          <div className="mx-auto w-full max-w-[320px]">
+        <div className="mt-6 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <div className="mx-auto w-full max-w-[280px]">
             <ScoreGauge score={score.score} tier={score.tier} />
           </div>
 
-          <div className="space-y-5">
-            <div className="rounded-[28px] border border-[rgba(245,166,35,0.16)] bg-[linear-gradient(135deg,rgba(245,166,35,0.08),rgba(255,255,255,0.02))] p-5">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
-                Report summary
-              </p>
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-[rgba(245,166,35,0.28)] bg-[rgba(245,166,35,0.12)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--okx-accent)]">
-                  {score.tier} tier
-                </span>
-                <span className="rounded-full border border-[rgba(16,185,129,0.24)] bg-[rgba(16,185,129,0.08)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--okx-score-excellent)]">
-                  signature attached
-                </span>
-              </div>
-              <p className="mt-4 text-sm leading-7 text-[var(--okx-text-muted)]">
-                This is the paid investigation report for the selected wallet. The score payload is
-                already signed and can now feed downstream underwriting or credential issuance.
-              </p>
-            </div>
-
-            <div className="rounded-[28px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.03)] p-4 md:p-5">
-              <div className="grid gap-4 md:grid-cols-4 md:divide-x md:divide-[rgba(36,51,82,0.72)]">
-                <div className="space-y-2 md:px-4 first:md:pl-0 last:md:pr-0">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
-                    Investigated wallet
-                  </p>
-                  <p
-                    className="font-mono text-base text-[var(--color-foreground)]"
-                    title={score.wallet}
-                  >
-                    {truncateWalletAddress(score.wallet)}
-                  </p>
-                </div>
-                <div className="space-y-2 md:px-4 first:md:pl-0 last:md:pr-0">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
-                    Computed
-                  </p>
-                  <p className="text-2xl [font-family:var(--font-display)]">
-                    {new Date(score.computedAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="space-y-2 md:px-4 first:md:pl-0 last:md:pr-0">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
-                    Score window
-                  </p>
-                  <p className="text-base text-[var(--color-foreground)]">
-                    {new Date(score.expiresAt).toLocaleString()}
-                  </p>
-                </div>
-                <div className="space-y-2 md:px-4 first:md:pl-0 last:md:pr-0">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
-                    Session expires
-                  </p>
-                  <p className="text-base text-[var(--color-foreground)]">
-                    {new Date(sessionExpiresAt).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-5">
-            {score.dataGaps.length ? (
-              <div className="rounded-[24px] border border-[rgba(245,158,11,0.24)] bg-[rgba(245,158,11,0.08)] p-4">
-                <p className="font-mono text-[11px] uppercase tracking-[0.26em] text-[var(--okx-score-fair)]">
-                  Data gaps
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-4">
+              <div>
+                <p className="text-xs text-[#666]">Wallet</p>
+                <p className="mt-1 font-mono text-sm text-white" title={score.wallet}>
+                  {truncateWalletAddress(score.wallet)}
                 </p>
-                <div className="mt-3 flex flex-wrap gap-2">
+              </div>
+              <div>
+                <p className="text-xs text-[#666]">Computed</p>
+                <p className="mt-1 text-sm text-white">
+                  {new Date(score.computedAt).toLocaleDateString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-[#666]">Expires</p>
+                <p className="mt-1 text-sm text-white">
+                  {new Date(score.expiresAt).toLocaleDateString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-[#666]">Session</p>
+                <p className="mt-1 text-sm text-white">
+                  {new Date(sessionExpiresAt).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+
+            {score.dataGaps.length ? (
+              <div className="rounded-md border border-[rgba(217,119,6,0.3)] bg-[rgba(217,119,6,0.06)] p-3">
+                <p className="text-xs text-[var(--score-fair)]">Data gaps</p>
+                <div className="mt-2 flex flex-wrap gap-2">
                   {score.dataGaps.map((gap) => (
                     <span
-                      className="rounded-full border border-[rgba(245,158,11,0.22)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--okx-score-fair)]"
+                      className="rounded-md border border-[rgba(217,119,6,0.2)] px-2 py-0.5 text-xs text-[var(--score-fair)]"
                       key={gap}
                     >
                       {gap.replaceAll('_', ' ')}
@@ -129,35 +81,18 @@ export function DashboardScoreView({
                 </div>
               </div>
             ) : (
-              <div className="rounded-[24px] border border-[rgba(16,185,129,0.24)] bg-[rgba(16,185,129,0.08)] p-4 text-sm leading-7 text-[var(--okx-text-muted)]">
-                No missing history signals were flagged during the current scoring window.
-              </div>
+              <p className="text-sm text-[#666]">No data gaps flagged.</p>
             )}
-
-            <div className="rounded-[24px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.03)] p-5">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
-                Operational notes
-              </p>
-              <div className="mt-4 grid gap-3 text-sm leading-7 text-[var(--okx-text-muted)]">
-                <p>Use the current target wallet if you want to mint a signed credential next.</p>
-                <p>The session wallet remains only the payer and authenticated operator.</p>
-                <p>
-                  {score.stale
-                    ? 'The score is served from stale cache while the backend refreshes the source telemetry.'
-                    : 'The score is inside the current freshness window and ready for downstream use.'}
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      <section className="rounded-[32px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.84)] p-5 md:p-6">
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] xl:items-start">
-          <div className="xl:border-r xl:border-[rgba(36,51,82,0.72)] xl:pr-8">
+      <section className="rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-5 md:p-6">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)] lg:items-start">
+          <div className="lg:border-r lg:border-[#2a2a2a] lg:pr-8">
             <ScoreBreakdown dimensions={score.breakdown} tier={score.tier} />
           </div>
-          <div className="xl:pl-2">
+          <div className="lg:pl-2">
             <ImprovementTips dimensions={score.breakdown} tier={score.tier} />
           </div>
         </div>

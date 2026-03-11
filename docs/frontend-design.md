@@ -43,30 +43,43 @@ Remember: Claude is capable of extraordinary creative work. Don't hold back, sho
 
 ## Project-Specific Design Direction: OKX OnchainOS Credit
 
-**Aesthetic:** Financial precision meets on-chain mysticism. Think Bloomberg Terminal meets Zaha Hadid — dark, data-dense, geometric, with sharp amber/gold accents against deep navy/black. No crypto "moon" clichés. This is serious financial infrastructure.
+**Aesthetic:** Vercel-style — pure black/white/gray, minimal, flat, clean typography, sharp corners, no decorative effects. Financial infrastructure that feels precise and developer-grade.
 
 **Color palette:**
 ```css
---color-bg: #080c14;          /* deep navy black */
---color-surface: #0d1420;     /* card surface */
---color-border: #1a2540;      /* subtle borders */
---color-accent: #f5a623;      /* amber gold — primary accent */
---color-accent-dim: #c27d0e;  /* dimmed accent */
---color-text: #e8edf5;        /* primary text */
---color-text-muted: #6b7a99;  /* muted text */
---color-score-excellent: #10b981;  /* green */
---color-score-good: #3b82f6;       /* blue */
---color-score-fair: #f59e0b;       /* amber */
---color-score-poor: #ef4444;       /* red */
+--background: #000;           /* pure black */
+--foreground: #fff;            /* primary text */
+--card: #0a0a0a;               /* card surface */
+--border: #2a2a2a;             /* borders */
+--muted: #1a1a1a;              /* muted surface */
+--text-primary: #fff;          /* primary text */
+--text-secondary: #888;        /* secondary text */
+--text-dim: #666;              /* dim / label text */
+--text-faint: #444;            /* placeholder, disabled */
+
+/* Score tier colours (muted functional — only used for data) */
+--score-excellent: #059669;
+--score-good: #2563eb;
+--score-fair: #d97706;
+--score-poor: #dc2626;
 ```
 
 **Typography:**
-- Display / headings: `DM Serif Display` or `Playfair Display` — editorial gravitas
-- Body / data: `IBM Plex Mono` — monospaced, terminal-like for numbers and wallet addresses
-- UI labels: `Syne` — geometric, architectural
+- Body / UI: `Geist Sans` via `geist/font/sans` — clean, geometric sans-serif
+- Data / addresses: `Geist Mono` via `geist/font/mono` — monospaced for numbers and wallet addresses
+- No display/serif fonts — headings use Geist Sans with `font-medium` or `font-semibold`
 
-**Score gauge:** Arc-style gauge (SVG), not a bar. Score animates counting up from 300 on load. Needle-like indicator. Glows in score-tier color.
+**Component patterns:**
+- Cards: `bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg p-5`
+- Primary button: `bg-white text-black rounded-md px-4 py-2.5 text-sm font-medium`
+- Secondary button: `border border-[#333] text-white rounded-md px-4 py-2.5 text-sm`
+- Input: `bg-transparent border border-[#2a2a2a] rounded-md h-10 px-3 text-sm`
+- Labels: `text-xs text-[#666]` or `text-xs text-[#888]`
+- Border radius: `rounded-lg` (8px) max, `rounded-md` (6px) for small elements
+- No gradients, no blurs, no glows, no shadows, no decorative elements
 
-**Wallet addresses:** Always truncated `0xABCD...1234` in monospace. Full address on hover.
+**Score gauge:** Arc-style gauge (SVG), not a bar. Score animates counting up from 300 on load. Needle-like indicator. Colored in tier color against `#2a2a2a` track. No glow effects.
 
-**Motion:** Subtle scanline effect on score reveal. Data points fade in sequentially. No bouncy animations — everything is precise and deliberate.
+**Wallet addresses:** Always truncated `0xABCD...1234` in Geist Mono. Full address on hover via title attribute.
+
+**Motion:** Subtle `animate-rise` (8px translateY, 500ms) on page load with staggered delays. No bouncy animations — everything is precise and minimal.

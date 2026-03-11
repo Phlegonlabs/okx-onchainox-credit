@@ -35,42 +35,27 @@ export function DashboardSessionCard({
   }
 
   return (
-    <section className="rounded-[28px] border border-[var(--okx-border-light)] bg-[linear-gradient(180deg,rgba(12,18,32,0.96),rgba(8,12,20,0.98))] p-5 shadow-[0_24px_90px_rgba(0,0,0,0.4)] md:p-6">
-      <div className="flex flex-col gap-4 border-b border-[var(--okx-border)] pb-5 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.34em] text-[var(--okx-accent)]">
-            Session active
-          </p>
-          <h1 className="mt-3 text-3xl tracking-[-0.04em] text-balance [font-family:var(--font-display)] md:text-4xl">
-            Dashboard access is now wallet-gated.
-          </h1>
-        </div>
-
-        <div className="self-start rounded-full border border-[rgba(16,185,129,0.25)] bg-[rgba(16,185,129,0.1)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-score-excellent)]">
-          SIWE verified
-        </div>
+    <section className="rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-5 md:p-6">
+      <div className="flex items-center justify-between border-b border-[#2a2a2a] pb-4">
+        <h2 className="text-base font-medium text-white">Session</h2>
+        <span className="rounded-md border border-[rgba(5,150,105,0.3)] px-2 py-0.5 text-xs text-[var(--score-excellent)]">
+          Verified
+        </span>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-[1.4fr_0.6fr]">
-        <article className="min-w-0 rounded-[24px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.03)] p-5">
-          <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
-            Authorized wallet
-          </p>
-          <p className="mt-4 break-all font-mono text-xl text-[var(--color-foreground)] md:text-2xl">
-            {truncateAddress(wallet)}
-          </p>
-          <p className="mt-2 text-sm text-[var(--okx-text-muted)]">
-            Session expires {new Date(expiresAt).toLocaleString()}
-          </p>
-        </article>
+      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="break-all font-mono text-sm text-white">{truncateAddress(wallet)}</p>
+          <p className="mt-1 text-xs text-[#666]">Expires {new Date(expiresAt).toLocaleString()}</p>
+        </div>
 
         <button
-          className="min-h-[52px] rounded-[24px] border border-[var(--okx-border-light)] bg-[rgba(255,255,255,0.03)] px-5 py-4 text-sm font-medium text-[var(--color-foreground)] transition hover:border-[var(--okx-accent)] disabled:opacity-60"
+          className="rounded-md border border-[#333] px-4 py-2 text-sm text-white transition hover:bg-[#111] disabled:opacity-60"
           disabled={isPending}
           onClick={handleSignOut}
           type="button"
         >
-          {isPending ? 'Ending session...' : 'Sign out'}
+          {isPending ? 'Ending...' : 'Sign out'}
         </button>
       </div>
     </section>

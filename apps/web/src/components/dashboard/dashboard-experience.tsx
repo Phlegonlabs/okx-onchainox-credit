@@ -73,8 +73,8 @@ export function DashboardExperience({
               targetWallet
                 ? unlockedScore
                   ? null
-                  : 'Unlock the paid score for the active target wallet first. Credential issuance only opens after that wallet’s score query settles.'
-                : 'Lock a target wallet first. The payer wallet signs in once, but score and credential flows only run for the active investigation target.'
+                  : 'Unlock the paid score first.'
+                : 'Select a target wallet first.'
             }
             isLocalMockMode={isLocalMockMode}
             localMockReceipt={localMockReceipt}
@@ -82,32 +82,8 @@ export function DashboardExperience({
           />
         </>
       ) : (
-        <section className="rounded-[32px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.82)] p-5 md:p-6">
-          <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-dim)]">
-            Investigation workspace
-          </p>
-          <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
-            <div className="rounded-[28px] border border-[var(--okx-border)] bg-[linear-gradient(135deg,rgba(245,166,35,0.08),rgba(8,12,20,0.3))] p-5">
-              <h2 className="text-3xl tracking-[-0.04em] [font-family:var(--font-display)] md:text-4xl">
-                Lock a wallet above to open the score report.
-              </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--okx-text-muted)]">
-                The page stays intentionally quiet until you choose the wallet you want to
-                investigate. Once a target is locked, the paid score workflow and optional
-                credential section appear below as one continuous workspace.
-              </p>
-            </div>
-            <div className="rounded-[28px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.03)] p-5">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
-                What opens next
-              </p>
-              <ol className="mt-4 grid gap-3 text-sm leading-7 text-[var(--okx-text-muted)]">
-                <li>1. A compact unlock panel for the selected wallet.</li>
-                <li>2. One dominant score report card after payment clears.</li>
-                <li>3. An optional credential section underneath the report.</li>
-              </ol>
-            </div>
-          </div>
+        <section className="rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-6">
+          <p className="text-sm text-[#888]">Enter a wallet address above to begin scoring.</p>
         </section>
       )}
     </div>

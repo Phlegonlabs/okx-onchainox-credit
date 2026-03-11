@@ -7,7 +7,6 @@ export type DimensionKey = keyof ScoreDimensions;
 
 export interface TierTheme {
   accent: string;
-  glow: string;
   label: string;
 }
 
@@ -113,26 +112,22 @@ export function getTierTheme(tier: ScoreTier): TierTheme {
   switch (tier) {
     case 'excellent':
       return {
-        accent: 'var(--okx-score-excellent)',
-        glow: 'rgba(16,185,129,0.3)',
+        accent: 'var(--score-excellent)',
         label: 'Excellent',
       };
     case 'good':
       return {
-        accent: 'var(--okx-score-good)',
-        glow: 'rgba(59,130,246,0.28)',
+        accent: 'var(--score-good)',
         label: 'Good',
       };
     case 'fair':
       return {
-        accent: 'var(--okx-score-fair)',
-        glow: 'rgba(245,158,11,0.28)',
+        accent: 'var(--score-fair)',
         label: 'Fair',
       };
     default:
       return {
-        accent: 'var(--okx-score-poor)',
-        glow: 'rgba(239,68,68,0.26)',
+        accent: 'var(--score-poor)',
         label: 'Poor',
       };
   }

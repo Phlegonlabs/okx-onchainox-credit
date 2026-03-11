@@ -8,27 +8,22 @@ interface SiteHeaderProps {
 
 const marketingLinks = [
   { href: '/#credit-method', label: 'Methodology' },
-  { href: '/#connect-credit-wallet', label: 'Connect Wallet' },
+  { href: '/#connect-credit-wallet', label: 'Connect' },
 ];
 
 export function SiteHeader({ sessionWallet }: SiteHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 border-b border-[rgba(36,51,82,0.82)] bg-[rgba(8,12,20,0.78)] backdrop-blur-xl">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-4 md:px-8">
-        <div className="flex min-w-0 items-center gap-4">
+    <header className="sticky top-0 z-50 border-b border-[#2a2a2a] bg-[rgba(0,0,0,0.8)] backdrop-blur-sm">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-3 md:px-8">
+        <div className="flex min-w-0 items-center gap-6">
           <Link className="min-w-0" href="/">
-            <div className="font-mono text-[10px] uppercase tracking-[0.42em] text-[var(--okx-accent)]">
-              OKX OnchainOS Credit
-            </div>
-            <p className="mt-1 truncate text-sm text-[var(--okx-text-muted)] md:text-base">
-              Wallet-native underwriting infrastructure
-            </p>
+            <span className="text-sm font-medium text-white">OKX OnchainOS Credit</span>
           </Link>
 
-          <nav className="hidden items-center gap-2 lg:flex">
+          <nav className="hidden items-center gap-1 lg:flex">
             {marketingLinks.map((link) => (
               <Link
-                className="rounded-full border border-transparent px-3 py-2 text-sm text-[var(--okx-text-muted)] transition hover:border-[rgba(36,51,82,0.82)] hover:text-[var(--color-foreground)]"
+                className="rounded-md px-3 py-1.5 text-sm text-[#888] transition hover:text-white"
                 href={link.href}
                 key={link.href}
               >
@@ -40,15 +35,15 @@ export function SiteHeader({ sessionWallet }: SiteHeaderProps) {
 
         <div className="flex shrink-0 items-center gap-2 md:gap-3">
           {sessionWallet ? (
-            <div className="hidden rounded-full border border-[rgba(36,51,82,0.82)] bg-[rgba(255,255,255,0.03)] px-3 py-2 font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-muted)] md:block">
+            <span className="hidden rounded-md border border-[#2a2a2a] px-3 py-1.5 font-mono text-xs text-[#888] md:block">
               {truncateWalletAddress(sessionWallet)}
-            </div>
+            </span>
           ) : null}
 
           {sessionWallet ? (
             <>
               <Link
-                className="rounded-full border border-[rgba(36,51,82,0.82)] bg-[rgba(255,255,255,0.03)] px-4 py-2 text-sm text-[var(--color-foreground)] transition hover:border-[var(--okx-accent)]"
+                className="rounded-md border border-[#333] px-3 py-1.5 text-sm text-white transition hover:bg-[#111]"
                 href="/dashboard"
               >
                 Dashboard
@@ -57,7 +52,7 @@ export function SiteHeader({ sessionWallet }: SiteHeaderProps) {
             </>
           ) : (
             <Link
-              className="rounded-full bg-[var(--okx-accent)] px-4 py-2 text-sm font-semibold text-[#080c14] transition hover:bg-[#ffb84d]"
+              className="rounded-md bg-white px-3 py-1.5 text-sm font-medium text-black transition hover:bg-[#e5e5e5]"
               href="/#connect-credit-wallet"
             >
               Connect Wallet

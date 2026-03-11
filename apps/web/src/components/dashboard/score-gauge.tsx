@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 const ARC_LENGTH = 402;
 const ARC_RADIUS = 86;
-const ARC_STROKE = 12;
+const ARC_STROKE = 10;
 const SCORE_FLOOR = 300;
 
 export function ScoreGauge({
@@ -45,17 +45,10 @@ export function ScoreGauge({
   return (
     <div
       aria-label={`Credit score ${clampedScore} in ${theme.label.toLowerCase()} tier`}
-      className="grid gap-6"
+      className="grid gap-4"
       role="img"
     >
-      <div className="relative mx-auto flex h-[220px] w-[220px] items-center justify-center md:h-[250px] md:w-[250px]">
-        <div
-          className="absolute inset-7 rounded-full blur-3xl"
-          style={{
-            background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)`,
-          }}
-        />
-
+      <div className="relative mx-auto flex h-[200px] w-[200px] items-center justify-center md:h-[220px] md:w-[220px]">
         <svg
           aria-hidden="true"
           className="absolute inset-0 h-full w-full -rotate-[120deg]"
@@ -66,9 +59,9 @@ export function ScoreGauge({
             cx="110"
             cy="110"
             fill="none"
-            opacity="0.4"
+            opacity="0.3"
             r={ARC_RADIUS}
-            stroke="rgba(36,51,82,0.7)"
+            stroke="#2a2a2a"
             strokeDasharray={`${ARC_LENGTH} 540`}
             strokeLinecap="round"
             strokeWidth={ARC_STROKE}
@@ -83,7 +76,6 @@ export function ScoreGauge({
             strokeLinecap="round"
             strokeWidth={ARC_STROKE}
             style={{
-              filter: `drop-shadow(0 0 18px ${theme.glow})`,
               transition: 'stroke-dasharray 1100ms cubic-bezier(0.2, 1, 0.22, 1)',
             }}
           />
@@ -97,36 +89,32 @@ export function ScoreGauge({
           }}
         >
           <div
-            className="mt-[-86px] h-20 w-0.5 rounded-full"
+            className="mt-[-86px] h-16 w-0.5 rounded-full"
             style={{ backgroundColor: theme.accent }}
           />
           <div
-            className="absolute h-4 w-4 rounded-full border-4 border-[rgba(8,12,20,0.9)]"
+            className="absolute h-3 w-3 rounded-full border-[3px] border-black"
             style={{ backgroundColor: theme.accent }}
           />
         </div>
 
         <div className="relative text-center">
-          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[var(--okx-text-muted)]">
-            Current score
-          </p>
-          <p className="mt-4 text-6xl leading-none tracking-[-0.05em] [font-family:var(--font-display)] md:text-7xl">
+          <p className="font-mono text-6xl leading-none tracking-tight text-white md:text-7xl">
             {animatedScore}
           </p>
-          <p className="mt-3 text-sm uppercase tracking-[0.24em]" style={{ color: theme.accent }}>
+          <p
+            className="mt-2 text-xs font-medium uppercase tracking-widest"
+            style={{ color: theme.accent }}
+          >
             {theme.label}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--okx-text-dim)] md:gap-3 md:text-[11px] md:tracking-[0.24em]">
-        <span>300 Base</span>
-        <span>575 Median</span>
-        <span>850 Prime</span>
-      </div>
-
-      <div className="rounded-[22px] border border-[rgba(36,51,82,0.72)] bg-[rgba(255,255,255,0.02)] px-4 py-3 text-sm leading-7 text-[var(--okx-text-muted)]">
-        The gauge tracks the normalized 300-850 credit surface and lights in the current tier color.
+      <div className="grid grid-cols-3 gap-2 text-center text-xs text-[#666]">
+        <span>300</span>
+        <span>575</span>
+        <span>850</span>
       </div>
     </div>
   );
