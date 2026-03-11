@@ -51,6 +51,7 @@ export function WalletConnectPanel() {
     isRestoring,
     pendingConnector,
     signMessage,
+    switchChain,
     walletLabel,
   } = useOkxWallet();
   const [authError, setAuthError] = useState<string | null>(null);
@@ -135,15 +136,17 @@ export function WalletConnectPanel() {
       }
       // biome-ignore lint/suspicious/noConsole: step-by-step SIWE diagnostics
       console.info(
-        '[SIWE] step 2: nonce OK, creating message for',
+        '[SIWE] step 2: nonce OK, switching to X Layer and creating message for',
         address,
         'domain:',
         window.location.host
       );
 
+      await switchChain(defaultWalletChain.id);
+
       const message = createSiweMessage({
         address,
-        chainId: chainId ?? defaultWalletChain.id,
+        chainId: defaultWalletChain.id,
         domain: window.location.host,
         nonce: noncePayload.nonce,
         uri: window.location.origin,

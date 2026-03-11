@@ -1,4 +1,4 @@
-import { defaultWalletChain, toCaipChainId } from '@/lib/wallet/chains';
+import { defaultWalletChain, findSupportedChain, toCaipChainId } from '@/lib/wallet/chains';
 import {
   type WalletConnectorType,
   buildPersonalSignParams,
@@ -22,6 +22,8 @@ export interface WalletActionDeps {
   requestActions: ActionConfiguration;
 }
 
+const CHAIN_NOT_ADDED_CODES = [4902, -32603];
+
 export async function walletSwitchChain(
   deps: WalletActionDeps,
   targetChainId: number
@@ -43,7 +45,35 @@ export async function walletSwitchChain(
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: hexChainId }],
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      const code =
+        typeof error === 'object' && error !== null && 'code' in error
+          ? (error as { code: number }).code
+          : undefined;
+
+      if (code !== undefined && CHAIN_NOT_ADDED_CODES.includes(code)) {
+        const chain = findSupportedChain(targetChainId);
+        if (!chain) {
+          throw new Error(`Chain ${targetChainId} is not supported.`);
+        }
+
+        await provider.request({
+          method: 'wallet_addEthereumChain',
+          params: [
+            {
+              chainId: hexChainId,
+              chainName: chain.name,
+              nativeCurrency: chain.nativeCurrency,
+              rpcUrls: chain.rpcUrls.default.http,
+              blockExplorerUrls: chain.blockExplorers
+                ? [chain.blockExplorers.default.url]
+                : undefined,
+            },
+          ],
+        });
+        return;
+      }
+
       throw new Error(getWalletErrorMessage(error, 'Unable to switch chain.'));
     }
     return;
