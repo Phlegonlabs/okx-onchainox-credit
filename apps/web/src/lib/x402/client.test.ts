@@ -151,4 +151,103 @@ describe('OkxX402Client', () => {
       })
     );
   });
+
+  it('retries transient x402 HTTP 5xx responses before succeeding', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response('temporarily unavailable', {
+          status: 502,
+          statusText: 'Bad Gateway',
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            code: '0',
+            data: [{ isValid: true, payerAddress: '0xpayer' }],
+            msg: '',
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          }
+        )
+      );
+    globalThis.fetch = fetchMock;
+
+    const client = new OkxX402Client({
+      apiKey: 'key',
+      passphrase: 'pass',
+      retryDelaysMs: [0, 0],
+      secretKey: 'secret',
+    });
+
+    await expect(client.verifyPayment(paymentPayload, paymentRequirements)).resolves.toMatchObject({
+      isValid: true,
+      payer: '0xpayer',
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries timeout failures up to the retry budget', async () => {
+    const fetchMock = vi.fn<typeof fetch>((_url, init) => {
+      const signal = init?.signal;
+
+      return new Promise<Response>((_resolve, reject) => {
+        signal?.addEventListener('abort', () => {
+          const error = new Error('aborted');
+          error.name = 'AbortError';
+          reject(error);
+        });
+      });
+    });
+    globalThis.fetch = fetchMock;
+
+    const client = new OkxX402Client({
+      apiKey: 'key',
+      passphrase: 'pass',
+      retryDelaysMs: [0, 0],
+      secretKey: 'secret',
+      timeoutMs: 1,
+    });
+
+    await expect(client.verifyPayment(paymentPayload, paymentRequirements)).rejects.toThrow(
+      'OKX_API_TIMEOUT'
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not retry non-transient x402 failures', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          code: '51000',
+          data: [],
+          msg: 'invalid signature',
+        }),
+        {
+          headers: {
+            'content-type': 'application/json',
+          },
+          status: 200,
+        }
+      )
+    );
+    globalThis.fetch = fetchMock;
+
+    const client = new OkxX402Client({
+      apiKey: 'key',
+      passphrase: 'pass',
+      retryDelaysMs: [0, 0],
+      secretKey: 'secret',
+    });
+
+    await expect(client.verifyPayment(paymentPayload, paymentRequirements)).rejects.toThrow(
+      'OKX x402 API error: invalid signature'
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });

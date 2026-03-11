@@ -221,6 +221,12 @@ describe('GET /api/v1/credential/verify', () => {
       walletHash: expect.any(String),
       x402Tx: '0xtx',
     });
+    const verificationCallOrder = verifyCredentialSignature.mock.invocationCallOrder[0];
+    const settleCallOrder = settleX402Payment.mock.invocationCallOrder[0];
+    if (verificationCallOrder === undefined || settleCallOrder === undefined) {
+      throw new Error('Expected verification and settlement to both run');
+    }
+    expect(verificationCallOrder).toBeLessThan(settleCallOrder);
   });
 
   it('returns valid=false when the signature does not match', async () => {
@@ -260,7 +266,82 @@ describe('GET /api/v1/credential/verify', () => {
     });
   });
 
-  it('returns 500 when verification throws unexpectedly after settlement', async () => {
+  it('continues verification when the rate-limit store throws', async () => {
+    verifyX402Payment.mockResolvedValue({
+      ok: true,
+      payment: {
+        amount: '0.10',
+        chainId: 196,
+        network: 'xlayer',
+        payer: '0xpayer',
+        raw: {},
+        receipt: 'receipt',
+        recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
+        resource: 'credential_verification',
+        token: 'USDC',
+        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
+        txHash: '0xtx',
+      },
+    });
+    checkEnterpriseRateLimit.mockRejectedValue(new Error('api_rate_limits missing'));
+    settleX402Payment.mockResolvedValue({
+      ok: true,
+      payment: {
+        payer: '0xpayer',
+        raw: {},
+        receipt: 'receipt',
+        settlementId: 'settlement-1',
+        txHash: '0xtx',
+      },
+    });
+    verifyCredentialSignature.mockResolvedValue(true);
+
+    const response = await GET(createRequest(createCredential()));
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      valid: true,
+    });
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ operation: 'api.credential.verify.rate_limit' }),
+      'credential verification rate limit check failed; allowing paid query'
+    );
+  });
+
+  it('returns 500 without settling when verification throws unexpectedly', async () => {
+    verifyX402Payment.mockResolvedValue({
+      ok: true,
+      payment: {
+        amount: '0.10',
+        chainId: 196,
+        network: 'xlayer',
+        payer: '0xpayer',
+        raw: {},
+        receipt: 'receipt',
+        recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
+        resource: 'credential_verification',
+        token: 'USDC',
+        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
+        txHash: '0xtx',
+      },
+    });
+    verifyCredentialSignature.mockRejectedValue(new Error('ECDSA_RECOVER_FAILED'));
+
+    const response = await GET(createRequest(createCredential()));
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toMatchObject({
+      error: {
+        code: 'CREDENTIAL_VERIFICATION_FAILED',
+        details: {
+          reason: 'signer_unavailable',
+        },
+      },
+    });
+    expect(settleX402Payment).not.toHaveBeenCalled();
+  });
+
+  it('continues serving the verification result when audit persistence fails', async () => {
     verifyX402Payment.mockResolvedValue({
       ok: true,
       payment: {
@@ -287,15 +368,18 @@ describe('GET /api/v1/credential/verify', () => {
         txHash: '0xtx',
       },
     });
-    verifyCredentialSignature.mockRejectedValue(new Error('signer unavailable'));
+    verifyCredentialSignature.mockResolvedValue(true);
+    logEnterpriseApiQuery.mockRejectedValue(new Error('audit_log missing'));
 
     const response = await GET(createRequest(createCredential()));
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
-      error: {
-        code: 'CREDENTIAL_VERIFICATION_FAILED',
-      },
+      valid: true,
     });
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ operation: 'api.credential.verify.audit' }),
+      'credential verification audit log failed'
+    );
   });
 });

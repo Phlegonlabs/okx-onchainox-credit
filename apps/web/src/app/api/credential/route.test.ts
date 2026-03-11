@@ -172,9 +172,50 @@ describe('POST /api/credential', () => {
       walletHash: expect.any(String),
       x402Tx: '0xtx',
     });
+    const signCallOrder = signCredential.mock.invocationCallOrder[0];
+    const settleCallOrder = settleX402Payment.mock.invocationCallOrder[0];
+    if (signCallOrder === undefined || settleCallOrder === undefined) {
+      throw new Error('Expected credential signing and settlement to both run');
+    }
+    expect(signCallOrder).toBeLessThan(settleCallOrder);
   });
 
-  it('returns 500 when audit persistence fails after settlement', async () => {
+  it('returns 500 without settling when credential preparation fails', async () => {
+    verifyX402Payment.mockResolvedValue({
+      ok: true,
+      payment: {
+        amount: '0.50',
+        chainId: 196,
+        network: 'xlayer',
+        payer: '0xpayer',
+        raw: {},
+        receipt: 'receipt',
+        recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
+        resource: 'credential_issuance',
+        token: 'USDC',
+        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
+        txHash: '0xtx',
+      },
+    });
+    resolveWalletScore.mockRejectedValue(new Error('OKX_API_TIMEOUT'));
+
+    const response = await POST(
+      createRequest({ wallet: '0x1234567890AbcdEF1234567890aBcdef12345678' })
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toMatchObject({
+      error: {
+        code: 'CREDENTIAL_ISSUANCE_FAILED',
+        details: {
+          reason: 'okx_timeout',
+        },
+      },
+    });
+    expect(settleX402Payment).not.toHaveBeenCalled();
+  });
+
+  it('continues serving the credential when audit persistence fails', async () => {
     verifyX402Payment.mockResolvedValue({
       ok: true,
       payment: {
@@ -221,6 +262,14 @@ describe('POST /api/credential', () => {
       createRequest({ wallet: '0x1234567890AbcdEF1234567890aBcdef12345678' })
     );
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      score: 720,
+      signature: '0xsigned',
+    });
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ operation: 'credential.issue.audit' }),
+      'credential issuance audit failed'
+    );
   });
 });

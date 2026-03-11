@@ -21,4 +21,16 @@ describe('getScoreActionMessage', () => {
       })
     ).toBe('Paid score retrieval is temporarily unavailable. Retry in a moment.');
   });
+
+  it('uses detailed reasons for score query failures when present', () => {
+    expect(
+      getScoreActionMessage({
+        code: 'SCORE_QUERY_FAILED',
+        details: {
+          reason: 'okx_timeout',
+        },
+        message: 'Unable to retrieve wallet score.',
+      })
+    ).toBe('OKX OnchainOS data fetch timed out. Retry the paid query in a moment.');
+  });
 });

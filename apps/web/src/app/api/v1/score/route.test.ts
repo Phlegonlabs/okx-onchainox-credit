@@ -247,6 +247,12 @@ describe('GET /api/v1/score', () => {
       version: '1.0',
       wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
     });
+    const signCallOrder = signCredential.mock.invocationCallOrder[0];
+    const settleCallOrder = settleX402Payment.mock.invocationCallOrder[0];
+    if (signCallOrder === undefined || settleCallOrder === undefined) {
+      throw new Error('Expected score signing and settlement to both run');
+    }
+    expect(signCallOrder).toBeLessThan(settleCallOrder);
   });
 
   it('continues serving the score when the rate-limit store throws', async () => {
@@ -355,7 +361,7 @@ describe('GET /api/v1/score', () => {
     );
   });
 
-  it('returns 500 when score retrieval fails after settlement', async () => {
+  it('returns 500 without settling when score preparation fails', async () => {
     verifyX402Payment.mockResolvedValue({
       ok: true,
       payment: {
@@ -372,17 +378,7 @@ describe('GET /api/v1/score', () => {
         txHash: '0xtx',
       },
     });
-    settleX402Payment.mockResolvedValue({
-      ok: true,
-      payment: {
-        payer: '0xpayer',
-        raw: {},
-        receipt: 'receipt',
-        settlementId: 'settlement-1',
-        txHash: '0xtx',
-      },
-    });
-    resolveWalletScore.mockRejectedValue(new Error('okx unavailable'));
+    resolveWalletScore.mockRejectedValue(new Error('OKX API error: 503 Service Unavailable'));
 
     const response = await GET(createRequest('0x1234567890AbcdEF1234567890aBcdef12345678'));
 
@@ -390,7 +386,60 @@ describe('GET /api/v1/score', () => {
     await expect(response.json()).resolves.toMatchObject({
       error: {
         code: 'SCORE_QUERY_FAILED',
+        details: {
+          reason: 'okx_upstream_error',
+        },
       },
     });
+    expect(settleX402Payment).not.toHaveBeenCalled();
+  });
+
+  it('returns signer_unavailable without settling when credential signing fails', async () => {
+    verifyX402Payment.mockResolvedValue({
+      ok: true,
+      payment: {
+        amount: '0.10',
+        chainId: 196,
+        network: 'xlayer',
+        payer: '0xpayer',
+        raw: {},
+        receipt: 'receipt',
+        recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
+        resource: 'score_query',
+        token: 'USDC',
+        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
+        txHash: '0xtx',
+      },
+    });
+    resolveWalletScore.mockResolvedValue({
+      computedAt: '2026-03-10T00:00:00.000Z',
+      dataGaps: [],
+      dimensions: {
+        assetScale: 72,
+        multichain: 68,
+        positionStability: 74,
+        repaymentHistory: 81,
+        walletAge: 77,
+      },
+      expiresAt: '2026-03-11T00:00:00.000Z',
+      score: 720,
+      stale: false,
+      tier: 'good',
+      wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
+    });
+    signCredential.mockRejectedValue(new Error('ECDSA_SIGNING_FAILED'));
+
+    const response = await GET(createRequest('0x1234567890AbcdEF1234567890aBcdef12345678'));
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toMatchObject({
+      error: {
+        code: 'SCORE_QUERY_FAILED',
+        details: {
+          reason: 'signer_unavailable',
+        },
+      },
+    });
+    expect(settleX402Payment).not.toHaveBeenCalled();
   });
 });

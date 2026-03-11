@@ -5,6 +5,7 @@ import { checkEnterpriseRateLimit } from '@/lib/enterprise/rate-limit';
 import { createScoreQueryPayload } from '@/lib/enterprise/score-payload';
 import { ValidationError, toErrorBody } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { classifyPaidOperationFailure } from '@/lib/paid-operation-failure';
 import { createWalletHash } from '@/lib/wallet/hash';
 import { settleX402Payment, verifyX402Payment } from '@/lib/x402';
 import { getScoreQueryPriceUsd } from '@/lib/x402/config';
@@ -32,6 +33,7 @@ export async function GET(request: Request) {
   }
 
   const payer = paymentVerification.payment.payer ?? 'unknown_payer';
+  const verificationTxHash = paymentVerification.payment.txHash;
   try {
     const rateLimitResult = await checkEnterpriseRateLimit({
       payer,
@@ -58,70 +60,26 @@ export async function GET(request: Request) {
     );
   }
 
-  const paymentSettlement = await settleX402Payment(paymentVerification.payment, {
-    amountUsd: getScoreQueryPriceUsd(),
-    resource: 'score_query',
-  });
-  if (!paymentSettlement.ok) {
-    return paymentSettlement.response;
-  }
-
-  const settledPayer = paymentSettlement.payment.payer ?? payer;
-  const txHash = paymentSettlement.payment.txHash ?? paymentVerification.payment.txHash;
+  let payload: ReturnType<typeof createScoreQueryPayload>;
+  let signature: string;
+  let scoreTier: Awaited<ReturnType<typeof resolveWalletScore>>['tier'];
 
   try {
     const score = await resolveWalletScore(wallet);
-    const payload = createScoreQueryPayload(wallet, score);
-    const signature = await signCredential(payload);
-
-    try {
-      await logEnterpriseApiQuery({
-        metadata: {
-          stale: payload.stale,
-        },
-        payer: settledPayer,
-        resource: 'score_query',
-        scoreTier: score.tier,
-        walletHash,
-        x402Tx: txHash,
-      });
-    } catch (error) {
-      logger.error(
-        {
-          error: error instanceof Error ? error.message : String(error),
-          operation: 'api.score.audit',
-          payer: settledPayer,
-          requestId,
-          txHash,
-          walletHash,
-        },
-        'enterprise score audit log failed'
-      );
-    }
-
-    logger.info(
-      {
-        operation: 'api.score.query',
-        payer: settledPayer,
-        requestId,
-        txHash,
-        walletHash,
-      },
-      'enterprise score query served'
-    );
-
-    return NextResponse.json({
-      ...payload,
-      signature,
-    });
+    payload = createScoreQueryPayload(wallet, score);
+    signature = await signCredential(payload);
+    scoreTier = score.tier;
   } catch (error) {
+    const reason = classifyPaidOperationFailure(error, 'score_preparation_failed');
+
     logger.error(
       {
         error: error instanceof Error ? error.message : String(error),
         operation: 'api.score.query',
-        payer: settledPayer,
+        payer,
+        reason,
         requestId,
-        txHash,
+        txHash: verificationTxHash,
         walletHash,
       },
       'enterprise score query failed'
@@ -131,10 +89,65 @@ export async function GET(request: Request) {
       {
         error: {
           code: 'SCORE_QUERY_FAILED',
+          details: {
+            reason,
+          },
           message: 'Unable to retrieve wallet score.',
         },
       },
       { status: 500 }
     );
   }
+
+  const paymentSettlement = await settleX402Payment(paymentVerification.payment, {
+    amountUsd: getScoreQueryPriceUsd(),
+    resource: 'score_query',
+  });
+  if (!paymentSettlement.ok) {
+    return paymentSettlement.response;
+  }
+
+  const settledPayer = paymentSettlement.payment.payer ?? payer;
+  const txHash = paymentSettlement.payment.txHash ?? verificationTxHash;
+
+  try {
+    await logEnterpriseApiQuery({
+      metadata: {
+        stale: payload.stale,
+      },
+      payer: settledPayer,
+      resource: 'score_query',
+      scoreTier,
+      walletHash,
+      x402Tx: txHash,
+    });
+  } catch (error) {
+    logger.error(
+      {
+        error: error instanceof Error ? error.message : String(error),
+        operation: 'api.score.audit',
+        payer: settledPayer,
+        requestId,
+        txHash,
+        walletHash,
+      },
+      'enterprise score audit log failed'
+    );
+  }
+
+  logger.info(
+    {
+      operation: 'api.score.query',
+      payer: settledPayer,
+      requestId,
+      txHash,
+      walletHash,
+    },
+    'enterprise score query served'
+  );
+
+  return NextResponse.json({
+    ...payload,
+    signature,
+  });
 }

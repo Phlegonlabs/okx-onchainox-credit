@@ -203,4 +203,84 @@ describe('OkxClient', () => {
       'OKX API error: invalid request'
     );
   });
+
+  it('retries transient HTTP 5xx responses before succeeding', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response('upstream unavailable', {
+          status: 503,
+          statusText: 'Service Unavailable',
+        })
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          code: '0',
+          msg: '',
+          data: [{ totalValue: '42.00' }],
+        })
+      );
+    globalThis.fetch = fetchMock;
+
+    const client = new OkxClient({
+      apiKey: 'key',
+      passphrase: 'pass',
+      retryDelaysMs: [0, 0],
+      secretKey: 'secret',
+    });
+
+    await expect(client.getDeFiPositions('0xabc')).resolves.toEqual({
+      hasPositions: true,
+      totalValueUsd: 42,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries timeout failures up to the retry budget', async () => {
+    const fetchMock = vi.fn<typeof fetch>((_url, init) => {
+      const signal = init?.signal;
+
+      return new Promise<Response>((_resolve, reject) => {
+        signal?.addEventListener('abort', () => {
+          const error = new Error('aborted');
+          error.name = 'AbortError';
+          reject(error);
+        });
+      });
+    });
+    globalThis.fetch = fetchMock;
+
+    const client = new OkxClient({
+      apiKey: 'key',
+      passphrase: 'pass',
+      retryDelaysMs: [0, 0],
+      secretKey: 'secret',
+      timeoutMs: 1,
+    });
+
+    await expect(client.getDeFiPositions('0xabc')).rejects.toThrow('OKX_API_TIMEOUT');
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not retry non-transient 4xx responses', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response('bad request', {
+        status: 400,
+        statusText: 'Bad Request',
+      })
+    );
+    globalThis.fetch = fetchMock;
+
+    const client = new OkxClient({
+      apiKey: 'key',
+      passphrase: 'pass',
+      retryDelaysMs: [0, 0],
+      secretKey: 'secret',
+    });
+
+    await expect(client.getDeFiPositions('0xabc')).rejects.toThrow(
+      'OKX API error: 400 Bad Request'
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });

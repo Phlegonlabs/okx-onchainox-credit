@@ -9,6 +9,7 @@ import type {
   WalletEvent,
 } from '../types.js';
 import { type OkxRawTx, parseDefiEvents } from './defi-parser.js';
+import { normalizeOkxRetryDelays, retryOkxRequest } from './okx-request-retry.js';
 import { extractTransactionPage, normalizeWalletHistoryPage } from './wallet-normalizer.js';
 
 const OKX_BASE_URL = process.env.OKX_BASE_URL ?? 'https://web3.okx.com';
@@ -24,6 +25,7 @@ interface OkxClientConfig {
   secretKey: string;
   passphrase: string;
   baseUrl?: string;
+  retryDelaysMs?: number[];
   timeoutMs?: number;
 }
 
@@ -65,6 +67,7 @@ export class OkxClient {
   constructor(config: OkxClientConfig) {
     this.config = {
       baseUrl: OKX_BASE_URL,
+      retryDelaysMs: normalizeOkxRetryDelays(config.retryDelaysMs),
       timeoutMs: DEFAULT_TIMEOUT_MS,
       ...config,
     };
@@ -97,42 +100,44 @@ export class OkxClient {
   }
 
   private async request<T>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<T> {
-    const serializedBody = body ? JSON.stringify(body) : '';
-    const headers = this.buildHeaders(method, path, serializedBody);
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.config.timeoutMs);
-    const requestInit: RequestInit = {
-      method,
-      headers,
-      signal: controller.signal,
-    };
+    return retryOkxRequest(async () => {
+      const serializedBody = body ? JSON.stringify(body) : '';
+      const headers = this.buildHeaders(method, path, serializedBody);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.config.timeoutMs);
+      const requestInit: RequestInit = {
+        method,
+        headers,
+        signal: controller.signal,
+      };
 
-    if (serializedBody) {
-      requestInit.body = serializedBody;
-    }
-
-    try {
-      const response = await fetch(`${this.config.baseUrl}${path}`, requestInit);
-
-      if (!response.ok) {
-        throw new Error(`OKX API error: ${response.status} ${response.statusText}`);
+      if (serializedBody) {
+        requestInit.body = serializedBody;
       }
 
-      const json = (await response.json()) as OkxApiEnvelope<T>;
-      if (json.code !== '0') {
-        throw new Error(`OKX API error: ${json.msg}`);
-      }
+      try {
+        const response = await fetch(`${this.config.baseUrl}${path}`, requestInit);
 
-      return json.data;
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('OKX_API_TIMEOUT');
-      }
+        if (!response.ok) {
+          throw new Error(`OKX API error: ${response.status} ${response.statusText}`);
+        }
 
-      throw error;
-    } finally {
-      clearTimeout(timeoutId);
-    }
+        const json = (await response.json()) as OkxApiEnvelope<T>;
+        if (json.code !== '0') {
+          throw new Error(`OKX API error: ${json.msg}`);
+        }
+
+        return json.data;
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('OKX_API_TIMEOUT');
+        }
+
+        throw error;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }, this.config.retryDelaysMs);
   }
 
   private async get<T>(path: string, params: Record<string, string> = {}): Promise<T> {

@@ -27,4 +27,16 @@ describe('getCredentialActionMessage', () => {
       'Credential issuance is temporarily unavailable. Retry in a moment.'
     );
   });
+
+  it('uses detailed reasons for credential issuance failures when present', () => {
+    expect(
+      getCredentialActionMessage({
+        code: 'CREDENTIAL_ISSUANCE_FAILED',
+        details: {
+          reason: 'signer_unavailable',
+        },
+        message: 'Unable to issue credential.',
+      })
+    ).toBe('Server signing is temporarily unavailable. Retry credential issuance in a moment.');
+  });
 });

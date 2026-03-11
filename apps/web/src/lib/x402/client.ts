@@ -1,5 +1,6 @@
 import { createHmac } from 'node:crypto';
 import type { X402PaymentPayload, X402PaymentRequirements } from './payload';
+import { normalizeX402RetryDelays, retryX402Request } from './retry';
 
 const DEFAULT_OKX_BASE_URL = process.env.OKX_BASE_URL ?? 'https://web3.okx.com';
 const DEFAULT_TIMEOUT_MS = 3_000;
@@ -16,6 +17,7 @@ interface OkxX402ClientConfig {
   apiKey: string;
   baseUrl?: string;
   passphrase: string;
+  retryDelaysMs?: number[];
   secretKey: string;
   timeoutMs?: number;
 }
@@ -125,6 +127,7 @@ export class OkxX402Client implements X402Client {
   constructor(config: OkxX402ClientConfig) {
     this.config = {
       baseUrl: DEFAULT_OKX_BASE_URL,
+      retryDelaysMs: normalizeX402RetryDelays(config.retryDelaysMs),
       timeoutMs: DEFAULT_TIMEOUT_MS,
       ...config,
     };
@@ -157,37 +160,39 @@ export class OkxX402Client implements X402Client {
   }
 
   private async post<T>(path: string, body: unknown): Promise<T> {
-    const serializedBody = JSON.stringify(body);
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.config.timeoutMs);
+    return retryX402Request(async () => {
+      const serializedBody = JSON.stringify(body);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.config.timeoutMs);
 
-    try {
-      const response = await fetch(`${this.config.baseUrl}${path}`, {
-        body: serializedBody,
-        headers: this.buildHeaders('POST', path, serializedBody),
-        method: 'POST',
-        signal: controller.signal,
-      });
+      try {
+        const response = await fetch(`${this.config.baseUrl}${path}`, {
+          body: serializedBody,
+          headers: this.buildHeaders('POST', path, serializedBody),
+          method: 'POST',
+          signal: controller.signal,
+        });
 
-      if (!response.ok) {
-        throw new Error(`OKX x402 API error: ${response.status} ${response.statusText}`);
+        if (!response.ok) {
+          throw new Error(`OKX x402 API error: ${response.status} ${response.statusText}`);
+        }
+
+        const json = (await response.json()) as OkxApiEnvelope<T>;
+        if (json.code !== '0') {
+          throw new Error(`OKX x402 API error: ${json.msg}`);
+        }
+
+        return json.data;
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('OKX_API_TIMEOUT');
+        }
+
+        throw error;
+      } finally {
+        clearTimeout(timeoutId);
       }
-
-      const json = (await response.json()) as OkxApiEnvelope<T>;
-      if (json.code !== '0') {
-        throw new Error(`OKX x402 API error: ${json.msg}`);
-      }
-
-      return json.data;
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('OKX_API_TIMEOUT');
-      }
-
-      throw error;
-    } finally {
-      clearTimeout(timeoutId);
-    }
+    }, this.config.retryDelaysMs);
   }
 
   async verifyPayment(

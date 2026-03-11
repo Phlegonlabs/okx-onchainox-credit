@@ -4,6 +4,7 @@ import { logEnterpriseApiQuery } from '@/lib/enterprise/audit';
 import { checkEnterpriseRateLimit } from '@/lib/enterprise/rate-limit';
 import { AppError, toErrorBody } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { classifyPaidOperationFailure } from '@/lib/paid-operation-failure';
 import { createWalletHash } from '@/lib/wallet/hash';
 import { settleX402Payment, verifyX402Payment } from '@/lib/x402';
 import { getScoreQueryPriceUsd } from '@/lib/x402/config';
@@ -25,17 +26,67 @@ export async function GET(request: Request) {
     }
 
     const payer = paymentVerification.payment.payer ?? 'unknown_payer';
-    const rateLimitResult = await checkEnterpriseRateLimit({
-      payer,
-      resource: 'credential_verification',
-    });
-    if (!rateLimitResult.ok) {
-      return NextResponse.json(toErrorBody(rateLimitResult.error), {
-        headers: {
-          'retry-after': String(rateLimitResult.retryAfterSeconds),
-        },
-        status: rateLimitResult.error.statusCode,
+    const { signature, ...payload } = credential;
+    const walletHash = createWalletHash(payload.wallet);
+    const verificationTxHash = paymentVerification.payment.txHash;
+    try {
+      const rateLimitResult = await checkEnterpriseRateLimit({
+        payer,
+        resource: 'credential_verification',
       });
+      if (!rateLimitResult.ok) {
+        return NextResponse.json(toErrorBody(rateLimitResult.error), {
+          headers: {
+            'retry-after': String(rateLimitResult.retryAfterSeconds),
+          },
+          status: rateLimitResult.error.statusCode,
+        });
+      }
+    } catch (error) {
+      logger.error(
+        {
+          error: error instanceof Error ? error.message : String(error),
+          operation: 'api.credential.verify.rate_limit',
+          payer,
+          requestId,
+          walletHash,
+        },
+        'credential verification rate limit check failed; allowing paid query'
+      );
+    }
+
+    let valid: boolean;
+
+    try {
+      valid = await verifyCredentialSignature(payload, signature);
+    } catch (error) {
+      const reason = classifyPaidOperationFailure(error, 'credential_verification_failed');
+
+      logger.error(
+        {
+          error: error instanceof Error ? error.message : String(error),
+          operation: 'api.credential.verify',
+          payer,
+          reason,
+          requestId,
+          txHash: verificationTxHash,
+          walletHash,
+        },
+        'credential verification failed'
+      );
+
+      return NextResponse.json(
+        {
+          error: {
+            code: 'CREDENTIAL_VERIFICATION_FAILED',
+            details: {
+              reason,
+            },
+            message: 'Unable to verify credential.',
+          },
+        },
+        { status: 500 }
+      );
     }
 
     const paymentSettlement = await settleX402Payment(paymentVerification.payment, {
@@ -47,21 +98,33 @@ export async function GET(request: Request) {
     }
 
     const settledPayer = paymentSettlement.payment.payer ?? payer;
-    const txHash = paymentSettlement.payment.txHash ?? paymentVerification.payment.txHash;
-    const { signature, ...payload } = credential;
-    const walletHash = createWalletHash(payload.wallet);
-    const valid = await verifyCredentialSignature(payload, signature);
-    await logEnterpriseApiQuery({
-      metadata: {
-        expiresAt: payload.expiresAt,
-        valid,
-      },
-      payer: settledPayer,
-      resource: 'credential_verification',
-      scoreTier: payload.tier,
-      walletHash,
-      x402Tx: txHash,
-    });
+    const txHash = paymentSettlement.payment.txHash ?? verificationTxHash;
+
+    try {
+      await logEnterpriseApiQuery({
+        metadata: {
+          expiresAt: payload.expiresAt,
+          valid,
+        },
+        payer: settledPayer,
+        resource: 'credential_verification',
+        scoreTier: payload.tier,
+        walletHash,
+        x402Tx: txHash,
+      });
+    } catch (error) {
+      logger.error(
+        {
+          error: error instanceof Error ? error.message : String(error),
+          operation: 'api.credential.verify.audit',
+          payer: settledPayer,
+          requestId,
+          txHash,
+          walletHash,
+        },
+        'credential verification audit log failed'
+      );
+    }
 
     logger.info(
       {
@@ -99,6 +162,9 @@ export async function GET(request: Request) {
       {
         error: {
           code: 'CREDENTIAL_VERIFICATION_FAILED',
+          details: {
+            reason: 'credential_verification_failed',
+          },
           message: 'Unable to verify credential.',
         },
       },

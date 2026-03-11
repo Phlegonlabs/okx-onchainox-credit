@@ -4,6 +4,7 @@ import { signCredential } from '@/lib/credential/signing';
 import { resolveWalletScore } from '@/lib/credit/score-service';
 import { ValidationError, toErrorBody } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { classifyPaidOperationFailure } from '@/lib/paid-operation-failure';
 import { createWalletHash } from '@/lib/wallet/hash';
 import { settleX402Payment, verifyX402Payment } from '@/lib/x402';
 import { getAddress, isAddress } from 'ethers';
@@ -41,53 +42,28 @@ export async function POST(request: Request) {
     return paymentVerification.response;
   }
 
-  const paymentSettlement = await settleX402Payment(paymentVerification.payment, {
-    resource: 'credential_issuance',
-  });
-  if (!paymentSettlement.ok) {
-    return paymentSettlement.response;
-  }
-
-  const payer = paymentSettlement.payment.payer ?? paymentVerification.payment.payer;
-  const txHash = paymentSettlement.payment.txHash ?? paymentVerification.payment.txHash;
+  const payer = paymentVerification.payment.payer ?? 'unknown_payer';
+  const verificationTxHash = paymentVerification.payment.txHash;
+  let payload: ReturnType<typeof createCredentialPayload>;
+  let scoreTier: Awaited<ReturnType<typeof resolveWalletScore>>['tier'];
+  let signature: string;
 
   try {
     const score = await resolveWalletScore(wallet);
-    const payload = createCredentialPayload(wallet, score);
-    const signature = await signCredential(payload);
-
-    await logCredentialIssuance({
-      expiresAt: payload.expiresAt,
-      issuedAt: payload.issuedAt,
-      payer,
-      scoreTier: score.tier,
-      walletHash,
-      x402Tx: txHash,
-    });
-
-    logger.info(
-      {
-        operation: 'credential.issue',
-        payer,
-        requestId,
-        txHash,
-        walletHash,
-      },
-      'credential issued'
-    );
-
-    return NextResponse.json({
-      ...payload,
-      signature,
-    });
+    payload = createCredentialPayload(wallet, score);
+    signature = await signCredential(payload);
+    scoreTier = score.tier;
   } catch (error) {
+    const reason = classifyPaidOperationFailure(error, 'credential_preparation_failed');
+
     logger.error(
       {
         error: error instanceof Error ? error.message : String(error),
         operation: 'credential.issue',
         payer,
+        reason,
         requestId,
-        txHash,
+        txHash: verificationTxHash,
         walletHash,
       },
       'credential issuance failed'
@@ -97,10 +73,62 @@ export async function POST(request: Request) {
       {
         error: {
           code: 'CREDENTIAL_ISSUANCE_FAILED',
+          details: {
+            reason,
+          },
           message: 'Unable to issue credential.',
         },
       },
       { status: 500 }
     );
   }
+
+  const paymentSettlement = await settleX402Payment(paymentVerification.payment, {
+    resource: 'credential_issuance',
+  });
+  if (!paymentSettlement.ok) {
+    return paymentSettlement.response;
+  }
+
+  const settledPayer = paymentSettlement.payment.payer ?? payer;
+  const txHash = paymentSettlement.payment.txHash ?? verificationTxHash;
+
+  try {
+    await logCredentialIssuance({
+      expiresAt: payload.expiresAt,
+      issuedAt: payload.issuedAt,
+      payer: settledPayer,
+      scoreTier,
+      walletHash,
+      x402Tx: txHash,
+    });
+  } catch (error) {
+    logger.error(
+      {
+        error: error instanceof Error ? error.message : String(error),
+        operation: 'credential.issue.audit',
+        payer: settledPayer,
+        requestId,
+        txHash,
+        walletHash,
+      },
+      'credential issuance audit failed'
+    );
+  }
+
+  logger.info(
+    {
+      operation: 'credential.issue',
+      payer: settledPayer,
+      requestId,
+      txHash,
+      walletHash,
+    },
+    'credential issued'
+  );
+
+  return NextResponse.json({
+    ...payload,
+    signature,
+  });
 }
