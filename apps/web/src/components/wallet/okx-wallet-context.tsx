@@ -1,11 +1,10 @@
 'use client';
 
-import { defaultWalletChain, okxConnectNamespaces, toCaipChainId } from '@/lib/wallet/chains';
+import { defaultWalletChain, okxConnectNamespaces } from '@/lib/wallet/chains';
 import {
   type OkxInjectedProvider,
   type OkxWalletSnapshot,
   type WalletConnectorType,
-  buildPersonalSignParams,
   buildSnapshotFromSession,
   getOkxExtensionProvider,
   getWalletChainName,
@@ -14,18 +13,29 @@ import {
   parseWalletChainId,
 } from '@/lib/wallet/okx-wallet';
 import {
+  type TransactionParams,
+  type WalletActionDeps,
+  walletSendTransaction,
+  walletSignMessage,
+  walletSwitchChain,
+} from '@/lib/wallet/okx-wallet-actions';
+import {
   type ActionConfiguration,
   OKXUniversalConnectUI,
   type SessionTypes,
   THEME,
 } from '@okxconnect/ui';
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
-export interface TransactionParams {
-  to: string;
-  data: string;
-  value?: string;
-}
+export type { TransactionParams } from '@/lib/wallet/okx-wallet-actions';
 
 interface OkxWalletContextValue {
   address: string | null;
@@ -43,6 +53,7 @@ interface OkxWalletContextValue {
   disconnect: () => Promise<void>;
   sendTransaction: (params: TransactionParams) => Promise<string>;
   signMessage: (message: string) => Promise<string>;
+  switchChain: (chainId: number) => Promise<void>;
 }
 
 interface WalletState {
@@ -364,90 +375,31 @@ export function OkxWalletProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function sendTransaction(params: TransactionParams): Promise<string> {
-    const address = walletState.address;
-    if (!address) {
-      throw new Error('Connect an OKX wallet before sending a transaction.');
-    }
+  const actionDeps: WalletActionDeps = useMemo(
+    () => ({
+      address: walletState.address,
+      chainId: walletState.chainId,
+      connectorType: walletState.connectorType,
+      getUniversalUi,
+      requestActions: REQUEST_ACTIONS,
+    }),
+    [walletState.address, walletState.chainId, walletState.connectorType, getUniversalUi]
+  );
 
-    const chainId = walletState.chainId ?? defaultWalletChain.id;
-    const txParams = {
-      from: address,
-      to: params.to,
-      data: params.data,
-      value: params.value ?? '0x0',
-    };
+  const switchChain = useCallback(
+    (targetChainId: number) => walletSwitchChain(actionDeps, targetChainId),
+    [actionDeps]
+  );
 
-    if (walletState.connectorType === 'extension') {
-      const provider = getOkxExtensionProvider();
-      if (!provider) {
-        throw new Error('OKX Wallet extension is not available in this browser.');
-      }
+  const sendTransaction = useCallback(
+    (params: TransactionParams) => walletSendTransaction(actionDeps, params),
+    [actionDeps]
+  );
 
-      try {
-        return await provider.request<string>({
-          method: 'eth_sendTransaction',
-          params: [txParams],
-        });
-      } catch (error) {
-        throw new Error(getWalletErrorMessage(error, 'Transaction rejected.'));
-      }
-    }
-
-    const ui = await getUniversalUi();
-    try {
-      return await ui.request<string>(
-        {
-          method: 'eth_sendTransaction',
-          params: [txParams],
-        },
-        toCaipChainId(chainId),
-        REQUEST_ACTIONS
-      );
-    } catch (error) {
-      throw new Error(getWalletErrorMessage(error, 'Transaction rejected.'));
-    }
-  }
-
-  async function signMessage(message: string): Promise<string> {
-    const address = walletState.address;
-    if (!address) {
-      throw new Error('Connect an OKX wallet before requesting a signature.');
-    }
-
-    const chainId = walletState.chainId ?? defaultWalletChain.id;
-    const params = buildPersonalSignParams(message, address);
-
-    if (walletState.connectorType === 'extension') {
-      const provider = getOkxExtensionProvider();
-      if (!provider) {
-        throw new Error('OKX Wallet extension is not available in this browser.');
-      }
-
-      try {
-        return await provider.request<string>({
-          method: 'personal_sign',
-          params,
-        });
-      } catch (error) {
-        throw new Error(getWalletErrorMessage(error, 'Unable to sign with OKX Extension.'));
-      }
-    }
-
-    const ui = await getUniversalUi();
-    try {
-      return await ui.request<string>(
-        {
-          method: 'personal_sign',
-          params,
-        },
-        toCaipChainId(chainId),
-        REQUEST_ACTIONS
-      );
-    } catch (error) {
-      throw new Error(getWalletErrorMessage(error, 'Unable to sign with OKX App.'));
-    }
-  }
+  const signMessage = useCallback(
+    (message: string) => walletSignMessage(actionDeps, message),
+    [actionDeps]
+  );
 
   return (
     <OkxWalletContext.Provider
@@ -467,6 +419,7 @@ export function OkxWalletProvider({ children }: { children: React.ReactNode }) {
         disconnect,
         sendTransaction,
         signMessage,
+        switchChain,
       }}
     >
       {children}

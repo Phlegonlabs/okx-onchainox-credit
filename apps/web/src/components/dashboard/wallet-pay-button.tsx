@@ -14,7 +14,7 @@ export function WalletPayButton({
   onPaid: (txHash: string) => void;
   payment: PaymentRequiredDetails;
 }) {
-  const { sendTransaction } = useOkxWallet();
+  const { sendTransaction, switchChain } = useOkxWallet();
   const [isPaying, setIsPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
 
@@ -23,6 +23,7 @@ export function WalletPayButton({
     setPayError(null);
 
     try {
+      await switchChain(payment.chainId);
       const data = buildErc20TransferData(payment.recipient, payment.amount);
       const txHash = await sendTransaction({
         to: payment.tokenAddress,
