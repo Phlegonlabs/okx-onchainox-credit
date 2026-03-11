@@ -38,6 +38,7 @@ bun run dev           # http://localhost:3000
 ## Production Notes
 
 - `SIWE_SESSION_SECRET`, `ECDSA_PRIVATE_KEY`, and `ECDSA_PUBLIC_ADDRESS` are required for wallet auth, paid score unlock, and credential flows.
+- Generate a local signer with `bun run credential:signer:create -- --write-env-file .env.local --include-siwe`.
 - `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` are required in production. The local `file:local.db` fallback is development-only.
 - `NEXT_PUBLIC_APP_URL` must be the exact HTTPS origin of the deployed app in preview and production.
 - `LOCAL_INTEGRATION_MODE=mock` is development-only and now fails closed for release targets.

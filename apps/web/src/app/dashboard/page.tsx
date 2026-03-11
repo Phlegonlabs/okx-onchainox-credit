@@ -22,7 +22,7 @@ export default async function DashboardPage() {
           isLocalMockMode={localMockMode}
           localMockReceipt={localMockMode ? LOCAL_MOCK_PAYMENT_RECEIPT : null}
           sessionExpiresAt={session.expiresAt}
-          wallet={session.wallet}
+          sessionWallet={session.wallet}
         />
       </div>
     </main>

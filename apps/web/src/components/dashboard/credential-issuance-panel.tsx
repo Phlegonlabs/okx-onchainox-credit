@@ -33,7 +33,7 @@ export function CredentialIssuancePanel({
   disabledReason?: string | null;
   isLocalMockMode?: boolean;
   localMockReceipt?: string | null;
-  wallet: string;
+  wallet: string | null;
 }) {
   const [credential, setCredential] = useState<IssuedCredential | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -44,7 +44,7 @@ export function CredentialIssuancePanel({
   const hasReceipt = paymentReceipt.trim().length > 0;
 
   async function requestCredential(receipt?: string) {
-    if (disabled) {
+    if (disabled || !wallet) {
       return;
     }
 
@@ -96,16 +96,20 @@ export function CredentialIssuancePanel({
   return (
     <section
       aria-busy={isSubmitting}
-      className="rounded-[32px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.84)] p-5 md:p-6"
+      className="rounded-[32px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.78)] p-5 md:p-6"
     >
       <div className="flex flex-col gap-3 border-b border-[var(--okx-border)] pb-5 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
-            Credential issuance
+            Optional credential
           </p>
           <h2 className="mt-3 text-3xl tracking-[-0.04em] text-balance [font-family:var(--font-display)] md:text-4xl">
-            Mint a signed credit credential once the x402 payment settles.
+            Package this report into a reusable signed credential.
           </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--okx-text-muted)]">
+            This stays below the score report on purpose. The target wallet is already chosen;
+            credential issuance is only the optional export step after the paid score unlock.
+          </p>
         </div>
 
         <button
@@ -122,23 +126,18 @@ export function CredentialIssuancePanel({
         </button>
       </div>
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)]">
         <article className="min-w-0 lg:border-r lg:border-[rgba(36,51,82,0.72)] lg:pr-8">
-          <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
-            Flow
-          </p>
-          <ol className="mt-4 grid gap-4 text-sm leading-7 text-[var(--okx-text-muted)]">
-            <li className="border-b border-[rgba(36,51,82,0.72)] pb-4">
-              1. Request credential issuance for the authenticated wallet.
-            </li>
-            <li className="border-b border-[rgba(36,51,82,0.72)] pb-4">
-              2. Receive x402 settlement requirements from the API.
-            </li>
-            <li className="border-b border-[rgba(36,51,82,0.72)] pb-4">
-              3. Settle the payment and submit the returned receipt signature.
-            </li>
-            <li>4. Download the ECDSA-signed credential JSON.</li>
-          </ol>
+          <div className="rounded-[24px] border border-[rgba(36,51,82,0.72)] bg-[rgba(255,255,255,0.03)] p-4">
+            <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
+              Flow
+            </p>
+            <ol className="mt-4 grid gap-3 text-sm leading-7 text-[var(--okx-text-muted)]">
+              <li>1. Keep the active target wallet locked.</li>
+              <li>2. Use the paid score report as the current source of truth.</li>
+              <li>3. Request the credential only if you need a reusable signed artifact.</li>
+            </ol>
+          </div>
 
           {disabled && disabledReason ? (
             <div className="mt-6 rounded-[22px] border border-[rgba(59,130,246,0.22)] bg-[rgba(59,130,246,0.08)] p-4 text-sm leading-7 text-[var(--okx-text-muted)]">
@@ -168,49 +167,67 @@ export function CredentialIssuancePanel({
               </div>
             </output>
           ) : paymentRequired ? (
-            <div className="mt-5 rounded-[22px] border border-[rgba(245,166,35,0.22)] bg-[rgba(245,166,35,0.08)] p-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-accent)]">
-                Payment required
-              </p>
-              <div className="mt-4 grid gap-3 text-sm text-[var(--okx-text-muted)]">
-                <p>
-                  {paymentRequired.amount} {paymentRequired.token} on {paymentRequired.network} (
-                  chain {paymentRequired.chainId})
+            <div className="mt-5 grid gap-4">
+              <div className="rounded-[22px] border border-[rgba(245,166,35,0.22)] bg-[rgba(245,166,35,0.08)] p-4">
+                <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-accent)]">
+                  Credential quote
                 </p>
-                <p className="break-all">Recipient {paymentRequired.recipient}</p>
-                <p>Resource {paymentRequired.resource}</p>
-                <p>Header {paymentRequired.header}</p>
+                <div className="mt-4 grid gap-3 text-sm text-[var(--okx-text-muted)]">
+                  <p>
+                    {paymentRequired.amount} {paymentRequired.token} on {paymentRequired.network} (
+                    chain {paymentRequired.chainId})
+                  </p>
+                  <p>Resource {paymentRequired.resource}</p>
+                  <p className="break-all">Recipient {paymentRequired.recipient}</p>
+                </div>
               </div>
 
-              <label className="mt-4 block">
-                <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--okx-text-dim)]">
-                  Payment receipt
-                </span>
-                <textarea
-                  className="mt-2 min-h-28 w-full rounded-[20px] border border-[var(--okx-border)] bg-[rgba(8,12,20,0.82)] px-4 py-3 text-sm text-[var(--color-foreground)] outline-none transition focus:border-[var(--okx-accent)]"
-                  onChange={(event) => setPaymentReceipt(event.target.value)}
-                  placeholder="Paste the x402 receipt returned by your payment client."
-                  value={paymentReceipt}
-                />
-              </label>
-
-              <button
-                className="mt-4 min-h-[52px] w-full rounded-full border border-[var(--okx-border-light)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-sm font-medium text-[var(--color-foreground)] transition hover:border-[var(--okx-accent)] disabled:opacity-60"
-                disabled={disabled || isSubmitting || !hasReceipt}
-                onClick={() => requestCredential(paymentReceipt.trim())}
-                type="button"
+              <details
+                className="rounded-[22px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.02)] p-4"
+                open={isLocalMockMode}
               >
-                {isSubmitting ? 'Issuing credential...' : 'Submit Receipt and Issue'}
-              </button>
+                <summary className="cursor-pointer list-none font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
+                  Manual settlement bridge
+                </summary>
+                <p className="mt-4 text-sm leading-7 text-[var(--okx-text-muted)]">
+                  Finish credential settlement by pasting the receipt payload returned by your
+                  payment client. This is temporary until the wallet-popup rail replaces it.
+                </p>
+
+                <label className="mt-4 block">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--okx-text-dim)]">
+                    Receipt payload
+                  </span>
+                  <textarea
+                    className="mt-2 min-h-28 w-full rounded-[20px] border border-[var(--okx-border)] bg-[rgba(8,12,20,0.82)] px-4 py-3 text-sm text-[var(--color-foreground)] outline-none transition focus:border-[var(--okx-accent)]"
+                    onChange={(event) => setPaymentReceipt(event.target.value)}
+                    placeholder="Paste the x402 receipt returned by your payment client."
+                    value={paymentReceipt}
+                  />
+                </label>
+
+                <button
+                  className="mt-4 min-h-[52px] w-full rounded-[20px] border border-[var(--okx-border-light)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-sm font-medium text-[var(--color-foreground)] transition hover:border-[var(--okx-accent)] disabled:opacity-60"
+                  disabled={disabled || isSubmitting || !hasReceipt}
+                  onClick={() => requestCredential(paymentReceipt.trim())}
+                  type="button"
+                >
+                  {isSubmitting ? 'Issuing credential...' : 'Submit Settlement Receipt'}
+                </button>
+              </details>
             </div>
           ) : (
             <div className="mt-5 rounded-[22px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.02)] p-4 text-sm leading-7 text-[var(--okx-text-muted)]">
               {disabled ? (
-                'Unlock the paid score first. The dashboard only opens credential issuance after the score query settles.'
+                wallet ? (
+                  'Unlock the paid score first. The dashboard only opens credential issuance after the active target wallet’s score query settles.'
+                ) : (
+                  'Lock a target wallet first. Credential issuance only opens after a target wallet is selected and its paid score is unlocked.'
+                )
               ) : (
                 <>
                   Click <span className="text-[var(--color-foreground)]">Get Credential</span> to
-                  fetch the current x402 payment requirements for this wallet.
+                  fetch the current x402 payment requirements for this target wallet.
                 </>
               )}
             </div>
