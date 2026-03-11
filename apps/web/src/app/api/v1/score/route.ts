@@ -32,17 +32,30 @@ export async function GET(request: Request) {
   }
 
   const payer = paymentVerification.payment.payer ?? 'unknown_payer';
-  const rateLimitResult = await checkEnterpriseRateLimit({
-    payer,
-    resource: 'score_query',
-  });
-  if (!rateLimitResult.ok) {
-    return NextResponse.json(toErrorBody(rateLimitResult.error), {
-      headers: {
-        'retry-after': String(rateLimitResult.retryAfterSeconds),
-      },
-      status: rateLimitResult.error.statusCode,
+  try {
+    const rateLimitResult = await checkEnterpriseRateLimit({
+      payer,
+      resource: 'score_query',
     });
+    if (!rateLimitResult.ok) {
+      return NextResponse.json(toErrorBody(rateLimitResult.error), {
+        headers: {
+          'retry-after': String(rateLimitResult.retryAfterSeconds),
+        },
+        status: rateLimitResult.error.statusCode,
+      });
+    }
+  } catch (error) {
+    logger.error(
+      {
+        error: error instanceof Error ? error.message : String(error),
+        operation: 'api.score.rate_limit',
+        payer,
+        requestId,
+        walletHash,
+      },
+      'enterprise score rate limit check failed; allowing paid query'
+    );
   }
 
   const paymentSettlement = await settleX402Payment(paymentVerification.payment, {
@@ -60,16 +73,31 @@ export async function GET(request: Request) {
     const score = await resolveWalletScore(wallet);
     const payload = createScoreQueryPayload(wallet, score);
     const signature = await signCredential(payload);
-    await logEnterpriseApiQuery({
-      metadata: {
-        stale: payload.stale,
-      },
-      payer: settledPayer,
-      resource: 'score_query',
-      scoreTier: score.tier,
-      walletHash,
-      x402Tx: txHash,
-    });
+
+    try {
+      await logEnterpriseApiQuery({
+        metadata: {
+          stale: payload.stale,
+        },
+        payer: settledPayer,
+        resource: 'score_query',
+        scoreTier: score.tier,
+        walletHash,
+        x402Tx: txHash,
+      });
+    } catch (error) {
+      logger.error(
+        {
+          error: error instanceof Error ? error.message : String(error),
+          operation: 'api.score.audit',
+          payer: settledPayer,
+          requestId,
+          txHash,
+          walletHash,
+        },
+        'enterprise score audit log failed'
+      );
+    }
 
     logger.info(
       {

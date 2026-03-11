@@ -249,6 +249,112 @@ describe('GET /api/v1/score', () => {
     });
   });
 
+  it('continues serving the score when the rate-limit store throws', async () => {
+    verifyX402Payment.mockResolvedValue({
+      ok: true,
+      payment: {
+        payer: '0xpayer',
+        paymentPayload: {},
+        paymentRequirements: {},
+        raw: {},
+        txHash: '0xtx',
+      },
+    });
+    checkEnterpriseRateLimit.mockRejectedValue(new Error('api_rate_limits missing'));
+    settleX402Payment.mockResolvedValue({
+      ok: true,
+      payment: {
+        payer: '0xpayer',
+        paymentPayload: {},
+        raw: {},
+        settlementId: 'settlement-1',
+        txHash: '0xtx',
+      },
+    });
+    resolveWalletScore.mockResolvedValue({
+      computedAt: '2026-03-10T00:00:00.000Z',
+      dataGaps: [],
+      dimensions: {
+        assetScale: 72,
+        multichain: 68,
+        positionStability: 74,
+        repaymentHistory: 81,
+        walletAge: 77,
+      },
+      expiresAt: '2026-03-11T00:00:00.000Z',
+      score: 720,
+      stale: false,
+      tier: 'good',
+      wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
+    });
+    signCredential.mockResolvedValue('0xsigned');
+
+    const response = await GET(createRequest('0x1234567890AbcdEF1234567890aBcdef12345678'));
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      score: 720,
+      signature: '0xsigned',
+    });
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ operation: 'api.score.rate_limit' }),
+      'enterprise score rate limit check failed; allowing paid query'
+    );
+  });
+
+  it('continues serving the score when audit logging fails', async () => {
+    verifyX402Payment.mockResolvedValue({
+      ok: true,
+      payment: {
+        payer: '0xpayer',
+        paymentPayload: {},
+        paymentRequirements: {},
+        raw: {},
+        txHash: '0xtx',
+      },
+    });
+    settleX402Payment.mockResolvedValue({
+      ok: true,
+      payment: {
+        payer: '0xpayer',
+        paymentPayload: {},
+        raw: {},
+        settlementId: 'settlement-1',
+        txHash: '0xtx',
+      },
+    });
+    resolveWalletScore.mockResolvedValue({
+      computedAt: '2026-03-10T00:00:00.000Z',
+      dataGaps: [],
+      dimensions: {
+        assetScale: 72,
+        multichain: 68,
+        positionStability: 74,
+        repaymentHistory: 81,
+        walletAge: 77,
+      },
+      expiresAt: '2026-03-11T00:00:00.000Z',
+      score: 720,
+      stale: false,
+      tier: 'good',
+      wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
+    });
+    signCredential.mockResolvedValue('0xsigned');
+    logEnterpriseApiQuery.mockRejectedValue(new Error('audit_log missing'));
+
+    const response = await GET(createRequest('0x1234567890AbcdEF1234567890aBcdef12345678'));
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      score: 720,
+      signature: '0xsigned',
+    });
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ operation: 'api.score.audit' }),
+      'enterprise score audit log failed'
+    );
+  });
+
   it('returns 500 when score retrieval fails after settlement', async () => {
     verifyX402Payment.mockResolvedValue({
       ok: true,

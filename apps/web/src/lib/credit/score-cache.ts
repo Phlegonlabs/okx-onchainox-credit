@@ -55,7 +55,8 @@ async function computeAndPersistScore(
   walletHash: string,
   walletDataLoader: () => Promise<RawWalletData>,
   store: ScoreCacheStore,
-  scoreComputer: (data: RawWalletData) => Promise<Score>
+  scoreComputer: (data: RawWalletData) => Promise<Score>,
+  activeLogger: ScoreCacheLogger
 ): Promise<CachedScoreRecord> {
   const data = await walletDataLoader();
   const score = await scoreComputer(data);
@@ -65,7 +66,19 @@ async function computeAndPersistScore(
     walletHash,
   };
 
-  await store.upsert(cachedScore);
+  try {
+    await store.upsert(cachedScore);
+  } catch (error) {
+    activeLogger.error(
+      {
+        error: error instanceof Error ? error.message : String(error),
+        operation: 'score_cache_write',
+        walletHash,
+      },
+      'score cache write failed'
+    );
+  }
+
   return cachedScore;
 }
 
@@ -131,14 +144,28 @@ export async function resolveScoreWithCache(options: ResolveScoreWithCacheOption
   const scoreComputer = options.scoreComputer ?? computeScore;
   const store = options.store ?? createDrizzleScoreCacheStore();
   const walletHash = createWalletHash(options.wallet);
-  const cachedScore = await store.findByWalletHash(walletHash);
+  let cachedScore: CachedScoreRecord | null = null;
+
+  try {
+    cachedScore = await store.findByWalletHash(walletHash);
+  } catch (error) {
+    activeLogger.error(
+      {
+        error: error instanceof Error ? error.message : String(error),
+        operation: 'score_cache_lookup',
+        walletHash,
+      },
+      'score cache lookup failed'
+    );
+  }
 
   if (!cachedScore) {
     const freshScore = await computeAndPersistScore(
       walletHash,
       options.walletDataLoader,
       store,
-      scoreComputer
+      scoreComputer,
+      activeLogger
     );
 
     activeLogger.info(
@@ -156,19 +183,23 @@ export async function resolveScoreWithCache(options: ResolveScoreWithCacheOption
     return withCacheMetadata(cachedScore, true);
   }
 
-  void computeAndPersistScore(walletHash, options.walletDataLoader, store, scoreComputer).catch(
-    (error) => {
-      activeLogger.error(
-        {
-          cache_hit: true,
-          error: error instanceof Error ? error.message : String(error),
-          operation: 'score_cache_refresh',
-          walletHash,
-        },
-        'score cache refresh failed'
-      );
-    }
-  );
+  void computeAndPersistScore(
+    walletHash,
+    options.walletDataLoader,
+    store,
+    scoreComputer,
+    activeLogger
+  ).catch((error) => {
+    activeLogger.error(
+      {
+        cache_hit: true,
+        error: error instanceof Error ? error.message : String(error),
+        operation: 'score_cache_refresh',
+        walletHash,
+      },
+      'score cache refresh failed'
+    );
+  });
 
   activeLogger.info(
     { cache_hit: true, operation: 'score_cache_lookup', stale: true, walletHash },

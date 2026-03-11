@@ -126,4 +126,64 @@ describe('resolveScoreWithCache', () => {
       'score cache stale'
     );
   });
+
+  it('computes a fresh score when cache lookup fails', async () => {
+    const store: ScoreCacheStore = {
+      async findByWalletHash() {
+        throw new Error('db unavailable');
+      },
+      async upsert() {
+        return undefined;
+      },
+    };
+    const logger = { info: vi.fn(), error: vi.fn() };
+    const scoreComputer = vi.fn<() => Promise<Score>>().mockResolvedValue(createScore());
+
+    const result = await resolveScoreWithCache({
+      wallet: '0xabc',
+      walletDataLoader: async () => createWalletData(),
+      store,
+      logger,
+      scoreComputer,
+      now: new Date('2026-03-09T12:00:00.000Z'),
+    });
+
+    expect(result.cacheHit).toBe(false);
+    expect(result.score).toBe(720);
+    expect(scoreComputer).toHaveBeenCalledTimes(1);
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ operation: 'score_cache_lookup' }),
+      'score cache lookup failed'
+    );
+  });
+
+  it('returns a fresh score when cache writes fail', async () => {
+    const store: ScoreCacheStore = {
+      async findByWalletHash() {
+        return null;
+      },
+      async upsert() {
+        throw new Error('write failed');
+      },
+    };
+    const logger = { info: vi.fn(), error: vi.fn() };
+    const scoreComputer = vi.fn<() => Promise<Score>>().mockResolvedValue(createScore());
+
+    const result = await resolveScoreWithCache({
+      wallet: '0xabc',
+      walletDataLoader: async () => createWalletData(),
+      store,
+      logger,
+      scoreComputer,
+      now: new Date('2026-03-09T12:00:00.000Z'),
+    });
+
+    expect(result.cacheHit).toBe(false);
+    expect(result.stale).toBe(false);
+    expect(scoreComputer).toHaveBeenCalledTimes(1);
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ operation: 'score_cache_write' }),
+      'score cache write failed'
+    );
+  });
 });
