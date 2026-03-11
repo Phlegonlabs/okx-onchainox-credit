@@ -21,7 +21,8 @@ const MAX_HISTORY_PAGES = 10;
 const DEFAULT_CANDLE_LIMIT = 100;
 const DEFAULT_MIN_REQUEST_INTERVAL_MS = process.env.NODE_ENV === 'test' ? 0 : 1_000;
 
-const SCORING_CHAINS = '1,42161,10,8453,196,56,137,501';
+// The current public score API only accepts EVM wallets, so exclude Solana chain 501.
+const SCORING_CHAINS = '1,42161,10,8453,196,56,137';
 const endpointRequestSchedule = new Map<string, Promise<number>>();
 
 interface OkxClientConfig {

@@ -72,6 +72,10 @@ export function DashboardTargetWalletPanel({
             ) : null}
           </div>
         </div>
+        <p className="mt-2 text-xs text-[#666]">
+          EVM wallets only for now. Solana and other non-EVM address families are not supported on
+          this score endpoint yet.
+        </p>
       </form>
 
       {targetWalletError ? (

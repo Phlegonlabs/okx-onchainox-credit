@@ -13,6 +13,17 @@ describe('getScoreActionMessage', () => {
     );
   });
 
+  it('calls out the EVM-only input requirement for invalid addresses', () => {
+    expect(
+      getScoreActionMessage({
+        code: 'INVALID_INPUT',
+        message: 'A valid EVM wallet address is required.',
+      })
+    ).toBe(
+      'The wallet address is invalid. Enter a valid EVM wallet address, then retry the paid score request.'
+    );
+  });
+
   it('falls back to a generic paid score message for unknown errors', () => {
     expect(
       getScoreActionMessage({

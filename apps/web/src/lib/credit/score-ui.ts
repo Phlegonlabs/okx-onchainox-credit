@@ -2,7 +2,8 @@ import { readPaidOperationFailureReason } from '../paid-operation-failure';
 import type { ScoreApiError } from './score-client';
 
 const scoreActionMessages: Record<string, string> = {
-  INVALID_INPUT: 'The wallet address is invalid. Reconnect and retry the paid score request.',
+  INVALID_INPUT:
+    'The wallet address is invalid. Enter a valid EVM wallet address, then retry the paid score request.',
   INVALID_PAYMENT:
     'The payment receipt could not be verified. Settle the x402 request again and paste the latest receipt.',
   PAYMENT_REQUIRED:

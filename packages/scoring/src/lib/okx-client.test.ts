@@ -16,6 +16,10 @@ afterEach(() => {
 });
 
 describe('OkxClient', () => {
+  it('uses an EVM-only default scoring chain set', () => {
+    expect(OkxClient.scoringChains).toBe('1,42161,10,8453,196,56,137');
+  });
+
   it('paginates wallet history and signs requests', async () => {
     const fetchMock = vi
       .fn<typeof fetch>()

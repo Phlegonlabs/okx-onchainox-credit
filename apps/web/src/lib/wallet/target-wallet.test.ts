@@ -16,6 +16,13 @@ describe('resolveTargetWalletInput', () => {
     });
   });
 
+  it('rejects valid non-EVM wallet formats', () => {
+    expect(resolveTargetWalletInput('11111111111111111111111111111112')).toEqual({
+      errorMessage: 'Enter a valid EVM wallet address.',
+      normalizedWallet: null,
+    });
+  });
+
   it('returns a checksummed wallet for valid addresses', () => {
     expect(resolveTargetWalletInput('0x1234567890abcdef1234567890abcdef12345678')).toEqual({
       errorMessage: null,
