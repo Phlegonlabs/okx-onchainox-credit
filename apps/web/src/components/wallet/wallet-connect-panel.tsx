@@ -151,8 +151,17 @@ export function WalletConnectPanel() {
       });
 
       if (!response.ok) {
-        const payload = (await response.json()) as { error?: { message?: string } };
-        throw new Error(payload.error?.message ?? 'Unable to verify wallet signature.');
+        const body = await response.text();
+        // biome-ignore lint/suspicious/noConsole: intentional client-side diagnostic for SIWE failures
+        console.error('[SIWE] sign-in response:', response.status, body);
+        let serverMessage = 'Unable to verify wallet signature.';
+        try {
+          const parsed = JSON.parse(body) as { error?: { message?: string } };
+          serverMessage = parsed.error?.message ?? serverMessage;
+        } catch {
+          // response was not JSON
+        }
+        throw new Error(serverMessage);
       }
 
       const payload = (await response.json()) as { wallet: string };
@@ -160,7 +169,10 @@ export function WalletConnectPanel() {
       navigateToDashboard();
     } catch (error) {
       // biome-ignore lint/suspicious/noConsole: intentional client-side diagnostic for SIWE failures
-      console.error('[SIWE] sign-in failed:', error);
+      console.error(
+        '[SIWE] sign-in failed:',
+        error instanceof Error ? error.message : JSON.stringify(error)
+      );
       setAuthError(extractErrorMessage(error, 'Unable to start the credit session.'));
     } finally {
       setIsAuthenticating(false);
