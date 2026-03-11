@@ -28,7 +28,7 @@ export const xLayer: Chain = {
 
 export const supportedChains = [mainnet, arbitrum, optimism, base, bsc, xLayer] as const;
 
-export const defaultWalletChain = mainnet;
+export const defaultWalletChain = xLayer;
 
 export function findSupportedChain(chainId: number): Chain | undefined {
   return supportedChains.find((chain) => chain.id === chainId);
