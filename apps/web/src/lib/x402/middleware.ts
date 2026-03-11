@@ -2,7 +2,6 @@ import { PaymentRequiredError, PaymentVerificationError, toErrorBody } from '@/l
 import {
   LOCAL_MOCK_PAYMENT_RECEIPT,
   createLocalMockPaymentSettlement,
-  getLocalMockX402Config,
   isLocalMockMode,
 } from '@/lib/local-integration';
 import { NextResponse } from 'next/server';
@@ -13,6 +12,13 @@ import {
   type X402PaymentVerification,
 } from './client';
 import { type X402Config, getCredentialPriceUsd, getX402Config } from './config';
+import {
+  type X402PaymentPayload,
+  type X402PaymentRequirements,
+  buildPaymentRequirements,
+  decodePaymentPayloadHeader,
+} from './payload';
+import { getX402TokenDomainMetadata } from './token-metadata';
 
 const PAYMENT_SIGNATURE_HEADER = 'payment-signature';
 
@@ -34,22 +40,39 @@ export type X402PaymentSettlementResult =
 function buildPaymentRequiredDetails(
   config: X402Config,
   amountUsd: string,
-  resource: string
+  resource: string,
+  resourceUrl: string
 ): {
   amount: string;
   chainId: number;
   header: string;
+  localMockReceipt?: string;
   network: string;
+  paymentRequirements: X402PaymentRequirements;
   recipient: string;
   resource: string;
   token: string;
   tokenAddress: string;
 } {
+  const tokenMetadata = getX402TokenDomainMetadata(config.token);
+  const paymentRequirements = buildPaymentRequirements({
+    amountUsd,
+    chainId: config.chainId,
+    domainName: tokenMetadata.domainName,
+    ...(tokenMetadata.domainVersion ? { domainVersion: tokenMetadata.domainVersion } : {}),
+    recipient: config.recipient,
+    resource: resourceUrl,
+    token: config.token,
+    tokenAddress: config.tokenAddress,
+  });
+
   return {
     amount: amountUsd,
     chainId: config.chainId,
     header: 'Payment-Signature',
+    ...(isLocalMockMode() ? { localMockReceipt: LOCAL_MOCK_PAYMENT_RECEIPT } : {}),
     network: config.network,
+    paymentRequirements,
     recipient: config.recipient,
     resource,
     token: config.token,
@@ -61,32 +84,16 @@ function createPaymentRequiredResponse(
   error: PaymentRequiredError | PaymentVerificationError,
   config: X402Config,
   amountUsd: string,
-  resource: string
+  resource: string,
+  resourceUrl: string
 ): NextResponse {
   return NextResponse.json(
     {
       ...toErrorBody(error),
-      paymentRequired: buildPaymentRequiredDetails(config, amountUsd, resource),
+      paymentRequired: buildPaymentRequiredDetails(config, amountUsd, resource, resourceUrl),
     },
     { status: 402 }
   );
-}
-
-function normalizeAddress(value: string | null | undefined): string | null {
-  return value?.trim().toLowerCase() || null;
-}
-
-function normalizeAmount(value: string): string {
-  const parsed = Number(value.trim());
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new Error('x402 amount must be a positive number');
-  }
-
-  return parsed.toFixed(2);
-}
-
-function normalizeText(value: string | null | undefined): string | null {
-  return value?.trim().toLowerCase() || null;
 }
 
 function getPaymentContext(options: SharedX402PaymentRequest) {
@@ -98,67 +105,54 @@ function getPaymentContext(options: SharedX402PaymentRequest) {
   };
 }
 
-function getPaymentTermsMismatchReason(
-  payment: X402PaymentVerification,
-  config: X402Config,
-  amountUsd: string,
-  resource: string
-): string | null {
-  if (!payment.amount || normalizeAmount(payment.amount) !== normalizeAmount(amountUsd)) {
-    return 'amount_mismatch';
-  }
-
-  if (payment.chainId !== config.chainId) {
-    return 'chain_id_mismatch';
-  }
-
-  if (normalizeText(payment.network) !== normalizeText(config.network)) {
-    return 'network_mismatch';
-  }
-
-  if (normalizeAddress(payment.recipient) !== normalizeAddress(config.recipient)) {
-    return 'recipient_mismatch';
-  }
-
-  if (normalizeText(payment.token) !== normalizeText(config.token)) {
-    return 'token_mismatch';
-  }
-
-  if (normalizeAddress(payment.tokenAddress) !== normalizeAddress(config.tokenAddress)) {
-    return 'token_address_mismatch';
-  }
-
-  if (normalizeText(payment.resource) !== normalizeText(resource)) {
-    return 'resource_mismatch';
-  }
-
-  return null;
-}
-
 function createLocalMockPaymentVerification(
-  receipt: string,
-  config: X402Config,
-  amountUsd: string,
-  resource: string
+  paymentPayload: X402PaymentPayload,
+  paymentRequirements: X402PaymentRequirements
 ): X402PaymentVerification {
-  const settlement = createLocalMockPaymentSettlement(receipt);
+  const settlement = createLocalMockPaymentSettlement(LOCAL_MOCK_PAYMENT_RECEIPT);
 
   return {
-    amount: normalizeAmount(amountUsd),
-    chainId: config.chainId,
-    network: config.network,
+    invalidReason: null,
+    isValid: true,
     payer: settlement.payer,
+    paymentPayload,
+    paymentRequirements,
     raw: {
       local: true,
-      receipt,
+      receipt: LOCAL_MOCK_PAYMENT_RECEIPT,
     },
-    receipt,
-    recipient: config.recipient,
-    resource,
-    token: config.token,
-    tokenAddress: config.tokenAddress,
     txHash: settlement.txHash,
   };
+}
+
+function createLocalMockPaymentPayload(
+  config: X402Config,
+  paymentRequirements: X402PaymentRequirements
+): X402PaymentPayload {
+  return {
+    chainIndex: String(config.chainId),
+    payload: {
+      authorization: {
+        from: createLocalMockPaymentSettlement().payer ?? '0xlocalpayer',
+        nonce: `0x${'0'.repeat(64)}`,
+        to: paymentRequirements.payTo,
+        validAfter: '0',
+        validBefore: String(Math.floor(Date.now() / 1_000) + paymentRequirements.maxTimeoutSeconds),
+        value: paymentRequirements.maxAmountRequired,
+      },
+      signature: '0xlocalmocksignature',
+    },
+    scheme: 'exact',
+    x402Version: 1,
+  };
+}
+
+function parsePaymentPayload(receiptHeader: string | null): X402PaymentPayload | null {
+  if (!receiptHeader) {
+    return null;
+  }
+
+  return decodePaymentPayloadHeader(receiptHeader);
 }
 
 export async function verifyX402Payment(
@@ -166,30 +160,36 @@ export async function verifyX402Payment(
   options: SharedX402PaymentRequest = {}
 ): Promise<X402PaymentVerificationResult> {
   const { amountUsd, client, config, resource } = getPaymentContext(options);
-  const receipt = request.headers.get(PAYMENT_SIGNATURE_HEADER)?.trim();
+  const resourceUrl = request.url;
+  const paymentRequirements = buildPaymentRequiredDetails(
+    config,
+    amountUsd,
+    resource,
+    resourceUrl
+  ).paymentRequirements;
+  const receiptHeader = request.headers.get(PAYMENT_SIGNATURE_HEADER)?.trim() ?? null;
+  const paymentPayload = parsePaymentPayload(receiptHeader);
 
-  if (!receipt) {
+  if (!receiptHeader) {
     return {
       ok: false,
       response: createPaymentRequiredResponse(
         new PaymentRequiredError('x402 payment required for this resource'),
         config,
         amountUsd,
-        resource
+        resource,
+        resourceUrl
       ),
     };
   }
 
   if (isLocalMockMode()) {
-    if (receipt === LOCAL_MOCK_PAYMENT_RECEIPT) {
+    if (receiptHeader === LOCAL_MOCK_PAYMENT_RECEIPT) {
+      const mockPayload =
+        paymentPayload ?? createLocalMockPaymentPayload(config, paymentRequirements);
       return {
         ok: true,
-        payment: createLocalMockPaymentVerification(
-          receipt,
-          options.config ?? getLocalMockX402Config(),
-          amountUsd,
-          resource
-        ),
+        payment: createLocalMockPaymentVerification(mockPayload, paymentRequirements),
       };
     }
 
@@ -201,26 +201,42 @@ export async function verifyX402Payment(
         }),
         config,
         amountUsd,
-        resource
+        resource,
+        resourceUrl
+      ),
+    };
+  }
+
+  if (!paymentPayload) {
+    return {
+      ok: false,
+      response: createPaymentRequiredResponse(
+        new PaymentVerificationError('Provided x402 payment could not be decoded', {
+          reason: 'invalid_payment_payload',
+        }),
+        config,
+        amountUsd,
+        resource,
+        resourceUrl
       ),
     };
   }
 
   try {
     const activeClient = client ?? OkxX402Client.fromEnv();
-    const payment = await activeClient.verifyPayment(receipt);
-    const mismatchReason = getPaymentTermsMismatchReason(payment, config, amountUsd, resource);
+    const payment = await activeClient.verifyPayment(paymentPayload, paymentRequirements);
 
-    if (mismatchReason) {
+    if (!payment.isValid) {
       return {
         ok: false,
         response: createPaymentRequiredResponse(
           new PaymentVerificationError('Provided x402 payment does not match the requested terms', {
-            reason: mismatchReason,
+            reason: payment.invalidReason ?? 'invalid_payment',
           }),
           config,
           amountUsd,
-          resource
+          resource,
+          resourceUrl
         ),
       };
     }
@@ -240,23 +256,36 @@ export async function verifyX402Payment(
         }),
         config,
         amountUsd,
-        resource
+        resource,
+        resourceUrl
       ),
     };
   }
 }
 
 export async function settleX402Payment(
-  receipt: string,
+  payment: Pick<X402PaymentVerification, 'paymentPayload' | 'paymentRequirements'>,
   options: SharedX402PaymentRequest = {}
 ): Promise<X402PaymentSettlementResult> {
   const { amountUsd, client, config, resource } = getPaymentContext(options);
+  const resourceUrl = payment.paymentRequirements.resource;
 
   if (isLocalMockMode()) {
-    if (receipt === LOCAL_MOCK_PAYMENT_RECEIPT) {
+    if (payment.paymentPayload.payload.signature === '0xlocalmocksignature') {
       return {
         ok: true,
-        payment: createLocalMockPaymentSettlement(receipt),
+        payment: {
+          invalidReason: null,
+          payer: createLocalMockPaymentSettlement().payer,
+          paymentPayload: payment.paymentPayload,
+          raw: {
+            local: true,
+            receipt: LOCAL_MOCK_PAYMENT_RECEIPT,
+          },
+          settlementId: 'local-settlement-1',
+          success: true,
+          txHash: '0xlocalmocktx',
+        },
       };
     }
 
@@ -268,18 +297,22 @@ export async function settleX402Payment(
         }),
         config,
         amountUsd,
-        resource
+        resource,
+        resourceUrl
       ),
     };
   }
 
   try {
     const activeClient = client ?? OkxX402Client.fromEnv();
-    const payment = await activeClient.settlePayment(receipt);
+    const settledPayment = await activeClient.settlePayment(
+      payment.paymentPayload,
+      payment.paymentRequirements
+    );
 
     return {
       ok: true,
-      payment,
+      payment: settledPayment,
     };
   } catch (error) {
     const reason = error instanceof Error ? error.message : 'unknown_error';
@@ -292,7 +325,8 @@ export async function settleX402Payment(
         }),
         config,
         amountUsd,
-        resource
+        resource,
+        resourceUrl
       ),
     };
   }

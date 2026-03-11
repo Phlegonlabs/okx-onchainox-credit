@@ -1,3 +1,4 @@
+import { buildPaymentPayload, encodePaymentPayloadHeader } from '@/lib/x402/payload';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { fromEnv, logCredentialIssuance, resolveWalletScore, signCredential } = vi.hoisted(() => ({
@@ -31,6 +32,23 @@ function configureX402Env() {
   process.env.X402_PAYMENT_TOKEN = 'USDC';
   process.env.X402_RECIPIENT_ADDRESS = '0x1234567890AbcdEF1234567890aBcdef12345678';
   process.env.X402_USDC_ADDRESS = '0x74b7f16337b8972027f6196a17a631ac6de26d22';
+}
+
+function createSignedPaymentHeader() {
+  return encodePaymentPayloadHeader(
+    buildPaymentPayload({
+      authorization: {
+        from: '0xpayer',
+        nonce: `0x${'3'.repeat(64)}`,
+        to: '0x1234567890AbcdEF1234567890aBcdef12345678',
+        validAfter: '0',
+        validBefore: '9999999999',
+        value: '500000',
+      },
+      chainId: 196,
+      signature: '0xsignedpayload',
+    })
+  );
 }
 
 function createRequest(body: unknown, headers: Record<string, string> = {}): Request {
@@ -79,7 +97,10 @@ describe('credential issuance flow', () => {
   it('returns 400 for invalid wallet payloads before touching the payment client', async () => {
     const { POST } = await import('@/app/api/credential/route');
     const response = await POST(
-      createRequest({ wallet: 'not-a-wallet' }, { 'payment-signature': 'signed-receipt' })
+      createRequest(
+        { wallet: 'not-a-wallet' },
+        { 'payment-signature': createSignedPaymentHeader() }
+      )
     );
 
     expect(response.status).toBe(400);
@@ -94,23 +115,60 @@ describe('credential issuance flow', () => {
   it('returns a signed credential for verified and settled payments', async () => {
     fromEnv.mockReturnValue({
       verifyPayment: vi.fn().mockResolvedValue({
-        amount: '0.50',
-        chainId: 196,
-        network: 'xlayer',
+        invalidReason: null,
+        isValid: true,
         payer: '0xpayer',
+        paymentPayload: buildPaymentPayload({
+          authorization: {
+            from: '0xpayer',
+            nonce: `0x${'4'.repeat(64)}`,
+            to: '0x1234567890AbcdEF1234567890aBcdef12345678',
+            validAfter: '0',
+            validBefore: '9999999999',
+            value: '500000',
+          },
+          chainId: 196,
+          signature: '0xsignedpayload',
+        }),
+        paymentRequirements: {
+          asset: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
+          chainIndex: '196',
+          extra: {
+            decimals: 6,
+            domainName: 'USD Coin',
+            domainVersion: '2',
+            gasLimit: '1000000',
+            token: 'USDC',
+          },
+          maxAmountRequired: '500000',
+          maxTimeoutSeconds: 600,
+          mimeType: 'application/json',
+          payTo: '0x1234567890AbcdEF1234567890aBcdef12345678',
+          resource: 'http://localhost:3000/api/credential',
+          scheme: 'exact',
+          x402Version: 1,
+        },
         raw: {},
-        receipt: 'signed-receipt',
-        recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
-        resource: 'credential_issuance',
-        token: 'USDC',
-        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
         txHash: '0xtx',
       }),
       settlePayment: vi.fn().mockResolvedValue({
+        invalidReason: null,
         payer: '0xpayer',
+        paymentPayload: buildPaymentPayload({
+          authorization: {
+            from: '0xpayer',
+            nonce: `0x${'4'.repeat(64)}`,
+            to: '0x1234567890AbcdEF1234567890aBcdef12345678',
+            validAfter: '0',
+            validBefore: '9999999999',
+            value: '500000',
+          },
+          chainId: 196,
+          signature: '0xsignedpayload',
+        }),
         raw: {},
-        receipt: 'signed-receipt',
         settlementId: 'settlement-1',
+        success: true,
         txHash: '0xtx',
       }),
     });
@@ -134,7 +192,7 @@ describe('credential issuance flow', () => {
     const response = await POST(
       createRequest(
         { wallet: '0x1234567890AbcdEF1234567890aBcdef12345678' },
-        { 'payment-signature': 'signed-receipt' }
+        { 'payment-signature': createSignedPaymentHeader() }
       )
     );
 

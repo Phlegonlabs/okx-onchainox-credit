@@ -21,7 +21,7 @@
 - Candles:    GET /api/v6/dex/market/candles (OHLCV)
 - Top Holder: GET /api/v6/dex/market/token/top-holder
 - NO dedicated DeFi lending API — detect borrow/repay by filtering tx methodId (see okx-api-reference.md §7)
-- x402: OKX OWN endpoints (/api/v6/wallet/payments/supported|verify|settle), NOT @coinbase/x402; tokens: USDG/USDT/USDC on X Layer (chainId 196)
+- x402: OKX OWN endpoints (/api/v6/wallet/payments/supported|verify|settle), NOT @coinbase/x402; current app default is USDT0 on X Layer (chainId 196), with other supported stablecoins available by env config
 - OKX has MCP servers for Trade AI + Market AI — call upstream in M6
 - chains param = comma-separated chainIndex: 1=ETH, 42161=ARB, 10=OP, 8453=BASE, 196=XLayer, 56=BSC, 137=MATIC
 

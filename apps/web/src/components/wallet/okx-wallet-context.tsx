@@ -14,9 +14,11 @@ import {
 } from '@/lib/wallet/okx-wallet';
 import {
   type TransactionParams,
+  type TypedDataParams,
   type WalletActionDeps,
   walletSendTransaction,
   walletSignMessage,
+  walletSignTypedData,
   walletSwitchChain,
 } from '@/lib/wallet/okx-wallet-actions';
 import {
@@ -35,7 +37,7 @@ import {
   useState,
 } from 'react';
 
-export type { TransactionParams } from '@/lib/wallet/okx-wallet-actions';
+export type { TransactionParams, TypedDataParams } from '@/lib/wallet/okx-wallet-actions';
 
 interface OkxWalletContextValue {
   address: string | null;
@@ -53,6 +55,7 @@ interface OkxWalletContextValue {
   disconnect: () => Promise<void>;
   sendTransaction: (params: TransactionParams) => Promise<string>;
   signMessage: (message: string) => Promise<string>;
+  signTypedData: (typedData: TypedDataParams) => Promise<string>;
   switchChain: (chainId: number) => Promise<void>;
 }
 
@@ -401,6 +404,11 @@ export function OkxWalletProvider({ children }: { children: React.ReactNode }) {
     [actionDeps]
   );
 
+  const signTypedData = useCallback(
+    (typedData: TypedDataParams) => walletSignTypedData(actionDeps, typedData),
+    [actionDeps]
+  );
+
   return (
     <OkxWalletContext.Provider
       value={{
@@ -419,6 +427,7 @@ export function OkxWalletProvider({ children }: { children: React.ReactNode }) {
         disconnect,
         sendTransaction,
         signMessage,
+        signTypedData,
         switchChain,
       }}
     >

@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-On-chain credit scoring platform. Uses OKX OnchainOS APIs (Wallet + DeFi + Market) to compute a 300–850 FICO-equivalent credit score from wallet history. Retail users pay via x402 (USDC on X Layer (Chain ID: 196)) to receive an ECDSA-signed verifiable credential. DeFi protocols query scores via x402 enterprise API. AI agents interact via MCP server (OpenClaw Skill).
+On-chain credit scoring platform. Uses OKX OnchainOS APIs (Wallet + DeFi + Market) to compute a 300–850 FICO-equivalent credit score from wallet history. Retail users pay via x402 (USDT0 on X Layer (Chain ID: 196)) to receive an ECDSA-signed verifiable credential. DeFi protocols query scores via x402 enterprise API. AI agents interact via MCP server (OpenClaw Skill).
 
 **Stack:** bun workspaces · Next.js (App Router) on Vercel · Turso (libSQL) + Drizzle · SIWE auth · x402 payments · TypeScript throughout
 

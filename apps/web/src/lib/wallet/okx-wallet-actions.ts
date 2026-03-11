@@ -14,6 +14,13 @@ export interface TransactionParams {
   chainId?: number;
 }
 
+export interface TypedDataParams {
+  domain: Record<string, unknown>;
+  message: object;
+  primaryType: string;
+  types: Record<string, Array<{ name: string; type: string }>>;
+}
+
 export interface WalletActionDeps {
   address: string | null;
   chainId: number | null;
@@ -127,6 +134,51 @@ export async function walletSendTransaction(
     );
   } catch (error) {
     throw new Error(getWalletErrorMessage(error, 'Transaction rejected.'));
+  }
+}
+
+export async function walletSignTypedData(
+  deps: WalletActionDeps,
+  typedData: TypedDataParams
+): Promise<string> {
+  const { address } = deps;
+  if (!address) {
+    throw new Error('Connect an OKX wallet before requesting a signature.');
+  }
+
+  const chainId = deps.chainId ?? defaultWalletChain.id;
+  const params = [address, JSON.stringify(typedData)];
+
+  if (deps.connectorType === 'extension') {
+    const provider = getOkxExtensionProvider();
+    if (!provider) {
+      throw new Error('OKX Wallet extension is not available in this browser.');
+    }
+
+    try {
+      return await provider.request<string>({
+        method: 'eth_signTypedData_v4',
+        params,
+      });
+    } catch (error) {
+      throw new Error(
+        getWalletErrorMessage(error, 'Unable to sign typed data with OKX Extension.')
+      );
+    }
+  }
+
+  const ui = await deps.getUniversalUi();
+  try {
+    return await ui.request<string>(
+      {
+        method: 'eth_signTypedData_v4',
+        params,
+      },
+      toCaipChainId(chainId),
+      deps.requestActions
+    );
+  } catch (error) {
+    throw new Error(getWalletErrorMessage(error, 'Unable to sign typed data with OKX App.'));
   }
 }
 

@@ -24,8 +24,7 @@ export async function GET(request: Request) {
       return paymentVerification.response;
     }
 
-    const payer =
-      paymentVerification.payment.payer ?? paymentVerification.payment.txHash ?? 'unknown_payer';
+    const payer = paymentVerification.payment.payer ?? 'unknown_payer';
     const rateLimitResult = await checkEnterpriseRateLimit({
       payer,
       resource: 'credential_verification',
@@ -39,7 +38,7 @@ export async function GET(request: Request) {
       });
     }
 
-    const paymentSettlement = await settleX402Payment(paymentVerification.payment.receipt, {
+    const paymentSettlement = await settleX402Payment(paymentVerification.payment, {
       amountUsd: getScoreQueryPriceUsd(),
       resource: 'credential_verification',
     });

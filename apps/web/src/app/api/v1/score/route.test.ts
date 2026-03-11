@@ -210,10 +210,15 @@ describe('GET /api/v1/score', () => {
       version: '1.0',
       wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
     });
-    expect(settleX402Payment).toHaveBeenCalledWith('receipt', {
-      amountUsd: '0.10',
-      resource: 'score_query',
-    });
+    expect(settleX402Payment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        receipt: 'receipt',
+      }),
+      {
+        amountUsd: '0.10',
+        resource: 'score_query',
+      }
+    );
     expect(logEnterpriseApiQuery).toHaveBeenCalledWith({
       metadata: {
         stale: true,

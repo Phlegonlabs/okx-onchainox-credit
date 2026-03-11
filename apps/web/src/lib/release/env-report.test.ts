@@ -18,10 +18,10 @@ const VALID_RELEASE_ENV = {
   X402_CHAIN_ID: '196',
   X402_CREDENTIAL_PRICE_USD: '0.50',
   X402_NETWORK: 'xlayer',
-  X402_PAYMENT_TOKEN: 'USDC',
+  X402_PAYMENT_TOKEN: 'USDT0',
   X402_RECIPIENT_ADDRESS: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
   X402_SCORE_QUERY_PRICE_USD: '0.10',
-  X402_USDC_ADDRESS: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
+  X402_USDT0_ADDRESS: '0x779ded0c9e1022225f8e0630b35a9b54be713736',
 } satisfies NodeJS.ProcessEnv;
 
 describe('getReleaseEnvReport', () => {
@@ -33,7 +33,7 @@ describe('getReleaseEnvReport', () => {
     expect(report.summary).toMatchObject({
       appUrl: 'https://credit.okx.test',
       databaseUrl: 'libsql://okx-credit-prod.turso.io',
-      paymentToken: 'USDC',
+      paymentToken: 'USDT0',
       target: 'production',
     });
   });
@@ -89,7 +89,7 @@ describe('getReleaseEnvReport', () => {
         }),
         expect.objectContaining({
           envName: 'X402_PAYMENT_TOKEN',
-          message: expect.stringContaining('one of USDG, USDT, or USDC'),
+          message: expect.stringContaining('one of USDG, USDT, USDT0, or USDC'),
         }),
       ])
     );

@@ -1,6 +1,7 @@
 import { LOCAL_MOCK_PAYMENT_RECEIPT } from '@/lib/local-integration';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { settleX402Payment, verifyX402Payment } from './middleware';
+import { type X402PaymentPayload, encodePaymentPayloadHeader } from './payload';
 
 const TEST_CONFIG = {
   chainId: 196,
@@ -9,6 +10,25 @@ const TEST_CONFIG = {
   token: 'USDC' as const,
   tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
 };
+
+function createPaymentPayload(): X402PaymentPayload {
+  return {
+    chainIndex: '196',
+    payload: {
+      authorization: {
+        from: '0x4567890AbcdEF1234567890aBcdef1234567890',
+        nonce: `0x${'1'.repeat(64)}`,
+        to: TEST_CONFIG.recipient,
+        validAfter: '0',
+        validBefore: '9999999999',
+        value: '500000',
+      },
+      signature: '0xsignedpayload',
+    },
+    scheme: 'exact',
+    x402Version: 1,
+  };
+}
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -45,19 +65,33 @@ describe('verifyX402Payment', () => {
   });
 
   it('allows requests with a verified receipt that matches the requested terms', async () => {
+    const paymentPayload = createPaymentPayload();
     const client = {
       settlePayment: vi.fn(),
       verifyPayment: vi.fn().mockResolvedValue({
-        amount: '0.50',
-        chainId: 196,
-        network: 'xlayer',
+        invalidReason: null,
+        isValid: true,
         payer: '0x4567890AbcdEF1234567890aBcdef1234567890',
+        paymentPayload,
+        paymentRequirements: {
+          asset: TEST_CONFIG.tokenAddress,
+          chainIndex: '196',
+          extra: {
+            decimals: 6,
+            domainName: 'USD Coin',
+            domainVersion: '2',
+            gasLimit: '1000000',
+            token: 'USDC',
+          },
+          maxAmountRequired: '500000',
+          maxTimeoutSeconds: 600,
+          mimeType: 'application/json',
+          payTo: TEST_CONFIG.recipient,
+          resource: 'http://localhost:3000/api/credential',
+          scheme: 'exact',
+          x402Version: 1,
+        },
         raw: { status: 'verified' },
-        receipt: 'signed-receipt',
-        recipient: TEST_CONFIG.recipient,
-        resource: 'credential_issuance',
-        token: 'USDC',
-        tokenAddress: TEST_CONFIG.tokenAddress,
         txHash: '0xtxhash',
       }),
     };
@@ -65,7 +99,7 @@ describe('verifyX402Payment', () => {
     const result = await verifyX402Payment(
       new Request('http://localhost:3000/api/credential', {
         headers: {
-          'payment-signature': 'signed-receipt',
+          'payment-signature': encodePaymentPayloadHeader(paymentPayload),
         },
       }),
       {
@@ -80,28 +114,49 @@ describe('verifyX402Payment', () => {
       ok: true,
       payment: {
         payer: '0x4567890AbcdEF1234567890aBcdef1234567890',
-        receipt: 'signed-receipt',
         txHash: '0xtxhash',
       },
     });
-    expect(client.verifyPayment).toHaveBeenCalledWith('signed-receipt');
+    expect(client.verifyPayment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chainIndex: '196',
+      }),
+      expect.objectContaining({
+        asset: TEST_CONFIG.tokenAddress,
+        payTo: TEST_CONFIG.recipient,
+      })
+    );
     expect(client.settlePayment).not.toHaveBeenCalled();
   });
 
   it('returns a 402 response when verified payment terms do not match the request', async () => {
+    const paymentPayload = createPaymentPayload();
     const client = {
       settlePayment: vi.fn(),
       verifyPayment: vi.fn().mockResolvedValue({
-        amount: '0.10',
-        chainId: 196,
-        network: 'xlayer',
+        invalidReason: 'amount_mismatch',
+        isValid: false,
         payer: '0x4567890AbcdEF1234567890aBcdef1234567890',
+        paymentPayload,
+        paymentRequirements: {
+          asset: TEST_CONFIG.tokenAddress,
+          chainIndex: '196',
+          extra: {
+            decimals: 6,
+            domainName: 'USD Coin',
+            domainVersion: '2',
+            gasLimit: '1000000',
+            token: 'USDC',
+          },
+          maxAmountRequired: '100000',
+          maxTimeoutSeconds: 600,
+          mimeType: 'application/json',
+          payTo: TEST_CONFIG.recipient,
+          resource: 'http://localhost:3000/api/credential',
+          scheme: 'exact',
+          x402Version: 1,
+        },
         raw: { status: 'verified' },
-        receipt: 'signed-receipt',
-        recipient: TEST_CONFIG.recipient,
-        resource: 'credential_issuance',
-        token: 'USDC',
-        tokenAddress: TEST_CONFIG.tokenAddress,
         txHash: '0xtxhash',
       }),
     };
@@ -109,7 +164,7 @@ describe('verifyX402Payment', () => {
     const result = await verifyX402Payment(
       new Request('http://localhost:3000/api/credential', {
         headers: {
-          'payment-signature': 'signed-receipt',
+          'payment-signature': encodePaymentPayloadHeader(paymentPayload),
         },
       }),
       {
@@ -153,10 +208,11 @@ describe('verifyX402Payment', () => {
     await expect(result.response.json()).resolves.toMatchObject({
       paymentRequired: {
         chainId: 196,
+        localMockReceipt: LOCAL_MOCK_PAYMENT_RECEIPT,
         network: 'xlayer',
         recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
         token: 'USDT0',
-        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
+        tokenAddress: '0x779ded0c9e1022225f8e0630b35a9b54be713736',
       },
     });
   });
@@ -187,7 +243,6 @@ describe('verifyX402Payment', () => {
       ok: true,
       payment: {
         payer: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
-        receipt: LOCAL_MOCK_PAYMENT_RECEIPT,
         txHash: '0xlocalmocktx',
       },
     });
@@ -198,18 +253,42 @@ describe('verifyX402Payment', () => {
 
 describe('settleX402Payment', () => {
   it('settles a verified receipt', async () => {
+    const paymentPayload = createPaymentPayload();
+    const paymentVerification = {
+      paymentPayload,
+      paymentRequirements: {
+        asset: TEST_CONFIG.tokenAddress,
+        chainIndex: '196',
+        extra: {
+          decimals: 6,
+          domainName: 'USD Coin',
+          domainVersion: '2',
+          gasLimit: '1000000',
+          token: 'USDC',
+        },
+        maxAmountRequired: '500000',
+        maxTimeoutSeconds: 600,
+        mimeType: 'application/json',
+        payTo: TEST_CONFIG.recipient,
+        resource: 'http://localhost:3000/api/credential',
+        scheme: 'exact',
+        x402Version: 1,
+      },
+    } as const;
     const client = {
       settlePayment: vi.fn().mockResolvedValue({
+        invalidReason: null,
         payer: '0x4567890AbcdEF1234567890aBcdef1234567890',
+        paymentPayload,
         raw: { status: 'settled' },
-        receipt: 'signed-receipt',
         settlementId: 'settlement-1',
+        success: true,
         txHash: '0xtxhash',
       }),
       verifyPayment: vi.fn(),
     };
 
-    const result = await settleX402Payment('signed-receipt', {
+    const result = await settleX402Payment(paymentVerification, {
       amountUsd: '0.50',
       client,
       config: TEST_CONFIG,
@@ -223,16 +302,40 @@ describe('settleX402Payment', () => {
         settlementId: 'settlement-1',
       },
     });
-    expect(client.settlePayment).toHaveBeenCalledWith('signed-receipt');
+    expect(client.settlePayment).toHaveBeenCalledWith(
+      paymentVerification.paymentPayload,
+      paymentVerification.paymentRequirements
+    );
   });
 
   it('returns a 402 response when receipt settlement fails', async () => {
+    const paymentVerification = {
+      paymentPayload: createPaymentPayload(),
+      paymentRequirements: {
+        asset: TEST_CONFIG.tokenAddress,
+        chainIndex: '196',
+        extra: {
+          decimals: 6,
+          domainName: 'USD Coin',
+          domainVersion: '2',
+          gasLimit: '1000000',
+          token: 'USDC',
+        },
+        maxAmountRequired: '500000',
+        maxTimeoutSeconds: 600,
+        mimeType: 'application/json',
+        payTo: TEST_CONFIG.recipient,
+        resource: 'http://localhost:3000/api/credential',
+        scheme: 'exact',
+        x402Version: 1,
+      },
+    } as const;
     const client = {
       settlePayment: vi.fn().mockRejectedValue(new Error('receipt_rejected')),
       verifyPayment: vi.fn(),
     };
 
-    const result = await settleX402Payment('bad-receipt', {
+    const result = await settleX402Payment(paymentVerification, {
       amountUsd: '0.50',
       client,
       config: TEST_CONFIG,

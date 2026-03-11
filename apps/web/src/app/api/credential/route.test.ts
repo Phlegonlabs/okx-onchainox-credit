@@ -148,9 +148,14 @@ describe('POST /api/credential', () => {
       version: '1.0',
       wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
     });
-    expect(settleX402Payment).toHaveBeenCalledWith('receipt', {
-      resource: 'credential_issuance',
-    });
+    expect(settleX402Payment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        receipt: 'receipt',
+      }),
+      {
+        resource: 'credential_issuance',
+      }
+    );
     expect(signCredential).toHaveBeenCalledWith(
       expect.objectContaining({
         issuer: 'okx-onchainos-credit',

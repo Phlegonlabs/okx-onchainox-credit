@@ -2,7 +2,7 @@
 
 On-chain credit scoring platform. Uses OKX OnchainOS APIs (Wallet + DeFi + Market) to compute a **300–850 FICO-equivalent credit score** from wallet history across 60+ chains.
 
-Retail users connect a wallet, authenticate with **SIWE**, and then unlock their score via **x402** (USDC on X Layer (Chain ID: 196)). After the paid score query settles, they can optionally mint an **ECDSA-signed verifiable credential**. DeFi protocols and agent infrastructure query scores through the same **pay-per-use API**. The MCP package remains preview/internal and is not part of the paid score path.
+Retail users connect a wallet, authenticate with **SIWE**, and then unlock their score via **x402** (USDT0 on X Layer (Chain ID: 196)). After the paid score query settles, they can optionally mint an **ECDSA-signed verifiable credential**. DeFi protocols and agent infrastructure query scores through the same **pay-per-use API**. The MCP package remains preview/internal and is not part of the paid score path.
 
 ## Scoring Dimensions
 

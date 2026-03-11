@@ -1,5 +1,6 @@
 import { verifyCredentialSignature } from '@/lib/credential/signing';
 import { LOCAL_MOCK_PAYMENT_RECEIPT } from '@/lib/local-integration';
+import { buildPaymentPayload, encodePaymentPayloadHeader } from '@/lib/x402/payload';
 import { Wallet } from 'ethers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -54,28 +55,37 @@ function configureEnv() {
   process.env.X402_NETWORK = 'xlayer';
 }
 
+function createSignedPaymentHeader() {
+  return encodePaymentPayloadHeader(
+    buildPaymentPayload({
+      authorization: {
+        from: '0xpayer',
+        nonce: `0x${'2'.repeat(64)}`,
+        to: '0x1234567890AbcdEF1234567890aBcdef12345678',
+        validAfter: '0',
+        validBefore: '9999999999',
+        value: '500000',
+      },
+      chainId: 196,
+      signature: '0xsignedpayload',
+    })
+  );
+}
+
 function mockSuccessfulPaymentLifecycle() {
   globalThis.fetch = vi.fn().mockImplementation(async (input: RequestInfo | URL) => {
     const url =
       typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
 
-    if (url.endsWith('/api/v6/wallet/payments/verify')) {
+    if (url.endsWith('/api/v6/payments/verify')) {
       return new Response(
         JSON.stringify({
           code: '0',
           data: [
             {
-              amount: '0.50',
-              chainId: '196',
-              network: 'xlayer',
+              isValid: true,
               payerAddress: '0xpayer',
-              receipt: 'signed-receipt',
-              recipientAddress: '0x1234567890AbcdEF1234567890aBcdef12345678',
-              resource: 'credential_issuance',
-              token: 'USDC',
-              tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
               txHash: '0xtx',
-              verified: true,
             },
           ],
           msg: '',
@@ -89,14 +99,14 @@ function mockSuccessfulPaymentLifecycle() {
       );
     }
 
-    if (url.endsWith('/api/v6/wallet/payments/settle')) {
+    if (url.endsWith('/api/v6/payments/settle')) {
       return new Response(
         JSON.stringify({
           code: '0',
           data: [
             {
+              isSettled: true,
               payerAddress: '0xpayer',
-              receipt: 'signed-receipt',
               settlementId: 'settlement-1',
               txHash: '0xtx',
             },
@@ -175,7 +185,7 @@ describe('POST /api/credential integration', () => {
     mockSuccessfulPaymentLifecycle();
 
     const response = await POST(
-      createRequest('0x1234567890AbcdEF1234567890aBcdef12345678', 'signed-receipt')
+      createRequest('0x1234567890AbcdEF1234567890aBcdef12345678', createSignedPaymentHeader())
     );
 
     expect(response.status).toBe(200);

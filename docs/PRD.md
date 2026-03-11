@@ -28,7 +28,7 @@ OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet tra
 - Steps:
   1. User lands on dashboard → connects wallet (WalletConnect)
   2. User signs SIWE message → authenticated
-  3. User requests the paid score query via x402 (USDC on X Layer (Chain ID: 196))
+  3. User requests the paid score query via x402 (USDT0 on X Layer (Chain ID: 196))
   4. System checks cache → if stale/miss, calls OKX OnchainOS APIs to compute score
   5. Score (300–850) + breakdown (5 dimensions) + improvement tips displayed after payment settles
   6. User optionally pays again via x402 → ECDSA-signed credential issued
@@ -73,7 +73,7 @@ OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet tra
 | FR-006 | Score dimension: DeFi repayment history | Borrow + repay events from OKX DeFi API; on-time repayments weighted positively | Must | Score Engine |
 | FR-007 | Score dimension: multi-chain activity | Number of chains active on (60+ supported by OKX) + cross-chain volume | Must | Score Engine |
 | FR-008 | Score caching | Scores cached in Turso with 24h TTL; cache invalidated on significant wallet event | Must | Performance |
-| FR-009 | x402 credential issuance (retail) | User pays USDC via x402; ECDSA-signed JSON credential issued; downloadable; expires in 30 days | Must | Retail |
+| FR-009 | x402 credential issuance (retail) | User pays USDT0 via x402; ECDSA-signed JSON credential issued; downloadable; expires in 30 days | Must | Retail |
 | FR-010 | Score dashboard | Score gauge (300–850 visual), breakdown per dimension, percentile rank, improvement tips; hidden until the paid score query settles | Must | Retail |
 | FR-011 | Improvement tips | Personalized tips based on lowest-scoring dimensions (e.g., "Repay outstanding Aave loan to +45 pts") | Should | Retail |
 | FR-012 | x402 enterprise API | GET /api/v1/score — x402 gated, returns score + breakdown + ECDSA signature; rate limited per payer | Must | Protocol |

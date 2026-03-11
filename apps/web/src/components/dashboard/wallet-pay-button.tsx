@@ -1,7 +1,12 @@
 'use client';
 
 import { useOkxWallet } from '@/components/wallet/okx-wallet-context';
-import { buildErc20TransferData } from '@/lib/wallet/erc20-transfer';
+import {
+  buildPaymentAuthorization,
+  buildPaymentPayload,
+  buildTransferWithAuthorizationTypedData,
+  encodePaymentPayloadHeader,
+} from '@/lib/x402/payload';
 import type { PaymentRequiredDetails } from '@/lib/x402/payment-required';
 import { useState } from 'react';
 
@@ -11,10 +16,10 @@ export function WalletPayButton({
   payment,
 }: {
   disabled?: boolean;
-  onPaid: (txHash: string) => void;
+  onPaid: (paymentHeader: string) => void;
   payment: PaymentRequiredDetails;
 }) {
-  const { sendTransaction, switchChain } = useOkxWallet();
+  const { address, signTypedData, switchChain } = useOkxWallet();
   const [isPaying, setIsPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
 
@@ -23,14 +28,39 @@ export function WalletPayButton({
     setPayError(null);
 
     try {
+      if (payment.localMockReceipt) {
+        onPaid(payment.localMockReceipt);
+        return;
+      }
+
+      if (!address) {
+        throw new Error('Connect an OKX wallet before attempting payment.');
+      }
+
       await switchChain(payment.chainId);
-      const data = buildErc20TransferData(payment.recipient, payment.amount);
-      const txHash = await sendTransaction({
-        to: payment.tokenAddress,
-        data,
-        chainId: payment.chainId,
+      const authorization = buildPaymentAuthorization({
+        from: address,
+        maxAmountRequired: payment.paymentRequirements.maxAmountRequired,
+        payTo: payment.paymentRequirements.payTo,
+        validForSeconds: payment.paymentRequirements.maxTimeoutSeconds,
       });
-      onPaid(txHash);
+      const typedData = buildTransferWithAuthorizationTypedData({
+        authorization,
+        chainId: payment.chainId,
+        domainName: payment.paymentRequirements.extra.domainName,
+        ...(payment.paymentRequirements.extra.domainVersion
+          ? { domainVersion: payment.paymentRequirements.extra.domainVersion }
+          : {}),
+        tokenAddress: payment.tokenAddress,
+      });
+      const signature = await signTypedData(typedData);
+      const paymentPayload = buildPaymentPayload({
+        authorization,
+        chainId: payment.chainId,
+        signature,
+      });
+
+      onPaid(encodePaymentPayloadHeader(paymentPayload));
     } catch (error) {
       setPayError(error instanceof Error ? error.message : 'Payment failed.');
     } finally {

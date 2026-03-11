@@ -201,10 +201,15 @@ describe('GET /api/v1/credential/verify', () => {
       valid: true,
       wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
     });
-    expect(settleX402Payment).toHaveBeenCalledWith('receipt', {
-      amountUsd: '0.10',
-      resource: 'credential_verification',
-    });
+    expect(settleX402Payment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        receipt: 'receipt',
+      }),
+      {
+        amountUsd: '0.10',
+        resource: 'credential_verification',
+      }
+    );
     expect(logEnterpriseApiQuery).toHaveBeenCalledWith({
       metadata: {
         expiresAt: 1775692800,

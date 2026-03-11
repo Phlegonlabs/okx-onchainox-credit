@@ -211,7 +211,7 @@ Response: array of `[ts, open, high, low, close, vol, volUsd, confirm]`
 | USDT  | `0x779ded0c9e1022225f8e0630b35a9b54be713736` |
 | USDC  | `0x74b7f16337b8972027f6196a17a631ac6de26d22` |
 
-**Gas subsidy:** Zero gas for USDT and USDC on X Layer.
+**Gas subsidy:** Zero gas support depends on the current OKX/X Layer rollout; do not assume the wallet will suppress all native-gas prompts during payment confirmation.
 **KYT:** Built-in Know Your Transaction risk detection on all payments.
 
 ### API Endpoints
@@ -228,12 +228,12 @@ POST /api/v6/wallet/payments/settle     — finalize/settle the payment
 2. Our server → client:      HTTP 402
                              { paymentRequired: {
                                  network: "xlayer", chainId: 196,
-                                 token: "USDC",
-                                 tokenAddress: "0x74b7...",
+                                 token: "USDT0",
+                                 tokenAddress: "0x779d...",
                                  amount: "0.10",
                                  recipient: "<our wallet>"
                                }}
-3. Client → X Layer:         ERC-20 transfer (USDC to recipient)
+3. Client → X Layer:         ERC-20 transfer (USDT0 to recipient)
 4. Client → OKX verify API:  POST /api/v6/wallet/payments/verify { txHash, ... }
                              ← returns signed payment receipt
 5. Client → our server:      retry call + header: Payment-Signature: <receipt>
@@ -242,7 +242,7 @@ POST /api/v6/wallet/payments/settle     — finalize/settle the payment
 7. Our server → client:      HTTP 200 + result
 ```
 
-**Recommend:** Default payment token = USDC. Implement in:
+**Recommend:** Default payment token = USDT0. Implement in:
 - `packages/mcp/src/lib/x402.ts` — MCP server tool gating
 - `apps/web/src/lib/x402.ts` — Enterprise API route middleware
 

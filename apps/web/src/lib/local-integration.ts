@@ -3,7 +3,7 @@ import type { X402PaymentSettlement } from './x402/client';
 import type { X402Config } from './x402/config';
 
 const DEFAULT_LOCAL_RECIPIENT = '0x1234567890AbcdEF1234567890aBcdef12345678';
-const DEFAULT_LOCAL_TOKEN_ADDRESS = '0x74b7f16337b8972027f6196a17a631ac6de26d22';
+const DEFAULT_LOCAL_TOKEN_ADDRESS = '0x779ded0c9e1022225f8e0630b35a9b54be713736';
 const DEFAULT_LOCAL_PAYER = '0x90F79bf6EB2c4f870365E785982E1f101E93b906';
 
 export const LOCAL_MOCK_PAYMENT_RECEIPT = 'local-paid';
@@ -56,13 +56,30 @@ export function createLocalMockPaymentSettlement(
   receipt: string = LOCAL_MOCK_PAYMENT_RECEIPT
 ): X402PaymentSettlement {
   return {
+    invalidReason: null,
     payer: DEFAULT_LOCAL_PAYER,
+    paymentPayload: {
+      chainIndex: '196',
+      payload: {
+        authorization: {
+          from: DEFAULT_LOCAL_PAYER,
+          nonce: `0x${'0'.repeat(64)}`,
+          to: DEFAULT_LOCAL_RECIPIENT,
+          validAfter: '0',
+          validBefore: '9999999999',
+          value: '500000',
+        },
+        signature: '0xlocalmocksignature',
+      },
+      scheme: 'exact',
+      x402Version: 1,
+    },
     raw: {
       local: true,
       receipt,
     },
-    receipt,
     settlementId: 'local-settlement-1',
+    success: true,
     txHash: '0xlocalmocktx',
   };
 }

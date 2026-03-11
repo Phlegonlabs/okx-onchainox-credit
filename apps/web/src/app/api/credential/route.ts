@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     return paymentVerification.response;
   }
 
-  const paymentSettlement = await settleX402Payment(paymentVerification.payment.receipt, {
+  const paymentSettlement = await settleX402Payment(paymentVerification.payment, {
     resource: 'credential_issuance',
   });
   if (!paymentSettlement.ok) {

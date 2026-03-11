@@ -5,6 +5,7 @@ const TOKEN_ADDRESS_ENV_BY_SYMBOL = {
   USDC: 'X402_USDC_ADDRESS',
   USDG: 'X402_USDG_ADDRESS',
   USDT: 'X402_USDT_ADDRESS',
+  USDT0: 'X402_USDT0_ADDRESS',
 } as const;
 
 const RELEASE_REQUIRED_ENV_VARS = [
@@ -159,7 +160,7 @@ function validatePaymentToken(env: NodeJS.ProcessEnv, errors: ReleaseEnvIssue[])
     pushError(
       errors,
       'X402_PAYMENT_TOKEN',
-      'X402_PAYMENT_TOKEN must be one of USDG, USDT, or USDC'
+      'X402_PAYMENT_TOKEN must be one of USDG, USDT, USDT0, or USDC'
     );
     return paymentToken;
   }
