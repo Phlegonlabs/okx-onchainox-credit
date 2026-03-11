@@ -1,4 +1,5 @@
 import { SiweMessage } from 'siwe';
+import { getAddress } from 'viem';
 
 export interface CreateSiweMessageInput {
   address: string;
@@ -16,7 +17,7 @@ export function createSiweMessage({
   uri,
 }: CreateSiweMessageInput): string {
   return new SiweMessage({
-    address,
+    address: getAddress(address),
     chainId,
     domain,
     nonce,
