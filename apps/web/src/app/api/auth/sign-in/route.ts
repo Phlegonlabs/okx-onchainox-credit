@@ -1,6 +1,12 @@
 import { SIWE_NONCE_COOKIE_NAME, verifySiweNonceChallenge } from '@/lib/auth/nonce';
+import { logger } from '@/lib/logger';
 import { SESSION_COOKIE_NAME, createSessionToken } from '@/lib/session';
-import { type SignInPayload, verifySiwePayload } from '@/lib/siwe';
+import {
+  type SignInPayload,
+  getExpectedDomain,
+  getExpectedOrigin,
+  verifySiwePayload,
+} from '@/lib/siwe';
 import { NextResponse } from 'next/server';
 import { SiweMessage } from 'siwe';
 
@@ -21,6 +27,7 @@ export async function POST(request: Request) {
   try {
     payload = (await request.json()) as Partial<SignInPayload>;
   } catch {
+    logger.warn({ operation: 'siwe_sign_in' }, 'Invalid request body');
     const response = NextResponse.json(
       { error: { code: 'INVALID_INPUT', message: 'Invalid request body.' } },
       { status: 400 }
@@ -31,6 +38,7 @@ export async function POST(request: Request) {
   }
 
   if (!payload.message || !payload.signature) {
+    logger.warn({ operation: 'siwe_sign_in' }, 'Missing SIWE payload fields');
     const response = NextResponse.json(
       { error: { code: 'INVALID_INPUT', message: 'Missing SIWE payload.' } },
       { status: 400 }
@@ -43,7 +51,8 @@ export async function POST(request: Request) {
   let parsedMessage: SiweMessage;
   try {
     parsedMessage = new SiweMessage(payload.message);
-  } catch {
+  } catch (error) {
+    logger.warn({ error, operation: 'siwe_sign_in' }, 'Failed to parse SIWE message');
     const response = NextResponse.json(
       { error: { code: 'SIWE_VERIFICATION_FAILED', message: 'Unable to verify SIWE signature.' } },
       { status: 401 }
@@ -54,7 +63,13 @@ export async function POST(request: Request) {
   }
 
   const expectedNonce = parsedMessage.nonce;
+  const hasCookie = request.headers.get('cookie')?.includes(SIWE_NONCE_COOKIE_NAME) ?? false;
+
   if (!verifySiweNonceChallenge(request.headers.get('cookie'), expectedNonce)) {
+    logger.warn(
+      { operation: 'siwe_sign_in', hasCookie, expectedNonce: expectedNonce.slice(0, 8) },
+      'Nonce verification failed'
+    );
     const response = NextResponse.json(
       { error: { code: 'SIWE_VERIFICATION_FAILED', message: 'Unable to verify SIWE signature.' } },
       { status: 401 }
@@ -63,6 +78,9 @@ export async function POST(request: Request) {
     clearNonceCookie(response);
     return response;
   }
+
+  const expectedDomain = getExpectedDomain(request);
+  const expectedOrigin = getExpectedOrigin(request);
 
   const verification = await verifySiwePayload(
     request,
@@ -74,6 +92,16 @@ export async function POST(request: Request) {
   );
 
   if (!verification.success || !verification.wallet) {
+    logger.warn(
+      {
+        operation: 'siwe_sign_in',
+        messageDomain: parsedMessage.domain,
+        messageUri: parsedMessage.uri,
+        expectedDomain,
+        expectedOrigin,
+      },
+      'SIWE signature verification failed'
+    );
     const response = NextResponse.json(
       { error: { code: 'SIWE_VERIFICATION_FAILED', message: 'Unable to verify SIWE signature.' } },
       { status: 401 }

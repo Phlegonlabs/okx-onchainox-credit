@@ -18,6 +18,22 @@ function navigateToDashboard() {
   window.location.assign('/dashboard');
 }
 
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    return String((error as { message: unknown }).message);
+  }
+
+  return fallback;
+}
+
 export function WalletConnectPanel() {
   const router = useRouter();
   const {
@@ -76,7 +92,9 @@ export function WalletConnectPanel() {
     try {
       await connectExtension();
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : 'Unable to connect OKX Extension.');
+      // biome-ignore lint/suspicious/noConsole: intentional client-side diagnostic for SIWE failures
+      console.error('[SIWE] extension connect failed:', error);
+      setAuthError(extractErrorMessage(error, 'Unable to connect OKX Extension.'));
     }
   }
 
@@ -86,7 +104,9 @@ export function WalletConnectPanel() {
     try {
       await connectApp();
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : 'Unable to connect OKX App.');
+      // biome-ignore lint/suspicious/noConsole: intentional client-side diagnostic for SIWE failures
+      console.error('[SIWE] app connect failed:', error);
+      setAuthError(extractErrorMessage(error, 'Unable to connect OKX App.'));
     }
   }
 
@@ -139,7 +159,9 @@ export function WalletConnectPanel() {
       setSessionWallet(payload.wallet);
       navigateToDashboard();
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : 'Unable to start the credit session.');
+      // biome-ignore lint/suspicious/noConsole: intentional client-side diagnostic for SIWE failures
+      console.error('[SIWE] sign-in failed:', error);
+      setAuthError(extractErrorMessage(error, 'Unable to start the credit session.'));
     } finally {
       setIsAuthenticating(false);
     }
