@@ -265,6 +265,41 @@ describe('OkxClient', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it('retries transient HTTP 429 responses before succeeding', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response('rate limited', {
+          headers: {
+            'retry-after': '0',
+          },
+          status: 429,
+          statusText: 'Too Many Requests',
+        })
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          code: '0',
+          msg: '',
+          data: [{ totalValue: '42.00' }],
+        })
+      );
+    globalThis.fetch = fetchMock;
+
+    const client = new OkxClient({
+      apiKey: 'key',
+      passphrase: 'pass',
+      retryDelaysMs: [0, 0],
+      secretKey: 'secret',
+    });
+
+    await expect(client.getDeFiPositions('0xabc')).resolves.toEqual({
+      hasPositions: true,
+      totalValueUsd: 42,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('retries timeout failures up to the retry budget', async () => {
     const fetchMock = vi.fn<typeof fetch>((_url, init) => {
       const signal = init?.signal;

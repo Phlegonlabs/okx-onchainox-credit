@@ -9,8 +9,9 @@ import type {
   WalletEvent,
 } from '../types.js';
 import { type OkxRawTx, parseDefiEvents } from './defi-parser.js';
+import { OkxRequestError, readRetryAfterMs } from './okx-request-error.js';
 import { normalizeOkxRetryDelays, retryOkxRequest } from './okx-request-retry.js';
-import { extractTransactionPage, normalizeWalletHistoryPage } from './wallet-normalizer.js';
+import { extractTransactionPage, normalizeWalletHistoryTransactions } from './wallet-normalizer.js';
 
 const OKX_BASE_URL = process.env.OKX_BASE_URL ?? 'https://web3.okx.com';
 const DEFAULT_TIMEOUT_MS = 3_000;
@@ -18,14 +19,17 @@ const DEFAULT_HISTORY_PAGE_LIMIT = 100;
 const DEFAULT_MULTI_CHAIN_HISTORY_PAGE_LIMIT = 20;
 const MAX_HISTORY_PAGES = 10;
 const DEFAULT_CANDLE_LIMIT = 100;
+const DEFAULT_MIN_REQUEST_INTERVAL_MS = process.env.NODE_ENV === 'test' ? 0 : 1_000;
 
 const SCORING_CHAINS = '1,42161,10,8453,196,56,137,501';
+const endpointRequestSchedule = new Map<string, Promise<number>>();
 
 interface OkxClientConfig {
   apiKey: string;
   secretKey: string;
   passphrase: string;
   baseUrl?: string;
+  minRequestIntervalMs?: number;
   retryDelaysMs?: number[];
   timeoutMs?: number;
 }
@@ -71,12 +75,42 @@ function getHistoryPageLimit(chains: string): number {
   return chainCount > 1 ? DEFAULT_MULTI_CHAIN_HISTORY_PAGE_LIMIT : DEFAULT_HISTORY_PAGE_LIMIT;
 }
 
+function sleep(delayMs: number): Promise<void> {
+  if (delayMs <= 0) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayMs);
+  });
+}
+
+async function throttleOkxEndpoint(path: string, minRequestIntervalMs: number): Promise<void> {
+  if (minRequestIntervalMs <= 0) {
+    return;
+  }
+
+  const rateKey = path.split('?')[0] ?? path;
+  const previous = endpointRequestSchedule.get(rateKey) ?? Promise.resolve(0);
+  let resolveCurrent!: (startedAt: number) => void;
+  const current = new Promise<number>((resolve) => {
+    resolveCurrent = resolve;
+  });
+  endpointRequestSchedule.set(rateKey, current);
+
+  const previousStartedAt = await previous;
+  const waitMs = Math.max(0, minRequestIntervalMs - (Date.now() - previousStartedAt));
+  await sleep(waitMs);
+  resolveCurrent(Date.now());
+}
+
 export class OkxClient {
   private config: Required<OkxClientConfig>;
 
   constructor(config: OkxClientConfig) {
     this.config = {
       baseUrl: OKX_BASE_URL,
+      minRequestIntervalMs: DEFAULT_MIN_REQUEST_INTERVAL_MS,
       retryDelaysMs: normalizeOkxRetryDelays(config.retryDelaysMs),
       timeoutMs: DEFAULT_TIMEOUT_MS,
       ...config,
@@ -126,15 +160,20 @@ export class OkxClient {
       }
 
       try {
+        await throttleOkxEndpoint(path, this.config.minRequestIntervalMs);
         const response = await fetch(`${this.config.baseUrl}${path}`, requestInit);
 
         if (!response.ok) {
-          throw new Error(`OKX API error: ${response.status} ${response.statusText}`);
+          const retryAfterMs = readRetryAfterMs(response.headers.get('retry-after'));
+          throw new OkxRequestError(`OKX API error: ${response.status} ${response.statusText}`, {
+            ...(retryAfterMs !== undefined ? { retryAfterMs } : {}),
+            statusCode: response.status,
+          });
         }
 
         const json = (await response.json()) as OkxApiEnvelope<T>;
         if (json.code !== '0') {
-          throw new Error(`OKX API error: ${json.msg}`);
+          throw new OkxRequestError(`OKX API error: ${json.msg}`);
         }
 
         return json.data;
@@ -160,8 +199,8 @@ export class OkxClient {
     return this.request<T>('POST', path, body);
   }
 
-  async getWalletHistory(wallet: string, chains = SCORING_CHAINS): Promise<WalletEvent[]> {
-    const events: WalletEvent[] = [];
+  async getTransactionHistory(wallet: string, chains = SCORING_CHAINS): Promise<OkxRawTx[]> {
+    const transactions: OkxRawTx[] = [];
     let cursor: string | undefined;
     const limit = getHistoryPageLimit(chains);
 
@@ -176,39 +215,48 @@ export class OkxClient {
         }
       );
 
-      const normalizedPage = normalizeWalletHistoryPage(result);
-      if (normalizedPage.events.length === 0 && !normalizedPage.nextCursor) {
+      const parsedPage = extractTransactionPage(result);
+      if (parsedPage.transactionList.length === 0 && !parsedPage.cursor) {
         break;
       }
 
-      events.push(...normalizedPage.events);
-      if (!normalizedPage.nextCursor || normalizedPage.nextCursor === cursor) {
+      transactions.push(...parsedPage.transactionList);
+      if (!parsedPage.cursor || parsedPage.cursor === cursor) {
         break;
       }
 
-      cursor = normalizedPage.nextCursor;
+      cursor = parsedPage.cursor;
     }
 
-    return events;
+    return transactions;
+  }
+
+  async getWalletHistory(wallet: string, chains = SCORING_CHAINS): Promise<WalletEvent[]> {
+    const transactions = await this.getTransactionHistory(wallet, chains);
+    return normalizeWalletHistoryTransactions(transactions).events;
   }
 
   async getWalletPortfolio(
     wallet: string,
     chains = SCORING_CHAINS
   ): Promise<{ totalValueUsd: number; positions: TokenPosition[] }> {
-    const [portfolioData, tokenBalances] = await Promise.all([
-      this.get<OkxPortfolioValueItem[]>('/api/v6/dex/balance/total-value-by-address', {
+    const portfolioData = await this.get<OkxPortfolioValueItem[]>(
+      '/api/v6/dex/balance/total-value-by-address',
+      {
         address: wallet,
         chains,
         assetType: '0',
         excludeRiskToken: 'true',
-      }),
-      this.get<OkxTokenBalanceItem[]>('/api/v6/dex/balance/all-token-balances-by-address', {
+      }
+    );
+    const tokenBalances = await this.get<OkxTokenBalanceItem[]>(
+      '/api/v6/dex/balance/all-token-balances-by-address',
+      {
         address: wallet,
         chains,
         excludeRiskToken: '0',
-      }),
-    ]);
+      }
+    );
 
     const totalValueUsd = toNumber(portfolioData[0]?.totalValue);
     const positions = tokenBalances.map((token) => ({
@@ -240,34 +288,7 @@ export class OkxClient {
   }
 
   async getDeFiHistory(wallet: string, chains = SCORING_CHAINS): Promise<DeFiEvent[]> {
-    const transactions: OkxRawTx[] = [];
-    let cursor: string | undefined;
-    const limit = getHistoryPageLimit(chains);
-
-    for (let page = 0; page < MAX_HISTORY_PAGES; page++) {
-      const result = await this.get<unknown>(
-        '/api/v6/dex/post-transaction/transactions-by-address',
-        {
-          address: wallet,
-          chains,
-          limit: String(limit),
-          ...(cursor ? { cursor } : {}),
-        }
-      );
-
-      const parsedPage = extractTransactionPage(result);
-      if (parsedPage.transactionList.length === 0) {
-        break;
-      }
-
-      transactions.push(...parsedPage.transactionList);
-      if (!parsedPage.cursor || parsedPage.cursor === cursor) {
-        break;
-      }
-
-      cursor = parsedPage.cursor;
-    }
-
+    const transactions = await this.getTransactionHistory(wallet, chains);
     return parseDefiEvents(transactions);
   }
 

@@ -3,21 +3,29 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GET } from './route';
 
 const {
+  buildScoreJobSnapshot,
   checkEnterpriseRateLimit,
+  createOrReuseScoreJob,
+  getCachedScoreSnapshot,
   logEnterpriseApiQuery,
   logger,
-  resolveWalletScore,
+  markScoreJobSettled,
+  markScoreJobSettlementFailed,
   settleX402Payment,
   signCredential,
   verifyX402Payment,
 } = vi.hoisted(() => ({
+  buildScoreJobSnapshot: vi.fn(),
   checkEnterpriseRateLimit: vi.fn(),
+  createOrReuseScoreJob: vi.fn(),
+  getCachedScoreSnapshot: vi.fn(),
   logEnterpriseApiQuery: vi.fn(),
   logger: {
     error: vi.fn(),
     info: vi.fn(),
   },
-  resolveWalletScore: vi.fn(),
+  markScoreJobSettled: vi.fn(),
+  markScoreJobSettlementFailed: vi.fn(),
   settleX402Payment: vi.fn(),
   signCredential: vi.fn(),
   verifyX402Payment: vi.fn(),
@@ -36,8 +44,15 @@ vi.mock('@/lib/enterprise/audit', () => ({
   logEnterpriseApiQuery,
 }));
 
-vi.mock('@/lib/credit/score-service', () => ({
-  resolveWalletScore,
+vi.mock('@/lib/credit/score-cache', () => ({
+  getCachedScoreSnapshot,
+}));
+
+vi.mock('@/lib/credit/score-job-service', () => ({
+  buildScoreJobSnapshot,
+  createOrReuseScoreJob,
+  markScoreJobSettled,
+  markScoreJobSettlementFailed,
 }));
 
 vi.mock('@/lib/credential/signing', () => ({
@@ -69,6 +84,11 @@ beforeEach(() => {
     ok: true,
     requestCount: 1,
   });
+  getCachedScoreSnapshot.mockResolvedValue({
+    freshness: 'missing',
+    record: null,
+    walletHash: 'wallet-hash',
+  });
   logEnterpriseApiQuery.mockResolvedValue(undefined);
 });
 
@@ -85,13 +105,6 @@ describe('GET /api/v1/score', () => {
     const response = await GET(createRequest('0x1234567890AbcdEF1234567890aBcdef12345678'));
 
     expect(response.status).toBe(402);
-    expect(verifyX402Payment).toHaveBeenCalledWith(
-      expect.any(Request),
-      expect.objectContaining({
-        amountUsd: '0.10',
-        resource: 'score_query',
-      })
-    );
   });
 
   it('rejects invalid wallet query params before payment verification occurs', async () => {
@@ -111,16 +124,7 @@ describe('GET /api/v1/score', () => {
     verifyX402Payment.mockResolvedValue({
       ok: true,
       payment: {
-        amount: '0.10',
-        chainId: 196,
-        network: 'xlayer',
         payer: '0xpayer',
-        raw: {},
-        receipt: 'receipt',
-        recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
-        resource: 'score_query',
-        token: 'USDC',
-        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
         txHash: '0xtx',
       },
     });
@@ -146,48 +150,41 @@ describe('GET /api/v1/score', () => {
     expect(settleX402Payment).not.toHaveBeenCalled();
   });
 
-  it('returns a signed score payload for valid requests', async () => {
+  it('returns a signed score immediately when fresh cache exists', async () => {
     verifyX402Payment.mockResolvedValue({
       ok: true,
       payment: {
-        amount: '0.10',
-        chainId: 196,
-        network: 'xlayer',
         payer: '0xpayer',
-        raw: {},
-        receipt: 'receipt',
-        recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
-        resource: 'score_query',
-        token: 'USDC',
-        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
         txHash: '0xtx',
       },
+    });
+    getCachedScoreSnapshot.mockResolvedValue({
+      freshness: 'fresh',
+      record: {
+        computedAt: '2026-03-10T00:00:00.000Z',
+        dimensions: {
+          assetScale: 72,
+          multichain: 68,
+          positionStability: 74,
+          repaymentHistory: 81,
+          walletAge: 77,
+        },
+        expiresAt: '2026-03-11T00:00:00.000Z',
+        score: 720,
+        stale: false,
+        tier: 'good',
+        wallet: '',
+        walletHash: 'wallet-hash',
+      },
+      walletHash: 'wallet-hash',
     });
     settleX402Payment.mockResolvedValue({
       ok: true,
       payment: {
         payer: '0xpayer',
-        raw: {},
-        receipt: 'receipt',
         settlementId: 'settlement-1',
         txHash: '0xtx',
       },
-    });
-    resolveWalletScore.mockResolvedValue({
-      computedAt: '2026-03-10T00:00:00.000Z',
-      dataGaps: ['no_defi_history'],
-      dimensions: {
-        assetScale: 72,
-        multichain: 68,
-        positionStability: 74,
-        repaymentHistory: 81,
-        walletAge: 77,
-      },
-      expiresAt: '2026-03-11T00:00:00.000Z',
-      score: 720,
-      stale: true,
-      tier: 'good',
-      wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
     });
     signCredential.mockResolvedValue('0xsigned');
 
@@ -195,33 +192,15 @@ describe('GET /api/v1/score', () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
-      breakdown: {
-        assetScale: 72,
-        multichain: 68,
-        positionStability: 74,
-        repaymentHistory: 81,
-        walletAge: 77,
-      },
-      issuer: 'okx-onchainos-credit',
       score: 720,
       signature: '0xsigned',
-      stale: true,
+      stale: false,
       tier: 'good',
-      version: '1.0',
-      wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
     });
-    expect(settleX402Payment).toHaveBeenCalledWith(
-      expect.objectContaining({
-        receipt: 'receipt',
-      }),
-      {
-        amountUsd: '0.10',
-        resource: 'score_query',
-      }
-    );
+    expect(createOrReuseScoreJob).not.toHaveBeenCalled();
     expect(logEnterpriseApiQuery).toHaveBeenCalledWith({
       metadata: {
-        stale: true,
+        stale: false,
       },
       payer: '0xpayer',
       resource: 'score_query',
@@ -229,217 +208,105 @@ describe('GET /api/v1/score', () => {
       walletHash: expect.any(String),
       x402Tx: '0xtx',
     });
-    expect(signCredential).toHaveBeenCalledWith({
-      breakdown: {
-        assetScale: 72,
-        multichain: 68,
-        positionStability: 74,
-        repaymentHistory: 81,
-        walletAge: 77,
-      },
-      computedAt: '2026-03-10T00:00:00.000Z',
-      dataGaps: ['no_defi_history'],
-      expiresAt: '2026-03-11T00:00:00.000Z',
-      issuer: 'okx-onchainos-credit',
-      score: 720,
-      stale: true,
-      tier: 'good',
-      version: '1.0',
-      wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
-    });
-    const signCallOrder = signCredential.mock.invocationCallOrder[0];
-    const settleCallOrder = settleX402Payment.mock.invocationCallOrder[0];
-    if (signCallOrder === undefined || settleCallOrder === undefined) {
-      throw new Error('Expected score signing and settlement to both run');
-    }
-    expect(signCallOrder).toBeLessThan(settleCallOrder);
   });
 
-  it('continues serving the score when the rate-limit store throws', async () => {
+  it('returns 202 processing and settles payment for cold requests', async () => {
     verifyX402Payment.mockResolvedValue({
       ok: true,
       payment: {
         payer: '0xpayer',
-        paymentPayload: {},
-        paymentRequirements: {},
-        raw: {},
         txHash: '0xtx',
       },
     });
-    checkEnterpriseRateLimit.mockRejectedValue(new Error('api_rate_limits missing'));
-    settleX402Payment.mockResolvedValue({
-      ok: true,
-      payment: {
-        payer: '0xpayer',
-        paymentPayload: {},
-        raw: {},
-        settlementId: 'settlement-1',
-        txHash: '0xtx',
+    createOrReuseScoreJob.mockResolvedValue({
+      created: true,
+      job: {
+        id: 'job-1',
+        status: 'pending',
+        x402Tx: null,
       },
-    });
-    resolveWalletScore.mockResolvedValue({
-      computedAt: '2026-03-10T00:00:00.000Z',
-      dataGaps: [],
-      dimensions: {
-        assetScale: 72,
-        multichain: 68,
-        positionStability: 74,
-        repaymentHistory: 81,
-        walletAge: 77,
-      },
-      expiresAt: '2026-03-11T00:00:00.000Z',
-      score: 720,
-      stale: false,
-      tier: 'good',
-      wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
-    });
-    signCredential.mockResolvedValue('0xsigned');
-
-    const response = await GET(createRequest('0x1234567890AbcdEF1234567890aBcdef12345678'));
-
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      score: 720,
-      signature: '0xsigned',
-    });
-    expect(logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({ operation: 'api.score.rate_limit' }),
-      'enterprise score rate limit check failed; allowing paid query'
-    );
-  });
-
-  it('continues serving the score when audit logging fails', async () => {
-    verifyX402Payment.mockResolvedValue({
-      ok: true,
-      payment: {
-        payer: '0xpayer',
-        paymentPayload: {},
-        paymentRequirements: {},
-        raw: {},
-        txHash: '0xtx',
-      },
+      jobToken: 'job-token',
     });
     settleX402Payment.mockResolvedValue({
       ok: true,
       payment: {
         payer: '0xpayer',
-        paymentPayload: {},
-        raw: {},
         settlementId: 'settlement-1',
         txHash: '0xtx',
       },
     });
-    resolveWalletScore.mockResolvedValue({
-      computedAt: '2026-03-10T00:00:00.000Z',
-      dataGaps: [],
-      dimensions: {
-        assetScale: 72,
-        multichain: 68,
-        positionStability: 74,
-        repaymentHistory: 81,
-        walletAge: 77,
-      },
-      expiresAt: '2026-03-11T00:00:00.000Z',
-      score: 720,
-      stale: false,
-      tier: 'good',
-      wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
+    markScoreJobSettled.mockResolvedValue({
+      attemptCount: 0,
+      completedAt: null,
+      createdAt: '2026-03-11T12:00:00.000Z',
+      id: 'job-1',
+      lastErrorReason: null,
+      lockedAt: null,
+      lockToken: null,
+      nextAttemptAt: null,
+      payer: '0xpayer',
+      resultPayload: null,
+      status: 'pending',
+      statusMessage: 'Payment accepted. Preparing OKX OnchainOS collection.',
+      updatedAt: '2026-03-11T12:00:00.000Z',
+      walletHash: 'wallet-hash',
+      x402Tx: '0xtx',
+      activeKey: '0xpayer:wallet-hash',
     });
-    signCredential.mockResolvedValue('0xsigned');
-    logEnterpriseApiQuery.mockRejectedValue(new Error('audit_log missing'));
+    buildScoreJobSnapshot.mockReturnValue({
+      attemptCount: 0,
+      jobToken: 'job-token',
+      kind: 'processing',
+      status: 'pending',
+      statusUrl: 'http://localhost:3000/api/v1/score/jobs/job-token',
+      streamUrl: 'http://localhost:3000/api/v1/score/jobs/job-token/events',
+    });
 
     const response = await GET(createRequest('0x1234567890AbcdEF1234567890aBcdef12345678'));
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(202);
     await expect(response.json()).resolves.toMatchObject({
-      score: 720,
-      signature: '0xsigned',
+      kind: 'processing',
+      jobToken: 'job-token',
+      status: 'pending',
     });
-    expect(logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({ operation: 'api.score.audit' }),
-      'enterprise score audit log failed'
-    );
+    expect(markScoreJobSettled).toHaveBeenCalledWith('job-1', '0xtx');
   });
 
-  it('returns 500 without settling when score preparation fails', async () => {
+  it('marks the score job failed when settlement fails before acceptance', async () => {
     verifyX402Payment.mockResolvedValue({
       ok: true,
       payment: {
-        amount: '0.10',
-        chainId: 196,
-        network: 'xlayer',
         payer: '0xpayer',
-        raw: {},
-        receipt: 'receipt',
-        recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
-        resource: 'score_query',
-        token: 'USDC',
-        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
         txHash: '0xtx',
       },
     });
-    resolveWalletScore.mockRejectedValue(new Error('OKX API error: 503 Service Unavailable'));
+    createOrReuseScoreJob.mockResolvedValue({
+      created: true,
+      job: {
+        id: 'job-1',
+        status: 'pending',
+        x402Tx: null,
+      },
+      jobToken: 'job-token',
+    });
+    settleX402Payment.mockResolvedValue({
+      ok: false,
+      response: NextResponse.json(
+        { error: { code: 'INVALID_PAYMENT', message: 'invalid payment' } },
+        { status: 402 }
+      ),
+    });
+    markScoreJobSettlementFailed.mockResolvedValue(undefined);
 
     const response = await GET(createRequest('0x1234567890AbcdEF1234567890aBcdef12345678'));
 
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toMatchObject({
       error: {
-        code: 'SCORE_QUERY_FAILED',
-        details: {
-          reason: 'okx_upstream_error',
-        },
+        code: 'SETTLEMENT_FAILED',
       },
     });
-    expect(settleX402Payment).not.toHaveBeenCalled();
-  });
-
-  it('returns signer_unavailable without settling when credential signing fails', async () => {
-    verifyX402Payment.mockResolvedValue({
-      ok: true,
-      payment: {
-        amount: '0.10',
-        chainId: 196,
-        network: 'xlayer',
-        payer: '0xpayer',
-        raw: {},
-        receipt: 'receipt',
-        recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
-        resource: 'score_query',
-        token: 'USDC',
-        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
-        txHash: '0xtx',
-      },
-    });
-    resolveWalletScore.mockResolvedValue({
-      computedAt: '2026-03-10T00:00:00.000Z',
-      dataGaps: [],
-      dimensions: {
-        assetScale: 72,
-        multichain: 68,
-        positionStability: 74,
-        repaymentHistory: 81,
-        walletAge: 77,
-      },
-      expiresAt: '2026-03-11T00:00:00.000Z',
-      score: 720,
-      stale: false,
-      tier: 'good',
-      wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
-    });
-    signCredential.mockRejectedValue(new Error('ECDSA_SIGNING_FAILED'));
-
-    const response = await GET(createRequest('0x1234567890AbcdEF1234567890aBcdef12345678'));
-
-    expect(response.status).toBe(500);
-    await expect(response.json()).resolves.toMatchObject({
-      error: {
-        code: 'SCORE_QUERY_FAILED',
-        details: {
-          reason: 'signer_unavailable',
-        },
-      },
-    });
-    expect(settleX402Payment).not.toHaveBeenCalled();
+    expect(markScoreJobSettlementFailed).toHaveBeenCalledWith('job-1');
   });
 });

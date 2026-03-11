@@ -1,3 +1,5 @@
+import { OkxRequestError } from './okx-request-error.js';
+
 const DEFAULT_OKX_RETRY_DELAYS_MS = [250, 750] as const;
 
 function sleep(delayMs: number): Promise<void> {
@@ -19,6 +21,10 @@ export function normalizeOkxRetryDelays(delays?: readonly number[]): number[] {
 }
 
 export function isRetryableOkxRequestError(error: unknown): boolean {
+  if (error instanceof OkxRequestError) {
+    return error.statusCode === 429 || (error.statusCode !== undefined && error.statusCode >= 500);
+  }
+
   if (!(error instanceof Error)) {
     return false;
   }
@@ -44,8 +50,13 @@ export async function retryOkxRequest<T>(
     try {
       return await operation();
     } catch (error) {
-      const delayMs = retryDelaysMs[attempt];
-      if (delayMs === undefined || !isRetryableOkxRequestError(error)) {
+      const retryable = isRetryableOkxRequestError(error);
+      const configuredDelayMs = retryDelaysMs[attempt];
+      const delayMs =
+        error instanceof OkxRequestError && error.retryAfterMs !== undefined
+          ? error.retryAfterMs
+          : configuredDelayMs;
+      if (delayMs === undefined || !retryable) {
         throw error;
       }
 

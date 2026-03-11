@@ -1,6 +1,6 @@
-import { createHash } from 'node:crypto';
 import { db, schema } from '@/lib/db';
 import { logger } from '@/lib/logger';
+import { createWalletHash } from '@/lib/wallet/hash';
 import type { RawWalletData, Score } from '@okx-credit/scoring';
 import { computeScore } from '@okx-credit/scoring';
 import { eq } from 'drizzle-orm';
@@ -31,12 +31,57 @@ interface ResolveScoreWithCacheOptions {
   walletDataLoader: () => Promise<RawWalletData>;
 }
 
-function createWalletHash(wallet: string): string {
-  return createHash('sha256').update(wallet.toLowerCase()).digest('hex');
+export function isScoreExpired(record: Pick<Score, 'expiresAt'>, now: Date): boolean {
+  return new Date(record.expiresAt).getTime() <= now.getTime();
 }
 
-function isExpired(record: Pick<Score, 'expiresAt'>, now: Date): boolean {
-  return new Date(record.expiresAt).getTime() <= now.getTime();
+export async function getCachedScoreSnapshot(options: {
+  logger?: ScoreCacheLogger;
+  now?: Date;
+  store?: ScoreCacheStore;
+  wallet: string;
+}): Promise<{
+  freshness: 'expired' | 'fresh' | 'missing';
+  walletHash: string;
+  record: CachedScoreRecord | null;
+}> {
+  const activeLogger = options.logger ?? logger;
+  const now = options.now ?? new Date();
+  const store = options.store ?? createDrizzleScoreCacheStore();
+  const walletHash = createWalletHash(options.wallet);
+
+  try {
+    const record = await store.findByWalletHash(walletHash);
+
+    if (!record) {
+      return {
+        freshness: 'missing',
+        record: null,
+        walletHash,
+      };
+    }
+
+    return {
+      freshness: isScoreExpired(record, now) ? 'expired' : 'fresh',
+      record,
+      walletHash,
+    };
+  } catch (error) {
+    activeLogger.error(
+      {
+        error: error instanceof Error ? error.message : String(error),
+        operation: 'score_cache_lookup',
+        walletHash,
+      },
+      'score cache lookup failed'
+    );
+
+    return {
+      freshness: 'missing',
+      record: null,
+      walletHash,
+    };
+  }
 }
 
 function withCacheMetadata(
@@ -175,7 +220,7 @@ export async function resolveScoreWithCache(options: ResolveScoreWithCacheOption
     return withCacheMetadata(freshScore, false);
   }
 
-  if (!isExpired(cachedScore, now)) {
+  if (!isScoreExpired(cachedScore, now)) {
     activeLogger.info(
       { cache_hit: true, operation: 'score_cache_lookup', walletHash },
       'score cache hit'

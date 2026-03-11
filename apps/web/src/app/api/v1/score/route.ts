@@ -1,12 +1,17 @@
 import { signCredential } from '@/lib/credential/signing';
-import { resolveWalletScore } from '@/lib/credit/score-service';
+import { getCachedScoreSnapshot } from '@/lib/credit/score-cache';
+import {
+  buildScoreJobSnapshot,
+  createOrReuseScoreJob,
+  markScoreJobSettled,
+  markScoreJobSettlementFailed,
+} from '@/lib/credit/score-job-service';
 import { logEnterpriseApiQuery } from '@/lib/enterprise/audit';
 import { checkEnterpriseRateLimit } from '@/lib/enterprise/rate-limit';
 import { createScoreQueryPayload } from '@/lib/enterprise/score-payload';
 import { ValidationError, toErrorBody } from '@/lib/errors';
 import { isLocalMockMode } from '@/lib/local-integration';
 import { logger } from '@/lib/logger';
-import { classifyPaidOperationFailure } from '@/lib/paid-operation-failure';
 import { createWalletHash } from '@/lib/wallet/hash';
 import { settleX402Payment, verifyX402Payment } from '@/lib/x402';
 import { getScoreQueryPriceUsd } from '@/lib/x402/config';
@@ -15,7 +20,8 @@ import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   const requestId = request.headers.get('x-request-id') ?? undefined;
-  const walletParam = new URL(request.url).searchParams.get('wallet')?.trim();
+  const url = new URL(request.url);
+  const walletParam = url.searchParams.get('wallet')?.trim();
 
   if (!walletParam || !isAddress(walletParam)) {
     const error = new ValidationError('A valid EVM wallet address is required.');
@@ -29,17 +35,20 @@ export async function GET(request: Request) {
     amountUsd: getScoreQueryPriceUsd(),
     resource: 'score_query',
   });
+
   if (!paymentVerification.ok) {
     return paymentVerification.response;
   }
 
   const payer = paymentVerification.payment.payer ?? 'unknown_payer';
   const verificationTxHash = paymentVerification.payment.txHash;
+
   try {
     const rateLimitResult = await checkEnterpriseRateLimit({
       payer,
       resource: 'score_query',
     });
+
     if (!rateLimitResult.ok) {
       return NextResponse.json(toErrorBody(rateLimitResult.error), {
         headers: {
@@ -61,116 +70,137 @@ export async function GET(request: Request) {
     );
   }
 
-  let payload: ReturnType<typeof createScoreQueryPayload>;
-  let signature: string;
-  let scoreTier: Awaited<ReturnType<typeof resolveWalletScore>>['tier'];
+  const cachedScore = await getCachedScoreSnapshot({
+    wallet,
+  });
 
-  try {
-    const score = await resolveWalletScore(wallet);
-    payload = createScoreQueryPayload(wallet, score);
-    signature = isLocalMockMode()
+  if (cachedScore.freshness === 'fresh' && cachedScore.record) {
+    const payload = createScoreQueryPayload(wallet, {
+      computedAt: cachedScore.record.computedAt,
+      dataGaps: [],
+      dimensions: cachedScore.record.dimensions,
+      expiresAt: cachedScore.record.expiresAt,
+      score: cachedScore.record.score,
+      stale: false,
+      tier: cachedScore.record.tier,
+    });
+    const signature = isLocalMockMode()
       ? '0xlocalmockcredentialsignature'
       : await signCredential(payload);
-    scoreTier = score.tier;
-  } catch (error) {
-    const reason = classifyPaidOperationFailure(error, 'score_preparation_failed');
-
-    logger.error(
-      {
-        error: error instanceof Error ? error.message : String(error),
-        operation: 'api.score.query',
-        payer,
-        reason,
-        requestId,
-        txHash: verificationTxHash,
-        walletHash,
-      },
-      'enterprise score query failed'
-    );
-
-    return NextResponse.json(
-      {
-        error: {
-          code: 'SCORE_QUERY_FAILED',
-          details: {
-            reason,
-          },
-          message: 'Unable to retrieve wallet score.',
-        },
-      },
-      { status: 500 }
-    );
-  }
-
-  const paymentSettlement = await settleX402Payment(paymentVerification.payment, {
-    amountUsd: getScoreQueryPriceUsd(),
-    resource: 'score_query',
-  });
-  if (!paymentSettlement.ok) {
-    logger.error(
-      {
-        operation: 'api.score.settlement',
-        payer,
-        requestId,
-        txHash: verificationTxHash,
-        walletHash,
-      },
-      'x402 settlement failed after successful verification'
-    );
-
-    return NextResponse.json(
-      {
-        error: {
-          code: 'SETTLEMENT_FAILED',
-          message:
-            'Payment was verified but settlement failed. Your funds were not charged. Please retry.',
-        },
-      },
-      { status: 500 }
-    );
-  }
-
-  const settledPayer = paymentSettlement.payment.payer ?? payer;
-  const txHash = paymentSettlement.payment.txHash ?? verificationTxHash;
-
-  try {
-    await logEnterpriseApiQuery({
-      metadata: {
-        stale: payload.stale,
-      },
-      payer: settledPayer,
+    const paymentSettlement = await settleX402Payment(paymentVerification.payment, {
+      amountUsd: getScoreQueryPriceUsd(),
       resource: 'score_query',
-      scoreTier,
-      walletHash,
-      x402Tx: txHash,
     });
-  } catch (error) {
-    logger.error(
-      {
-        error: error instanceof Error ? error.message : String(error),
-        operation: 'api.score.audit',
+
+    if (!paymentSettlement.ok) {
+      logger.error(
+        {
+          operation: 'api.score.settlement',
+          payer,
+          requestId,
+          txHash: verificationTxHash,
+          walletHash,
+        },
+        'x402 settlement failed after fresh cache hit'
+      );
+
+      return NextResponse.json(
+        {
+          error: {
+            code: 'SETTLEMENT_FAILED',
+            message:
+              'Payment was verified but settlement failed. Your funds were not charged. Please retry.',
+          },
+        },
+        { status: 500 }
+      );
+    }
+
+    const settledPayer = paymentSettlement.payment.payer ?? payer;
+    const txHash = paymentSettlement.payment.txHash ?? verificationTxHash;
+
+    try {
+      await logEnterpriseApiQuery({
+        metadata: {
+          stale: false,
+        },
         payer: settledPayer,
-        requestId,
-        txHash,
+        resource: 'score_query',
+        scoreTier: payload.tier,
         walletHash,
-      },
-      'enterprise score audit log failed'
-    );
+        x402Tx: txHash,
+      });
+    } catch (error) {
+      logger.error(
+        {
+          error: error instanceof Error ? error.message : String(error),
+          operation: 'api.score.audit',
+          payer: settledPayer,
+          requestId,
+          txHash,
+          walletHash,
+        },
+        'enterprise score audit log failed after cache hit'
+      );
+    }
+
+    return NextResponse.json({
+      ...payload,
+      signature,
+    });
   }
+
+  const jobHandle = await createOrReuseScoreJob(wallet, payer);
+  let job = jobHandle.job;
+
+  if (!job.x402Tx) {
+    const paymentSettlement = await settleX402Payment(paymentVerification.payment, {
+      amountUsd: getScoreQueryPriceUsd(),
+      resource: 'score_query',
+    });
+
+    if (!paymentSettlement.ok) {
+      await markScoreJobSettlementFailed(job.id);
+      logger.error(
+        {
+          operation: 'api.score.settlement',
+          payer,
+          requestId,
+          txHash: verificationTxHash,
+          walletHash,
+        },
+        'x402 settlement failed before score job acceptance'
+      );
+
+      return NextResponse.json(
+        {
+          error: {
+            code: 'SETTLEMENT_FAILED',
+            message:
+              'Payment was verified but settlement failed. Your funds were not charged. Please retry.',
+          },
+        },
+        { status: 500 }
+      );
+    }
+
+    const txHash = paymentSettlement.payment.txHash ?? verificationTxHash;
+    job = await markScoreJobSettled(job.id, txHash ?? 'unknown_tx');
+  }
+
+  const snapshot = buildScoreJobSnapshot(job, jobHandle.jobToken, url.origin);
 
   logger.info(
     {
       operation: 'api.score.query',
-      payer: settledPayer,
+      payer,
       requestId,
-      txHash,
+      status: job.status,
       walletHash,
+      x402Tx: job.x402Tx,
     },
-    'enterprise score query served'
+    'enterprise score job accepted'
   );
 
-  return NextResponse.json({
-    ...payload,
-    signature,
-  });
+  return NextResponse.json(snapshot, { status: 202 });
 }

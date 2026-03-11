@@ -1,5 +1,11 @@
 import type { SignedScoreQueryPayload } from '@/lib/enterprise/score-payload';
 import { type PaymentRequiredDetails, isPaymentRequiredDetails } from '@/lib/x402/payment-required';
+import {
+  type ScoreJobSnapshot,
+  type ScoreProcessingPayload,
+  isScoreJobSnapshot,
+  isScoreProcessingPayload,
+} from './score-job-payload';
 
 export interface ScoreApiError {
   code: string;
@@ -13,6 +19,10 @@ export type ScoreApiResult =
       error: ScoreApiError;
       kind: 'payment_required';
       paymentRequired: PaymentRequiredDetails;
+    }
+  | {
+      kind: 'processing';
+      processing: ScoreProcessingPayload;
     }
   | {
       kind: 'paid_score';
@@ -60,6 +70,13 @@ export function parseScoreApiResponse(status: number, value: unknown): ScoreApiR
     };
   }
 
+  if (status === 202 && isScoreProcessingPayload(value)) {
+    return {
+      kind: 'processing',
+      processing: value,
+    };
+  }
+
   const payload = value as {
     error?: ScoreApiError;
     paymentRequired?: PaymentRequiredDetails;
@@ -81,4 +98,8 @@ export function parseScoreApiResponse(status: number, value: unknown): ScoreApiR
     error,
     kind: 'error',
   };
+}
+
+export function parseScoreJobSnapshot(value: unknown): ScoreJobSnapshot | null {
+  return isScoreJobSnapshot(value) ? value : null;
 }

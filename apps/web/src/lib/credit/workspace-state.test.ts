@@ -6,6 +6,7 @@ describe('resolveScoreWorkspaceState', () => {
     expect(
       resolveScoreWorkspaceState({
         errorMessage: null,
+        hasProcessingJob: false,
         hasPaymentRequired: false,
         hasScore: false,
         isSubmitting: false,
@@ -18,6 +19,7 @@ describe('resolveScoreWorkspaceState', () => {
     expect(
       resolveScoreWorkspaceState({
         errorMessage: null,
+        hasProcessingJob: false,
         hasPaymentRequired: true,
         hasScore: true,
         isSubmitting: false,
@@ -30,6 +32,7 @@ describe('resolveScoreWorkspaceState', () => {
     expect(
       resolveScoreWorkspaceState({
         errorMessage: null,
+        hasProcessingJob: false,
         hasPaymentRequired: true,
         hasScore: false,
         isSubmitting: true,
@@ -42,6 +45,7 @@ describe('resolveScoreWorkspaceState', () => {
     expect(
       resolveScoreWorkspaceState({
         errorMessage: null,
+        hasProcessingJob: false,
         hasPaymentRequired: true,
         hasScore: false,
         isSubmitting: false,
@@ -54,6 +58,7 @@ describe('resolveScoreWorkspaceState', () => {
     expect(
       resolveScoreWorkspaceState({
         errorMessage: 'Request failed.',
+        hasProcessingJob: false,
         hasPaymentRequired: false,
         hasScore: false,
         isSubmitting: false,
@@ -66,11 +71,25 @@ describe('resolveScoreWorkspaceState', () => {
     expect(
       resolveScoreWorkspaceState({
         errorMessage: null,
+        hasProcessingJob: false,
         hasPaymentRequired: false,
         hasScore: false,
         isSubmitting: false,
         targetWallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
       })
     ).toBe('target_locked');
+  });
+
+  it('returns processing while an accepted score job is still running', () => {
+    expect(
+      resolveScoreWorkspaceState({
+        errorMessage: null,
+        hasProcessingJob: true,
+        hasPaymentRequired: false,
+        hasScore: false,
+        isSubmitting: false,
+        targetWallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
+      })
+    ).toBe('processing');
   });
 });

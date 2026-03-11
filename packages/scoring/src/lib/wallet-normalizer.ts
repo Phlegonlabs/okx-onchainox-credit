@@ -94,20 +94,27 @@ export function extractTransactionPage(data: unknown): OkxTransactionPage {
 
 export function normalizeWalletHistoryPage(data: unknown): NormalizedWalletHistoryPage {
   const page = extractTransactionPage(data);
-  const events = page.transactionList
+  const normalizedPage = normalizeWalletHistoryTransactions(page.transactionList);
+
+  if (page.cursor) {
+    normalizedPage.nextCursor = page.cursor;
+  }
+
+  return normalizedPage;
+}
+
+export function normalizeWalletHistoryTransactions(
+  transactions: OkxRawTx[]
+): NormalizedWalletHistoryPage {
+  const events = transactions
     .filter((transaction) => transaction.txStatus === 'success')
     .map(normalizeWalletEvent);
-
   const activeChains = [...new Set(events.map((event) => event.chainId))];
   const timestamps = events.map((event) => event.timestamp);
   const normalizedPage: NormalizedWalletHistoryPage = {
     events,
     activeChains,
   };
-
-  if (page.cursor) {
-    normalizedPage.nextCursor = page.cursor;
-  }
 
   if (timestamps.length > 0) {
     normalizedPage.oldestEventTimestamp = Math.min(...timestamps);

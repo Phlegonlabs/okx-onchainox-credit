@@ -57,6 +57,34 @@ export const apiRateLimits = sqliteTable(
   })
 );
 
+export const scoreJobs = sqliteTable(
+  'score_jobs',
+  {
+    id: text('id').primaryKey(),
+    walletHash: text('wallet_hash').notNull(),
+    payer: text('payer').notNull(),
+    activeKey: text('active_key'),
+    status: text('status').notNull(),
+    statusMessage: text('status_message'),
+    attemptCount: integer('attempt_count').notNull().default(0),
+    nextAttemptAt: text('next_attempt_at'),
+    lockToken: text('lock_token'),
+    lockedAt: text('locked_at'),
+    x402Tx: text('x402_tx'),
+    lastErrorReason: text('last_error_reason'),
+    resultPayload: text('result_payload', { mode: 'json' }),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+    completedAt: text('completed_at'),
+  },
+  (table) => ({
+    activeKeyIdx: uniqueIndex('score_jobs_active_key_idx').on(table.activeKey),
+    createdAtIdx: index('score_jobs_created_at_idx').on(table.createdAt),
+    statusIdx: index('score_jobs_status_idx').on(table.status),
+    walletHashIdx: index('score_jobs_wallet_hash_idx').on(table.walletHash),
+  })
+);
+
 export const siweNonceUses = sqliteTable(
   'siwe_nonce_uses',
   {
@@ -74,5 +102,6 @@ export const schema = {
   apiRateLimits,
   auditLog,
   creditScores,
+  scoreJobs,
   siweNonceUses,
 };
