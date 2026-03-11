@@ -1,3 +1,4 @@
+import { createLocalMockScore, isLocalMockMode } from '@/lib/local-integration';
 import { OkxClient, type RawWalletData } from '@okx-credit/scoring';
 import { resolveScoreWithCache } from './score-cache';
 
@@ -54,6 +55,13 @@ export async function loadRawWalletData(
 }
 
 export async function resolveWalletScore(wallet: string) {
+  if (isLocalMockMode()) {
+    return {
+      ...createLocalMockScore(wallet),
+      stale: false,
+    };
+  }
+
   return resolveScoreWithCache({
     wallet,
     walletDataLoader: async () => loadRawWalletData(wallet),

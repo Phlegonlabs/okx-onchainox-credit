@@ -18,7 +18,9 @@ function createMemoryRateLimitStore() {
 
       const requestCount = entries.filter(
         (entry) =>
-          entry.payer === input.payer && new Date(entry.createdAt).getTime() >= windowStartMs
+          entry.payer === input.payer &&
+          entry.resource === input.resource &&
+          new Date(entry.createdAt).getTime() >= windowStartMs
       ).length;
 
       if (requestCount >= input.maxRequests) {
@@ -65,7 +67,36 @@ describe('checkEnterpriseRateLimit', () => {
     });
   });
 
-  it('returns a rate-limit error once the payer exhausts the window', async () => {
+  it('returns a rate-limit error once the payer exhausts the window for the same resource', async () => {
+    const { store } = createMemoryRateLimitStore();
+    const now = new Date('2026-03-10T00:00:00.000Z');
+
+    await checkEnterpriseRateLimit({
+      maxRequests: 1,
+      now,
+      payer: '0xpayer',
+      resource: 'score_query',
+      store,
+    });
+
+    await expect(
+      checkEnterpriseRateLimit({
+        maxRequests: 1,
+        now: new Date(now.getTime() + 5_000),
+        payer: '0xpayer',
+        resource: 'score_query',
+        store,
+      })
+    ).resolves.toMatchObject({
+      error: {
+        code: 'RATE_LIMITED',
+      },
+      ok: false,
+      retryAfterSeconds: 60,
+    });
+  });
+
+  it('keeps different resources isolated for the same payer', async () => {
     const { store } = createMemoryRateLimitStore();
     const now = new Date('2026-03-10T00:00:00.000Z');
 
@@ -85,12 +116,9 @@ describe('checkEnterpriseRateLimit', () => {
         resource: 'credential_verification',
         store,
       })
-    ).resolves.toMatchObject({
-      error: {
-        code: 'RATE_LIMITED',
-      },
-      ok: false,
-      retryAfterSeconds: 60,
+    ).resolves.toEqual({
+      ok: true,
+      requestCount: 1,
     });
   });
 

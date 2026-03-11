@@ -6,22 +6,33 @@ import { createScoreQueryPayload } from '@/lib/enterprise/score-payload';
 import { ValidationError, toErrorBody } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { createWalletHash } from '@/lib/wallet/hash';
-import { requireX402Payment } from '@/lib/x402';
+import { settleX402Payment, verifyX402Payment } from '@/lib/x402';
 import { getScoreQueryPriceUsd } from '@/lib/x402/config';
 import { getAddress, isAddress } from 'ethers';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-  const paymentResult = await requireX402Payment(request, {
+  const requestId = request.headers.get('x-request-id') ?? undefined;
+  const walletParam = new URL(request.url).searchParams.get('wallet')?.trim();
+
+  if (!walletParam || !isAddress(walletParam)) {
+    const error = new ValidationError('A valid EVM wallet address is required.');
+
+    return NextResponse.json(toErrorBody(error), { status: error.statusCode });
+  }
+
+  const wallet = getAddress(walletParam);
+  const walletHash = createWalletHash(wallet);
+  const paymentVerification = await verifyX402Payment(request, {
     amountUsd: getScoreQueryPriceUsd(),
     resource: 'score_query',
   });
-  if (!paymentResult.ok) {
-    return paymentResult.response;
+  if (!paymentVerification.ok) {
+    return paymentVerification.response;
   }
 
   const payer =
-    paymentResult.payment.payer ?? paymentResult.payment.settlementId ?? 'unknown_payer';
+    paymentVerification.payment.payer ?? paymentVerification.payment.txHash ?? 'unknown_payer';
   const rateLimitResult = await checkEnterpriseRateLimit({
     payer,
     resource: 'score_query',
@@ -35,17 +46,16 @@ export async function GET(request: Request) {
     });
   }
 
-  const requestId = request.headers.get('x-request-id') ?? undefined;
-  const walletParam = new URL(request.url).searchParams.get('wallet')?.trim();
-
-  if (!walletParam || !isAddress(walletParam)) {
-    const error = new ValidationError('A valid EVM wallet address is required.');
-
-    return NextResponse.json(toErrorBody(error), { status: error.statusCode });
+  const paymentSettlement = await settleX402Payment(paymentVerification.payment.receipt, {
+    amountUsd: getScoreQueryPriceUsd(),
+    resource: 'score_query',
+  });
+  if (!paymentSettlement.ok) {
+    return paymentSettlement.response;
   }
 
-  const wallet = getAddress(walletParam);
-  const walletHash = createWalletHash(wallet);
+  const settledPayer = paymentSettlement.payment.payer ?? payer;
+  const txHash = paymentSettlement.payment.txHash ?? paymentVerification.payment.txHash;
 
   try {
     const score = await resolveWalletScore(wallet);
@@ -55,19 +65,19 @@ export async function GET(request: Request) {
       metadata: {
         stale: payload.stale,
       },
-      payer,
+      payer: settledPayer,
       resource: 'score_query',
       scoreTier: score.tier,
       walletHash,
-      x402Tx: paymentResult.payment.txHash,
+      x402Tx: txHash,
     });
 
     logger.info(
       {
         operation: 'api.score.query',
-        payer,
+        payer: settledPayer,
         requestId,
-        txHash: paymentResult.payment.txHash,
+        txHash,
         walletHash,
       },
       'enterprise score query served'
@@ -82,9 +92,9 @@ export async function GET(request: Request) {
       {
         error: error instanceof Error ? error.message : String(error),
         operation: 'api.score.query',
-        payer,
+        payer: settledPayer,
         requestId,
-        txHash: paymentResult.payment.txHash,
+        txHash,
         walletHash,
       },
       'enterprise score query failed'

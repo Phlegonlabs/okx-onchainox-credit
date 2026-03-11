@@ -1,7 +1,7 @@
 {
   "project": "okx-onchainos-credit",
-  "last_updated": "2026-03-10T02:07:33.525Z",
-  "last_agent": "harness-engineer-cli",
+  "last_updated": "2026-03-11T06:53:48.8466276Z",
+  "last_agent": "codex",
   "current_milestone": null,
   "current_task": null,
   "active_milestones": [],
@@ -65,7 +65,7 @@
       "blocks": []
     }
   },
-  "synced_plans": [],
+  "synced_plans": ["docs/PLAN.md"],
   "agents": [],
   "finish_jobs": []
 }

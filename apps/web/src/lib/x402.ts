@@ -1,5 +1,9 @@
 export { OkxX402Client } from './x402/client';
-export type { X402Client, X402PaymentSettlement } from './x402/client';
+export type {
+  X402Client,
+  X402PaymentSettlement,
+  X402PaymentVerification,
+} from './x402/client';
 export {
   getCredentialPriceUsd,
   getScoreQueryPriceUsd,
@@ -8,7 +12,8 @@ export {
   type X402TokenSymbol,
 } from './x402/config';
 export {
-  requireX402Payment,
-  type X402PaymentRequest,
-  type X402PaymentResult,
+  settleX402Payment,
+  verifyX402Payment,
+  type X402PaymentSettlementResult,
+  type X402PaymentVerificationResult,
 } from './x402/middleware';

@@ -6,9 +6,10 @@ const {
   checkEnterpriseRateLimit,
   logEnterpriseApiQuery,
   logger,
-  requireX402Payment,
   resolveWalletScore,
+  settleX402Payment,
   signCredential,
+  verifyX402Payment,
 } = vi.hoisted(() => ({
   checkEnterpriseRateLimit: vi.fn(),
   logEnterpriseApiQuery: vi.fn(),
@@ -16,13 +17,15 @@ const {
     error: vi.fn(),
     info: vi.fn(),
   },
-  requireX402Payment: vi.fn(),
   resolveWalletScore: vi.fn(),
+  settleX402Payment: vi.fn(),
   signCredential: vi.fn(),
+  verifyX402Payment: vi.fn(),
 }));
 
 vi.mock('@/lib/x402', () => ({
-  requireX402Payment,
+  settleX402Payment,
+  verifyX402Payment,
 }));
 
 vi.mock('@/lib/enterprise/rate-limit', () => ({
@@ -70,8 +73,8 @@ beforeEach(() => {
 });
 
 describe('GET /api/v1/score', () => {
-  it('returns the x402 middleware response when payment is missing', async () => {
-    requireX402Payment.mockResolvedValue({
+  it('returns the x402 verification response when payment is missing', async () => {
+    verifyX402Payment.mockResolvedValue({
       ok: false,
       response: NextResponse.json(
         { error: { code: 'PAYMENT_REQUIRED', message: 'x402 payment required' } },
@@ -82,7 +85,7 @@ describe('GET /api/v1/score', () => {
     const response = await GET(createRequest('0x1234567890AbcdEF1234567890aBcdef12345678'));
 
     expect(response.status).toBe(402);
-    expect(requireX402Payment).toHaveBeenCalledWith(
+    expect(verifyX402Payment).toHaveBeenCalledWith(
       expect.any(Request),
       expect.objectContaining({
         amountUsd: '0.10',
@@ -91,18 +94,7 @@ describe('GET /api/v1/score', () => {
     );
   });
 
-  it('rejects invalid wallet query params after a valid payment', async () => {
-    requireX402Payment.mockResolvedValue({
-      ok: true,
-      payment: {
-        payer: '0xpayer',
-        raw: {},
-        receipt: 'receipt',
-        settlementId: 'settlement-1',
-        txHash: '0xtx',
-      },
-    });
-
+  it('rejects invalid wallet query params before payment verification occurs', async () => {
     const response = await GET(createRequest('not-a-wallet'));
 
     expect(response.status).toBe(400);
@@ -111,16 +103,24 @@ describe('GET /api/v1/score', () => {
         code: 'INVALID_INPUT',
       },
     });
+    expect(verifyX402Payment).not.toHaveBeenCalled();
+    expect(settleX402Payment).not.toHaveBeenCalled();
   });
 
-  it('returns 429 when the payer exceeds the enterprise rate limit', async () => {
-    requireX402Payment.mockResolvedValue({
+  it('returns 429 when the payer exceeds the enterprise rate limit without settling the payment', async () => {
+    verifyX402Payment.mockResolvedValue({
       ok: true,
       payment: {
+        amount: '0.10',
+        chainId: 196,
+        network: 'xlayer',
         payer: '0xpayer',
         raw: {},
         receipt: 'receipt',
-        settlementId: 'settlement-1',
+        recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
+        resource: 'score_query',
+        token: 'USDC',
+        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
         txHash: '0xtx',
       },
     });
@@ -143,10 +143,27 @@ describe('GET /api/v1/score', () => {
 
     expect(response.status).toBe(429);
     expect(response.headers.get('retry-after')).toBe('60');
+    expect(settleX402Payment).not.toHaveBeenCalled();
   });
 
   it('returns a signed score payload for valid requests', async () => {
-    requireX402Payment.mockResolvedValue({
+    verifyX402Payment.mockResolvedValue({
+      ok: true,
+      payment: {
+        amount: '0.10',
+        chainId: 196,
+        network: 'xlayer',
+        payer: '0xpayer',
+        raw: {},
+        receipt: 'receipt',
+        recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
+        resource: 'score_query',
+        token: 'USDC',
+        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
+        txHash: '0xtx',
+      },
+    });
+    settleX402Payment.mockResolvedValue({
       ok: true,
       payment: {
         payer: '0xpayer',
@@ -193,6 +210,10 @@ describe('GET /api/v1/score', () => {
       version: '1.0',
       wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
     });
+    expect(settleX402Payment).toHaveBeenCalledWith('receipt', {
+      amountUsd: '0.10',
+      resource: 'score_query',
+    });
     expect(logEnterpriseApiQuery).toHaveBeenCalledWith({
       metadata: {
         stale: true,
@@ -223,8 +244,24 @@ describe('GET /api/v1/score', () => {
     });
   });
 
-  it('returns 500 when score retrieval fails', async () => {
-    requireX402Payment.mockResolvedValue({
+  it('returns 500 when score retrieval fails after settlement', async () => {
+    verifyX402Payment.mockResolvedValue({
+      ok: true,
+      payment: {
+        amount: '0.10',
+        chainId: 196,
+        network: 'xlayer',
+        payer: '0xpayer',
+        raw: {},
+        receipt: 'receipt',
+        recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
+        resource: 'score_query',
+        token: 'USDC',
+        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
+        txHash: '0xtx',
+      },
+    });
+    settleX402Payment.mockResolvedValue({
       ok: true,
       payment: {
         payer: '0xpayer',

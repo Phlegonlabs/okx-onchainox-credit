@@ -76,17 +76,7 @@ describe('credential issuance flow', () => {
     });
   });
 
-  it('returns 400 for invalid wallet payloads after payment settles', async () => {
-    fromEnv.mockReturnValue({
-      settlePayment: vi.fn().mockResolvedValue({
-        payer: '0xpayer',
-        raw: {},
-        receipt: 'signed-receipt',
-        settlementId: 'settlement-1',
-        txHash: '0xtx',
-      }),
-    });
-
+  it('returns 400 for invalid wallet payloads before touching the payment client', async () => {
     const { POST } = await import('@/app/api/credential/route');
     const response = await POST(
       createRequest({ wallet: 'not-a-wallet' }, { 'payment-signature': 'signed-receipt' })
@@ -98,10 +88,24 @@ describe('credential issuance flow', () => {
         code: 'INVALID_INPUT',
       },
     });
+    expect(fromEnv).not.toHaveBeenCalled();
   });
 
-  it('returns a signed credential for settled payments', async () => {
+  it('returns a signed credential for verified and settled payments', async () => {
     fromEnv.mockReturnValue({
+      verifyPayment: vi.fn().mockResolvedValue({
+        amount: '0.50',
+        chainId: 196,
+        network: 'xlayer',
+        payer: '0xpayer',
+        raw: {},
+        receipt: 'signed-receipt',
+        recipient: '0x1234567890AbcdEF1234567890aBcdef12345678',
+        resource: 'credential_issuance',
+        token: 'USDC',
+        tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
+        txHash: '0xtx',
+      }),
       settlePayment: vi.fn().mockResolvedValue({
         payer: '0xpayer',
         raw: {},

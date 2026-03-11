@@ -1,3 +1,4 @@
+import { getLocalMockX402Config, isLocalMockMode } from '@/lib/local-integration';
 import { isAddress } from 'ethers';
 
 const DEFAULT_CHAIN_ID = 196;
@@ -70,6 +71,10 @@ export function getScoreQueryPriceUsd(): string {
 }
 
 export function getX402Config(): X402Config {
+  if (isLocalMockMode()) {
+    return getLocalMockX402Config();
+  }
+
   const token = readToken();
   const recipient = assertNonEmptyValue(
     process.env.X402_RECIPIENT_ADDRESS,

@@ -5,40 +5,50 @@ import { checkEnterpriseRateLimit } from '@/lib/enterprise/rate-limit';
 import { AppError, toErrorBody } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { createWalletHash } from '@/lib/wallet/hash';
-import { requireX402Payment } from '@/lib/x402';
+import { settleX402Payment, verifyX402Payment } from '@/lib/x402';
 import { getScoreQueryPriceUsd } from '@/lib/x402/config';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-  const paymentResult = await requireX402Payment(request, {
-    amountUsd: getScoreQueryPriceUsd(),
-    resource: 'credential_verification',
-  });
-  if (!paymentResult.ok) {
-    return paymentResult.response;
-  }
-
-  const payer =
-    paymentResult.payment.payer ?? paymentResult.payment.settlementId ?? 'unknown_payer';
-  const rateLimitResult = await checkEnterpriseRateLimit({
-    payer,
-    resource: 'credential_verification',
-  });
-  if (!rateLimitResult.ok) {
-    return NextResponse.json(toErrorBody(rateLimitResult.error), {
-      headers: {
-        'retry-after': String(rateLimitResult.retryAfterSeconds),
-      },
-      status: rateLimitResult.error.statusCode,
-    });
-  }
-
   const requestId = request.headers.get('x-request-id') ?? undefined;
 
   try {
     const credential = parseCredentialQueryValue(
       new URL(request.url).searchParams.get('credential')
     );
+    const paymentVerification = await verifyX402Payment(request, {
+      amountUsd: getScoreQueryPriceUsd(),
+      resource: 'credential_verification',
+    });
+    if (!paymentVerification.ok) {
+      return paymentVerification.response;
+    }
+
+    const payer =
+      paymentVerification.payment.payer ?? paymentVerification.payment.txHash ?? 'unknown_payer';
+    const rateLimitResult = await checkEnterpriseRateLimit({
+      payer,
+      resource: 'credential_verification',
+    });
+    if (!rateLimitResult.ok) {
+      return NextResponse.json(toErrorBody(rateLimitResult.error), {
+        headers: {
+          'retry-after': String(rateLimitResult.retryAfterSeconds),
+        },
+        status: rateLimitResult.error.statusCode,
+      });
+    }
+
+    const paymentSettlement = await settleX402Payment(paymentVerification.payment.receipt, {
+      amountUsd: getScoreQueryPriceUsd(),
+      resource: 'credential_verification',
+    });
+    if (!paymentSettlement.ok) {
+      return paymentSettlement.response;
+    }
+
+    const settledPayer = paymentSettlement.payment.payer ?? payer;
+    const txHash = paymentSettlement.payment.txHash ?? paymentVerification.payment.txHash;
     const { signature, ...payload } = credential;
     const walletHash = createWalletHash(payload.wallet);
     const valid = await verifyCredentialSignature(payload, signature);
@@ -47,19 +57,19 @@ export async function GET(request: Request) {
         expiresAt: payload.expiresAt,
         valid,
       },
-      payer,
+      payer: settledPayer,
       resource: 'credential_verification',
       scoreTier: payload.tier,
       walletHash,
-      x402Tx: paymentResult.payment.txHash,
+      x402Tx: txHash,
     });
 
     logger.info(
       {
         operation: 'api.credential.verify',
-        payer,
+        payer: settledPayer,
         requestId,
-        txHash: paymentResult.payment.txHash,
+        txHash,
         valid,
         walletHash,
       },
@@ -81,7 +91,6 @@ export async function GET(request: Request) {
       {
         error: error instanceof Error ? error.message : String(error),
         operation: 'api.credential.verify',
-        payer,
         requestId,
       },
       'credential verification failed'

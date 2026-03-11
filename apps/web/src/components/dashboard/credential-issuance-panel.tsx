@@ -21,7 +21,15 @@ function downloadCredential(credential: IssuedCredential) {
   URL.revokeObjectURL(url);
 }
 
-export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
+export function CredentialIssuancePanel({
+  isLocalMockMode = false,
+  localMockReceipt = null,
+  wallet,
+}: {
+  isLocalMockMode?: boolean;
+  localMockReceipt?: string | null;
+  wallet: string;
+}) {
   const [credential, setCredential] = useState<IssuedCredential | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,6 +79,7 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
         setPaymentHeader(result.paymentRequired.header);
         setPaymentRequired(result.paymentRequired);
         setErrorMessage(null);
+        setPaymentReceipt(isLocalMockMode ? (localMockReceipt ?? '') : '');
         return;
       }
 
@@ -85,7 +94,7 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
   return (
     <section
       aria-busy={isSubmitting}
-      className="rounded-[28px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.84)] p-5 md:p-6"
+      className="rounded-[32px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.84)] p-5 md:p-6"
     >
       <div className="flex flex-col gap-3 border-b border-[var(--okx-border)] pb-5 md:flex-row md:items-end md:justify-between">
         <div>
@@ -107,22 +116,35 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
         </button>
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <article className="min-w-0 rounded-[24px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.02)] p-5">
+      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+        <article className="min-w-0 lg:border-r lg:border-[rgba(36,51,82,0.72)] lg:pr-8">
           <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
             Flow
           </p>
-          <ol className="mt-4 grid gap-3 text-sm leading-7 text-[var(--okx-text-muted)]">
-            <li>1. Request credential issuance for the authenticated wallet.</li>
-            <li>2. Receive x402 settlement requirements from the API.</li>
-            <li>3. Settle the payment and submit the returned receipt signature.</li>
+          <ol className="mt-4 grid gap-4 text-sm leading-7 text-[var(--okx-text-muted)]">
+            <li className="border-b border-[rgba(36,51,82,0.72)] pb-4">
+              1. Request credential issuance for the authenticated wallet.
+            </li>
+            <li className="border-b border-[rgba(36,51,82,0.72)] pb-4">
+              2. Receive x402 settlement requirements from the API.
+            </li>
+            <li className="border-b border-[rgba(36,51,82,0.72)] pb-4">
+              3. Settle the payment and submit the returned receipt signature.
+            </li>
             <li>4. Download the ECDSA-signed credential JSON.</li>
           </ol>
+
+          {isLocalMockMode ? (
+            <div className="mt-6 rounded-[22px] border border-[rgba(245,166,35,0.22)] bg-[rgba(245,166,35,0.08)] p-4 text-sm leading-7 text-[var(--okx-text-muted)]">
+              Local mock mode is active. Use the prefilled receipt to simulate x402 settlement
+              without the live payment network.
+            </div>
+          ) : null}
 
           {isSubmitting ? (
             <output
               aria-live="polite"
-              className="mt-5 rounded-[22px] border border-[rgba(245,166,35,0.22)] bg-[rgba(245,166,35,0.08)] p-4"
+              className="mt-6 rounded-[24px] border border-[rgba(245,166,35,0.22)] bg-[rgba(245,166,35,0.08)] p-4"
             >
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-accent)]">
                 {hasReceipt ? 'Verifying settlement' : 'Requesting payment'}
@@ -186,7 +208,7 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
           ) : null}
         </article>
 
-        <article className="min-w-0 rounded-[24px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.02)] p-5">
+        <article className="min-w-0">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
@@ -210,12 +232,9 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
 
           {isSubmitting ? (
             <output aria-live="polite" className="mt-5 grid gap-4">
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 rounded-[24px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.03)] p-4 md:grid-cols-3">
                 {['score', 'issued', 'expires'].map((key) => (
-                  <div
-                    className="rounded-[20px] border border-[var(--okx-border)] bg-[rgba(8,12,20,0.82)] p-4"
-                    key={key}
-                  >
+                  <div className="space-y-3 md:px-3" key={key}>
                     <div className="h-3 w-16 animate-pulse rounded-full bg-[rgba(255,255,255,0.08)]" />
                     <div className="mt-4 h-6 w-20 animate-pulse rounded-full bg-[rgba(245,166,35,0.16)]" />
                   </div>
@@ -225,28 +244,26 @@ export function CredentialIssuancePanel({ wallet }: { wallet: string }) {
             </output>
           ) : credential ? (
             <div className="mt-5 grid gap-4">
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-[20px] border border-[var(--okx-border)] bg-[rgba(8,12,20,0.82)] p-4">
+              <div className="grid gap-4 rounded-[24px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.03)] p-4 md:grid-cols-3">
+                <div className="space-y-2 md:px-3">
                   <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--okx-text-dim)]">
                     Score
                   </p>
-                  <p className="mt-3 text-3xl [font-family:var(--font-display)]">
-                    {credential.score}
-                  </p>
+                  <p className="text-3xl [font-family:var(--font-display)]">{credential.score}</p>
                 </div>
-                <div className="rounded-[20px] border border-[var(--okx-border)] bg-[rgba(8,12,20,0.82)] p-4">
+                <div className="space-y-2 md:px-3">
                   <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--okx-text-dim)]">
                     Issued
                   </p>
-                  <p className="mt-3 text-sm text-[var(--color-foreground)]">
+                  <p className="text-sm text-[var(--color-foreground)]">
                     {formatTimestamp(credential.issuedAt)}
                   </p>
                 </div>
-                <div className="rounded-[20px] border border-[var(--okx-border)] bg-[rgba(8,12,20,0.82)] p-4">
+                <div className="space-y-2 md:px-3">
                   <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--okx-text-dim)]">
                     Expires
                   </p>
-                  <p className="mt-3 text-sm text-[var(--color-foreground)]">
+                  <p className="text-sm text-[var(--color-foreground)]">
                     {formatTimestamp(credential.expiresAt)}
                   </p>
                 </div>

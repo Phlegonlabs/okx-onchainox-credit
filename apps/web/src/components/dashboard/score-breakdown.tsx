@@ -12,13 +12,13 @@ export function ScoreBreakdown({
   const entries = getDimensionEntries(dimensions);
 
   return (
-    <section className="rounded-[28px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.84)] p-5 md:p-6">
-      <div className="flex flex-col gap-3 border-b border-[var(--okx-border)] pb-5 md:flex-row md:items-end md:justify-between">
+    <div className="min-w-0">
+      <div className="flex flex-col gap-3 border-b border-[rgba(36,51,82,0.72)] pb-5 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
             Dimension breakdown
           </p>
-          <h2 className="mt-3 text-3xl tracking-[-0.04em] text-balance [font-family:var(--font-display)] md:text-4xl">
+          <h2 className="mt-3 text-3xl tracking-[-0.04em] text-balance [font-family:var(--font-display)]">
             Five underwriting inputs, normalized into one credit surface.
           </h2>
         </div>
@@ -37,7 +37,7 @@ export function ScoreBreakdown({
       <div className="mt-6 grid gap-4">
         {entries.map((entry) => (
           <article
-            className="rounded-[24px] border border-[rgba(36,51,82,0.72)] bg-[rgba(255,255,255,0.02)] p-4"
+            className="border-b border-[rgba(36,51,82,0.72)] pb-4 last:border-none last:pb-0"
             key={entry.key}
           >
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -55,7 +55,7 @@ export function ScoreBreakdown({
                 </p>
               </div>
 
-              <div className="font-mono md:text-right">
+              <div className="rounded-[20px] border border-[rgba(36,51,82,0.72)] bg-[rgba(255,255,255,0.03)] px-4 py-3 font-mono md:text-right">
                 <p className="text-3xl text-[var(--color-foreground)]">{entry.value}</p>
                 <p className="text-[11px] uppercase tracking-[0.24em] text-[var(--okx-text-dim)]">
                   out of 100
@@ -80,6 +80,6 @@ export function ScoreBreakdown({
           </article>
         ))}
       </div>
-    </section>
+    </div>
   );
 }

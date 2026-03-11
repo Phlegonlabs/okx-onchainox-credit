@@ -39,108 +39,124 @@ const operatingModes = [
 
 export function LandingContent() {
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <section className="grid gap-6" id="credit-method">
-        <div className="grid gap-4 lg:grid-cols-3">
-          {pillars.map((pillar, index) => (
-            <article
-              className="animate-rise rounded-[28px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.78)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
-              key={pillar.eyebrow}
-              style={{ animationDelay: `${index * 80}ms` }}
-            >
-              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-accent)]">
-                {pillar.eyebrow}
-              </p>
-              <h2 className="mt-5 text-3xl leading-tight tracking-[-0.03em] [font-family:var(--font-display)]">
-                {pillar.title}
-              </h2>
-              <p className="mt-4 text-sm leading-7 text-[var(--okx-text-muted)]">{pillar.body}</p>
-            </article>
-          ))}
+    <div className="grid gap-6">
+      <section
+        className="animate-rise rounded-[34px] border border-[var(--okx-border)] bg-[linear-gradient(180deg,rgba(12,18,32,0.88),rgba(8,12,20,0.94))] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:p-8"
+        id="credit-method"
+      >
+        <div className="flex flex-col gap-4 border-b border-[var(--okx-border)] pb-6 md:flex-row md:items-end md:justify-between">
+          <div className="space-y-3">
+            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[var(--okx-accent)]">
+              Methodology
+            </p>
+            <h2 className="max-w-4xl text-4xl tracking-[-0.04em] [font-family:var(--font-display)] md:text-5xl">
+              One underwriting surface, explained in a smaller number of stronger sections.
+            </h2>
+          </div>
+          <p className="max-w-md text-sm leading-7 text-[var(--okx-text-muted)]">
+            This flow stays wallet-native from session creation through score retrieval and
+            credential issuance.
+          </p>
         </div>
 
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
-          <article className="animate-rise rounded-[28px] border border-[var(--okx-border)] bg-[linear-gradient(180deg,rgba(12,18,32,0.88),rgba(8,12,20,0.92))] p-6">
-            <div className="flex flex-col gap-4 border-b border-[var(--okx-border)] pb-5 md:flex-row md:items-end md:justify-between">
-              <div className="space-y-3">
-                <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
-                  Operating sequence
+        <div className="mt-6 grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+          <div className="space-y-5">
+            {pillars.map((pillar, index) => (
+              <article
+                className="border-b border-[rgba(36,51,82,0.72)] pb-5 last:border-none last:pb-0"
+                key={pillar.eyebrow}
+                style={{ animationDelay: `${index * 80}ms` }}
+              >
+                <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-accent)]">
+                  {pillar.eyebrow}
                 </p>
-                <h2 className="text-4xl tracking-[-0.03em] [font-family:var(--font-display)]">
-                  A three-step flow that stays native to wallets.
-                </h2>
-              </div>
-              <p className="max-w-xs text-sm leading-7 text-[var(--okx-text-muted)]">
-                No account creation theater, no manual statements, no extra identity layer.
+                <h3 className="mt-4 text-3xl leading-tight tracking-[-0.03em] [font-family:var(--font-display)]">
+                  {pillar.title}
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-[var(--okx-text-muted)]">{pillar.body}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="space-y-6 rounded-[28px] border border-[rgba(36,51,82,0.72)] bg-[rgba(255,255,255,0.03)] p-5 md:p-6">
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
+                Operating sequence
               </p>
+              <h3 className="mt-4 text-3xl tracking-[-0.03em] [font-family:var(--font-display)]">
+                A three-step flow that stays native to wallets.
+              </h3>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <div className="space-y-4">
               {workflow.map((item, index) => (
                 <div
-                  className="rounded-[24px] border border-[var(--okx-border)] bg-[rgba(255,255,255,0.02)] p-5"
+                  className="flex gap-4 border-b border-[rgba(36,51,82,0.72)] pb-4 last:border-none last:pb-0"
                   key={item.step}
                 >
-                  <p className="font-mono text-[11px] uppercase tracking-[0.26em] text-[var(--okx-text-dim)]">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--okx-border-light)] font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--okx-accent)]">
                     0{index + 1}
-                  </p>
-                  <p className="mt-4 text-2xl [font-family:var(--font-display)]">{item.step}</p>
-                  <p className="mt-3 text-sm leading-7 text-[var(--okx-text-muted)]">
-                    {item.detail}
-                  </p>
+                  </div>
+                  <div>
+                    <p className="text-2xl [font-family:var(--font-display)]">{item.step}</p>
+                    <p className="mt-2 text-sm leading-7 text-[var(--okx-text-muted)]">
+                      {item.detail}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
-          </article>
 
-          <aside className="animate-rise rounded-[28px] border border-[var(--okx-border)] bg-[rgba(12,18,32,0.8)] p-6">
-            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
-              Who this is for
-            </p>
-            <div className="mt-5 space-y-4">
-              {operatingModes.map(([label, detail]) => (
-                <div
-                  className="rounded-[22px] border border-[rgba(36,51,82,0.72)] bg-[rgba(255,255,255,0.02)] p-4"
-                  key={label}
-                >
-                  <p className="text-xl [font-family:var(--font-display)]">{label}</p>
-                  <p className="mt-2 text-sm leading-7 text-[var(--okx-text-muted)]">{detail}</p>
-                </div>
-              ))}
+            <div className="border-t border-[rgba(36,51,82,0.72)] pt-5">
+              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--okx-text-muted)]">
+                Operating modes
+              </p>
+              <div className="mt-4 space-y-3">
+                {operatingModes.map(([label, detail]) => (
+                  <div className="flex items-start justify-between gap-4" key={label}>
+                    <p className="min-w-20 text-lg [font-family:var(--font-display)]">{label}</p>
+                    <p className="max-w-sm text-right text-sm leading-7 text-[var(--okx-text-muted)]">
+                      {detail}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </aside>
-        </section>
+          </div>
+        </div>
       </section>
 
-      <aside className="animate-rise flex h-full flex-col justify-between rounded-[28px] border border-[var(--okx-border)] bg-[linear-gradient(180deg,rgba(245,166,35,0.12),rgba(12,18,32,0.92)_18%,rgba(8,12,20,0.96))] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[var(--okx-accent)]">
-            Launch posture
-          </p>
-          <h2 className="mt-4 text-4xl leading-tight tracking-[-0.03em] [font-family:var(--font-display)]">
-            Credit visibility for the next million on-chain balance sheets.
-          </h2>
-          <p className="mt-4 text-sm leading-7 text-[var(--okx-text-muted)]">
-            The landing surface is only the first layer. From here the dashboard, credential
-            issuance, and enterprise API all resolve from the same scoring engine.
-          </p>
-        </div>
+      <section className="animate-rise rounded-[34px] border border-[var(--okx-border)] bg-[linear-gradient(180deg,rgba(245,166,35,0.12),rgba(12,18,32,0.92)_22%,rgba(8,12,20,0.96))] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] md:p-8">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[var(--okx-accent)]">
+              Launch posture
+            </p>
+            <h2 className="mt-4 max-w-4xl text-4xl leading-tight tracking-[-0.03em] [font-family:var(--font-display)] md:text-5xl">
+              Credit visibility for the next million on-chain balance sheets.
+            </h2>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--okx-text-muted)]">
+              The landing surface is only the first layer. From here the dashboard, credential
+              issuance, and enterprise API all resolve from the same scoring engine.
+            </p>
+          </div>
 
-        <div className="mt-10 space-y-3">
-          <a
-            className="block rounded-full bg-[var(--okx-accent)] px-5 py-3 text-center text-sm font-semibold text-[#080c14] transition hover:bg-[#ffb84d]"
-            href="#connect-credit-wallet"
-          >
-            Connect Wallet
-          </a>
-          <a
-            className="block rounded-full border border-[var(--okx-border-light)] bg-[rgba(255,255,255,0.03)] px-5 py-3 text-center text-sm font-medium text-[var(--color-foreground)] transition hover:border-[var(--okx-accent)]"
-            href="#credit-method"
-          >
-            Review methodology
-          </a>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <a
+              className="rounded-full bg-[var(--okx-accent)] px-5 py-3 text-center text-sm font-semibold text-[#080c14] transition hover:bg-[#ffb84d]"
+              href="#connect-credit-wallet"
+            >
+              Connect Wallet
+            </a>
+            <a
+              className="rounded-full border border-[var(--okx-border-light)] bg-[rgba(255,255,255,0.03)] px-5 py-3 text-center text-sm font-medium text-[var(--color-foreground)] transition hover:border-[var(--okx-accent)]"
+              href="#credit-method"
+            >
+              Review methodology
+            </a>
+          </div>
         </div>
-      </aside>
+      </section>
     </div>
   );
 }

@@ -15,6 +15,10 @@
     "test:integration": "vitest run tests/integration --passWithNoTests",
     "validate": "bun run lint:fix && bun run lint && bun run type-check && bun run test",
     "validate:ci": "bun run lint && bun run type-check && bun run test && bun run harness file-guard",
+    "release:validate": "bun run lint && bun run type-check && bun run test && bun run test:integration && bun run build",
+    "release:env:preview": "tsx scripts/release/check-env.ts --target preview",
+    "release:env:production": "tsx scripts/release/check-env.ts --target production",
+    "release:smoke": "tsx scripts/release/smoke.ts",
     "db:generate": "bun run --cwd apps/web db:generate",
     "db:push": "bun run --cwd apps/web db:push",
     "prepare": "husky"

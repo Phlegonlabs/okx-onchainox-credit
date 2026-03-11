@@ -37,28 +37,31 @@ Strict ordering — each layer can only import from layers to its left:
 Types → Config → Lib → API Clients → Services → Controllers/Handlers → UI
 ```
 
-**Concrete for this project:**
+**Concrete for this project today:**
 ```
 packages/scoring/src/types.ts
-  → packages/scoring/src/config.ts
-  → packages/scoring/src/lib/okx-client.ts      (OKX OnchainOS API client)
-  → packages/scoring/src/services/scorer.ts      (scoring algorithm)
+  → packages/scoring/src/lib/*.ts               (OKX client, parsers, wallet data loaders)
+  → packages/scoring/src/dimensions/*.ts        (dimension scorers)
+  → packages/scoring/src/scorer.ts              (300–850 aggregation)
+  → packages/scoring/src/analysis.ts            (analysis text + tips)
 
-apps/web/src/lib/                                (errors, logger, env)
-  → apps/web/src/lib/okx.ts                      (re-exports scoring package)
-  → apps/web/src/lib/x402.ts                     (x402 middleware)
-  → apps/web/src/lib/ecdsa.ts                    (credential signing)
-  → apps/web/src/lib/siwe.ts                     (auth service)
-  → apps/web/src/api/                            (Next.js route handlers)
-  → apps/web/src/app/                            (Next.js pages/components)
+apps/web/src/lib/env.ts
+  → apps/web/src/lib/session.ts + auth/*.ts     (SIWE challenge + session cookies)
+  → apps/web/src/lib/x402/*.ts                  (verify/settle helpers)
+  → apps/web/src/lib/credit/*.ts                (cache + score orchestration)
+  → apps/web/src/app/api/**/route.ts            (Next.js route handlers)
+  → apps/web/src/app/*.tsx + components/**      (pages and UI)
 ```
 
-**Import rules (enforced by ESLint):**
-- `apps/web/src/app/` — may NOT import from `api/` directly; use server actions or API routes
-- `packages/scoring` — may NOT import from `apps/web` or other app packages
-- `packages/mcp` — imports from `packages/scoring` only; no direct DB access
-- `packages/cli` — imports from `packages/scoring` only; no direct DB access
-- No circular imports between packages
+**Current automated checks:**
+- `bun run lint`
+- `bun run type-check`
+- `bun run test`
+- `bun run test:integration`
+- `bun run build`
+- `bun run harness file-guard`
+
+The package boundaries below are architectural intent. This repo does not currently have a dedicated import-boundary linter beyond TypeScript/Biome.
 
 ---
 
@@ -66,78 +69,52 @@ apps/web/src/lib/                                (errors, logger, env)
 
 ```
 okx-onchainos-credit/
-├── apps/
-│   └── web/                         # Next.js App Router (frontend + API)
-│       ├── src/
-│       │   ├── app/                 # Pages, layouts, server components
-│       │   │   ├── (marketing)/     # Landing page (unauthenticated)
-│       │   │   ├── dashboard/       # Score dashboard (wallet-gated)
-│       │   │   └── api/             # Next.js route handlers
-│       │   │       ├── auth/        # SIWE sign-in/out/session
-│       │   │       ├── score/       # Score generation endpoint
-│       │   │       ├── credential/  # x402 → ECDSA credential issuance
-│       │   │       └── v1/          # Enterprise API (x402 gated)
-│       │   ├── components/          # Reusable UI components
-│       │   │   ├── score/           # ScoreGauge, ScoreBreakdown, ImprovementTips
-│       │   │   ├── wallet/          # WalletConnect, SIWEButton, WalletBadge
-│       │   │   └── ui/              # Design system primitives
-│       │   ├── lib/                 # Shared app utilities
-│       │   │   ├── errors.ts        # AppError hierarchy
-│       │   │   ├── logger.ts        # Structured JSON logger (pino)
-│       │   │   ├── env.ts           # Env validation (t3-env or zod)
-│       │   │   ├── x402.ts          # x402 payment middleware
-│       │   │   ├── ecdsa.ts         # ECDSA signing + verification
-│       │   │   ├── siwe.ts          # SIWE session management
-│       │   │   └── db.ts            # Drizzle + Turso client
-│       │   ├── modules/
-│       │   │   ├── auth/            # SIWE auth domain
-│       │   │   ├── credit/          # Credit score domain (uses scoring package)
-│       │   │   └── credential/      # Credential issuance domain
-│       │   └── middleware.ts        # Next.js middleware (auth guard)
-│       ├── public/
-│       ├── package.json
-│       ├── next.config.ts
-│       └── tsconfig.json
+├── apps/web/                        # Next.js App Router frontend + API
+│   ├── src/app/
+│   │   ├── page.tsx                 # Marketing landing page
+│   │   ├── dashboard/               # Authenticated dashboard
+│   │   └── api/
+│   │       ├── auth/nonce           # One-time SIWE challenge route
+│   │       ├── auth/sign-in         # SIWE sign-in + session cookie
+│   │       ├── auth/sign-out        # Session teardown
+│   │       ├── auth/session         # Session inspection
+│   │       ├── credential           # Retail x402 credential issuance
+│   │       ├── health               # Health check
+│   │       └── v1/                  # Enterprise x402 API
+│   ├── src/components/
+│   │   ├── dashboard/               # Score, breakdown, credential panels
+│   │   ├── marketing/               # Landing page sections
+│   │   ├── navigation/              # Header and sign-out controls
+│   │   └── wallet/                  # Wallet connect + provider
+│   └── src/lib/
+│       ├── auth/                    # SIWE message + nonce helpers
+│       ├── credit/                  # Cache, score loading, dashboard shaping
+│       ├── credential/              # Payloads, signing, verification, audit
+│       ├── db/                      # Lazy libSQL client + schema
+│       ├── enterprise/              # Rate limit, audit, enterprise payloads
+│       ├── wallet/                  # Wallet formatting, chain config, hashing
+│       └── x402/                    # Verify + settle helpers for OKX payments
 │
-├── packages/
-│   ├── scoring/                     # Credit score engine (framework-agnostic)
-│   │   └── src/
-│   │       ├── types.ts             # Score, Dimension, RawWalletData interfaces
-│   │       ├── config.ts            # Scoring weights, brackets, constants
-│   │       ├── lib/
-│   │       │   └── okx-client.ts    # OKX OnchainOS API client (Wallet/DeFi/Market)
-│   │       ├── dimensions/
-│   │       │   ├── wallet-age.ts    # Wallet age + activity dimension
-│   │       │   ├── asset-scale.ts   # Portfolio value dimension
-│   │       │   ├── stability.ts     # Position stability dimension
-│   │       │   ├── repayment.ts     # DeFi repayment history dimension
-│   │       │   └── multichain.ts    # Multi-chain activity dimension
-│   │       ├── scorer.ts            # Aggregation: 5 dimensions → 300-850
-│   │       └── index.ts             # Public API: computeScore(), getDimensions()
-│   │
-│   ├── mcp/                         # MCP Server (OpenClaw Skill)
-│   │   └── src/
-│   │       ├── tools/
-│   │       │   ├── analyze-credit.ts
-│   │       │   ├── get-score.ts
-│   │       │   └── get-improvement-tips.ts
-│   │       ├── lib/
-│   │       │   └── credit-client.ts  # Calls scoring package
-│   │       └── server.ts             # MCP server entry (stdio transport)
-│   │
-│   └── cli/                         # Developer CLI
-│       └── src/
-│           ├── commands/
-│           │   ├── score.ts          # okx-credit score <wallet>
-│           │   ├── verify.ts         # okx-credit verify <credential>
-│           │   └── report.ts         # okx-credit report <wallet> [--format json]
-│           ├── lib/
-│           │   └── output.ts         # Table/JSON/plain formatters
-│           └── index.ts              # Commander entry point
+├── packages/scoring/                # Shared scoring and analysis engine
+│   └── src/
+│       ├── analysis.ts
+│       ├── credential.ts
+│       ├── dimensions/
+│       ├── lib/
+│       ├── scorer.ts
+│       ├── types.ts
+│       └── wallet-score.ts
+│
+├── packages/mcp/                    # MCP server (preview/internal)
+│   └── src/{server,tools,lib}.ts
+│
+├── packages/cli/                    # CLI (preview/internal)
+│   └── src/{commands,lib,program,index}.ts
 │
 ├── scripts/
 │   ├── harness.ts                   # Harness CLI entry point
 │   ├── check-commit-msg.ts          # Commit message validator
+│   ├── release/                     # Release preflight + smoke scripts
 │   └── harness/                     # Harness CLI modules
 │       ├── config.ts
 │       ├── types.ts
@@ -199,8 +176,8 @@ class AppError extends Error {
 }
 ```
 
-HTTP layer catches via global error middleware in `apps/web/src/middleware.ts`.
-Response shape: `{ error: { code: string, message: string, details? } }`
+Route handlers return structured JSON errors directly:
+`{ error: { code: string, message: string, details? } }`
 
 MCP tools return structured MCP errors — never raw exceptions.
 
@@ -222,19 +199,20 @@ Every log entry includes:
 ## x402 Payment Flow
 
 ```
-Client                    Next.js API Route           x402 Verifier
+Client                    Next.js API Route           OKX x402 APIs
   │                             │                          │
   │── GET /api/v1/score ────────▶│                          │
-  │                             │── 402 Payment Required ──▶│
-  │◀────────────────────────────│ {paymentRequired: {...}} │
+  │◀────────────────────────────│ 402 + paymentRequired    │
   │                             │                          │
-  │── GET /api/v1/score ────────▶│                          │
-  │   Payment-Signature: <sig>  │── verify(sig, req) ──────▶│
-  │                             │◀─────────────── valid ───│
-  │◀─────────────── score JSON ─│                          │
+  │── retry + Payment-Signature ▶│── verify(receipt) ─────▶│
+  │                             │◀──────────── verified ───│
+  │                             │── local term checks      │
+  │                             │── settle(receipt) ──────▶│
+  │                             │◀──────────── settled ────│
+  │◀─────────────── score JSON ─│
 ```
 
-x402 middleware lives in `apps/web/src/lib/x402.ts`. Uses OKX OnchainOS x402 native support.
+x402 helpers live in `apps/web/src/lib/x402.ts`. Routes now validate request input first, verify receipt terms, and settle only after cheap rejects and rate limiting pass.
 Payments accepted: USDC/USDT/USDG on X Layer (Chain ID: 196, zero gas). OKX's own x402 API — NOT the Coinbase @coinbase/x402 package.
 Prices: Retail credential = $0.50; Enterprise score query = $0.10.
 
@@ -273,11 +251,14 @@ Verification: `ethers.verifyMessage(payload, signature) === ISSUER_PUBLIC_ADDRES
 - **Method:** Git push auto-deploy (main → production, branches → preview)
 - **Build:** `bun run build` → `.next/`
 - **CI/CD:** GitHub Actions (lint + type-check + test on PR) + Vercel auto-deploy on merge
-- **Config file:** `vercel.json` (env var mapping, function timeouts)
 - **Environment:** Vercel dashboard env vars (production + preview)
 - **Database:** Turso (serverless libSQL, accessed via `@libsql/client`)
+- **Release preflight:** `bun run release:env:preview|production` validates env snapshots before deploy
+- **Release smoke:** `bun run release:smoke -- --base-url <origin>` checks public routes after deploy
+- **Runtime guard:** release requests fail closed if `NEXT_PUBLIC_APP_URL` is missing/invalid, `LOCAL_INTEGRATION_MODE=mock` leaks into production, or Turso env is missing
 - **Health:** `/api/health` → 200 with uptime + version
 - **Preview:** Vercel preview deployments per PR branch
+- **Runbook:** `docs/release-runbook.md`
 
 ---
 

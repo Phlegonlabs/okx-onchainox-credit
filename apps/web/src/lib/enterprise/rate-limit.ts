@@ -58,6 +58,7 @@ export function createDrizzleEnterpriseRateLimitStore(
           .where(
             and(
               eq(schema.apiRateLimits.payer, input.payer),
+              eq(schema.apiRateLimits.resource, input.resource),
               gte(schema.apiRateLimits.createdAt, windowStartIso)
             )
           );

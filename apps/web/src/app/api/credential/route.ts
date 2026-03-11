@@ -5,7 +5,7 @@ import { resolveWalletScore } from '@/lib/credit/score-service';
 import { ValidationError, toErrorBody } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { createWalletHash } from '@/lib/wallet/hash';
-import { requireX402Payment } from '@/lib/x402';
+import { settleX402Payment, verifyX402Payment } from '@/lib/x402';
 import { getAddress, isAddress } from 'ethers';
 import { NextResponse } from 'next/server';
 
@@ -14,13 +14,6 @@ interface CredentialRequestBody {
 }
 
 export async function POST(request: Request) {
-  const paymentResult = await requireX402Payment(request, {
-    resource: 'credential_issuance',
-  });
-  if (!paymentResult.ok) {
-    return paymentResult.response;
-  }
-
   const requestId = request.headers.get('x-request-id') ?? undefined;
 
   let body: CredentialRequestBody;
@@ -41,6 +34,22 @@ export async function POST(request: Request) {
 
   const wallet = getAddress(rawWallet);
   const walletHash = createWalletHash(wallet);
+  const paymentVerification = await verifyX402Payment(request, {
+    resource: 'credential_issuance',
+  });
+  if (!paymentVerification.ok) {
+    return paymentVerification.response;
+  }
+
+  const paymentSettlement = await settleX402Payment(paymentVerification.payment.receipt, {
+    resource: 'credential_issuance',
+  });
+  if (!paymentSettlement.ok) {
+    return paymentSettlement.response;
+  }
+
+  const payer = paymentSettlement.payment.payer ?? paymentVerification.payment.payer;
+  const txHash = paymentSettlement.payment.txHash ?? paymentVerification.payment.txHash;
 
   try {
     const score = await resolveWalletScore(wallet);
@@ -50,18 +59,18 @@ export async function POST(request: Request) {
     await logCredentialIssuance({
       expiresAt: payload.expiresAt,
       issuedAt: payload.issuedAt,
-      payer: paymentResult.payment.payer,
+      payer,
       scoreTier: score.tier,
       walletHash,
-      x402Tx: paymentResult.payment.txHash,
+      x402Tx: txHash,
     });
 
     logger.info(
       {
         operation: 'credential.issue',
-        payer: paymentResult.payment.payer,
+        payer,
         requestId,
-        txHash: paymentResult.payment.txHash,
+        txHash,
         walletHash,
       },
       'credential issued'
@@ -76,9 +85,9 @@ export async function POST(request: Request) {
       {
         error: error instanceof Error ? error.message : String(error),
         operation: 'credential.issue',
-        payer: paymentResult.payment.payer,
+        payer,
         requestId,
-        txHash: paymentResult.payment.txHash,
+        txHash,
         walletHash,
       },
       'credential issuance failed'

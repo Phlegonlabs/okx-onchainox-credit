@@ -17,6 +17,20 @@ interface OkxX402ClientConfig {
   timeoutMs?: number;
 }
 
+export interface X402PaymentVerification {
+  amount: string | null;
+  chainId: number | null;
+  network: string | null;
+  payer: string | null;
+  raw: unknown;
+  receipt: string;
+  recipient: string | null;
+  resource: string | null;
+  token: string | null;
+  tokenAddress: string | null;
+  txHash: string | null;
+}
+
 export interface X402PaymentSettlement {
   payer: string | null;
   raw: unknown;
@@ -27,6 +41,66 @@ export interface X402PaymentSettlement {
 
 export interface X402Client {
   settlePayment(receipt: string): Promise<X402PaymentSettlement>;
+  verifyPayment(receipt: string): Promise<X402PaymentVerification>;
+}
+
+function readAmount(source: Record<string, unknown>, keys: string[]): string | null {
+  for (const key of keys) {
+    const value = source[key];
+    const parsed =
+      typeof value === 'number'
+        ? value
+        : typeof value === 'string'
+          ? Number(value.trim())
+          : Number.NaN;
+
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed.toFixed(2);
+    }
+  }
+
+  return null;
+}
+
+function readBoolean(source: Record<string, unknown>, keys: string[]): boolean | null {
+  for (const key of keys) {
+    const value = source[key];
+
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (normalized === 'true') {
+        return true;
+      }
+
+      if (normalized === 'false') {
+        return false;
+      }
+    }
+  }
+
+  return null;
+}
+
+function readInteger(source: Record<string, unknown>, keys: string[]): number | null {
+  for (const key of keys) {
+    const value = source[key];
+    const parsed =
+      typeof value === 'number'
+        ? value
+        : typeof value === 'string'
+          ? Number(value.trim())
+          : Number.NaN;
+
+    if (Number.isInteger(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return null;
 }
 
 function readString(source: Record<string, unknown>, keys: string[]): string | null {
@@ -50,6 +124,16 @@ function unwrapOkxResult(value: unknown): Record<string, unknown> {
   }
 
   return {};
+}
+
+function isRejectedVerification(record: Record<string, unknown>): boolean {
+  const verificationFlag = readBoolean(record, ['verified', 'valid']);
+  if (verificationFlag === false) {
+    return true;
+  }
+
+  const status = readString(record, ['status', 'verificationStatus'])?.toLowerCase();
+  return status === 'failed' || status === 'invalid' || status === 'rejected';
 }
 
 export class OkxX402Client implements X402Client {
@@ -121,6 +205,29 @@ export class OkxX402Client implements X402Client {
     } finally {
       clearTimeout(timeoutId);
     }
+  }
+
+  async verifyPayment(receipt: string): Promise<X402PaymentVerification> {
+    const data = await this.post<unknown>('/api/v6/wallet/payments/verify', { receipt });
+    const record = unwrapOkxResult(data);
+
+    if (isRejectedVerification(record)) {
+      throw new Error('payment_receipt_rejected');
+    }
+
+    return {
+      amount: readAmount(record, ['amount', 'paymentAmount', 'amountUsd']),
+      chainId: readInteger(record, ['chainId', 'networkChainId']),
+      network: readString(record, ['network', 'chain', 'networkName']),
+      payer: readString(record, ['payer', 'payerAddress', 'fromAddress']),
+      raw: data,
+      receipt,
+      recipient: readString(record, ['recipient', 'recipientAddress', 'toAddress']),
+      resource: readString(record, ['resource', 'resourceId', 'resourceName']),
+      token: readString(record, ['token', 'tokenSymbol', 'currency']),
+      tokenAddress: readString(record, ['tokenAddress', 'tokenContractAddress', 'currencyAddress']),
+      txHash: readString(record, ['txHash', 'paymentTxHash', 'transactionHash']),
+    };
   }
 
   async settlePayment(receipt: string): Promise<X402PaymentSettlement> {

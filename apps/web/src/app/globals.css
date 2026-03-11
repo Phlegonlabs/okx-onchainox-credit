@@ -93,6 +93,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 ::selection {
   background: rgba(245, 166, 35, 0.32);
   color: #fff9ef;
@@ -117,4 +121,9 @@ button {
     opacity: 1;
     transform: translate3d(0, 0, 0);
   }
+}
+
+#credit-method,
+#connect-credit-wallet {
+  scroll-margin-top: 7rem;
 }

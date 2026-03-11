@@ -1,14 +1,11 @@
 'use client';
 
 import { createSiweMessage } from '@/lib/auth/siwe-message';
+import { truncateWalletAddress } from '@/lib/wallet/format';
 import { useRouter } from 'next/navigation';
 import { startTransition, useEffect, useState } from 'react';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { useSignMessage } from 'wagmi';
-
-function truncateAddress(address: string): string {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
 
 function isSameWallet(left: string | null, right: string | null): boolean {
   if (!left || !right) {
@@ -66,11 +63,23 @@ export function WalletConnectPanel() {
     setIsAuthenticating(true);
 
     try {
+      const nonceResponse = await fetch('/api/auth/nonce', {
+        cache: 'no-store',
+      });
+      if (!nonceResponse.ok) {
+        throw new Error('Unable to create a secure wallet challenge.');
+      }
+
+      const noncePayload = (await nonceResponse.json()) as { nonce?: string };
+      if (!noncePayload.nonce) {
+        throw new Error('Secure wallet challenge is unavailable.');
+      }
+
       const message = createSiweMessage({
         address,
         chainId: chain?.id ?? 1,
         domain: window.location.host,
-        nonce: crypto.randomUUID().replaceAll('-', ''),
+        nonce: noncePayload.nonce,
         uri: window.location.origin,
       });
       const signature = await signMessageAsync({ message });
@@ -139,7 +148,7 @@ export function WalletConnectPanel() {
               Connected Wallet
             </p>
             <p className="mt-4 font-mono text-2xl text-[var(--color-foreground)]" title={address}>
-              {truncateAddress(address)}
+              {truncateWalletAddress(address)}
             </p>
             <p className="mt-2 text-sm text-[var(--okx-text-muted)]">
               {chain ? `${chain.name} · chain ${chain.id}` : 'Chain pending'}
@@ -154,9 +163,11 @@ export function WalletConnectPanel() {
             >
               {hasActiveSession
                 ? 'Open Dashboard'
-                : isAuthenticating || isSigning
+                : isSigning
                   ? 'Awaiting signature...'
-                  : 'Sign In With Ethereum'}
+                  : isAuthenticating
+                    ? 'Preparing secure challenge...'
+                    : 'Sign In With Ethereum'}
             </button>
 
             <button
@@ -202,7 +213,7 @@ export function WalletConnectPanel() {
             ? authError
             : hasActiveSession
               ? 'Session cookie is active. Continue into the dashboard.'
-              : 'After connecting, sign a SIWE message to create the wallet session and continue to the dashboard.'}
+              : 'After connecting, request a one-time SIWE challenge, sign it, and continue to the dashboard.'}
         </div>
       ) : null}
     </section>

@@ -1,6 +1,8 @@
 import type { CredentialApiError } from './client';
 
 const credentialActionMessages: Record<string, string> = {
+  INVALID_PAYMENT:
+    'The payment receipt could not be verified. Settle the x402 request again and paste the latest receipt.',
   CREDENTIAL_ISSUANCE_FAILED:
     'Credential issuance did not complete. Verify the wallet session is still active, then retry.',
   INVALID_PAYMENT_RECEIPT:

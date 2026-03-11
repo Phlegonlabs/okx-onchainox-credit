@@ -1,4 +1,5 @@
 import { verifyCredentialSignature } from '@/lib/credential/signing';
+import { LOCAL_MOCK_PAYMENT_RECEIPT } from '@/lib/local-integration';
 import { Wallet } from 'ethers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -53,29 +54,66 @@ function configureEnv() {
   process.env.X402_NETWORK = 'xlayer';
 }
 
-function mockSuccessfulSettlement() {
-  globalThis.fetch = vi.fn().mockResolvedValue(
-    new Response(
-      JSON.stringify({
-        code: '0',
-        data: [
-          {
-            payerAddress: '0xpayer',
-            receipt: 'signed-receipt',
-            txHash: '0xtx',
-            verified: true,
+function mockSuccessfulPaymentLifecycle() {
+  globalThis.fetch = vi.fn().mockImplementation(async (input: RequestInfo | URL) => {
+    const url =
+      typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+
+    if (url.endsWith('/api/v6/wallet/payments/verify')) {
+      return new Response(
+        JSON.stringify({
+          code: '0',
+          data: [
+            {
+              amount: '0.50',
+              chainId: '196',
+              network: 'xlayer',
+              payerAddress: '0xpayer',
+              receipt: 'signed-receipt',
+              recipientAddress: '0x1234567890AbcdEF1234567890aBcdef12345678',
+              resource: 'credential_issuance',
+              token: 'USDC',
+              tokenAddress: '0x74b7f16337b8972027f6196a17a631ac6de26d22',
+              txHash: '0xtx',
+              verified: true,
+            },
+          ],
+          msg: '',
+        }),
+        {
+          headers: {
+            'content-type': 'application/json',
           },
-        ],
-        msg: '',
-      }),
-      {
-        headers: {
-          'content-type': 'application/json',
-        },
-        status: 200,
-      }
-    )
-  ) as typeof fetch;
+          status: 200,
+        }
+      );
+    }
+
+    if (url.endsWith('/api/v6/wallet/payments/settle')) {
+      return new Response(
+        JSON.stringify({
+          code: '0',
+          data: [
+            {
+              payerAddress: '0xpayer',
+              receipt: 'signed-receipt',
+              settlementId: 'settlement-1',
+              txHash: '0xtx',
+            },
+          ],
+          msg: '',
+        }),
+        {
+          headers: {
+            'content-type': 'application/json',
+          },
+          status: 200,
+        }
+      );
+    }
+
+    throw new Error(`Unexpected fetch target: ${url}`);
+  }) as typeof fetch;
 }
 
 beforeEach(() => {
@@ -119,8 +157,8 @@ describe('POST /api/credential integration', () => {
     });
   });
 
-  it('returns 400 after payment settlement when the wallet is invalid', async () => {
-    mockSuccessfulSettlement();
+  it('returns 400 before touching the payment network when the wallet is invalid', async () => {
+    globalThis.fetch = vi.fn() as typeof fetch;
 
     const response = await POST(createRequest('not-a-wallet', 'signed-receipt'));
 
@@ -130,10 +168,11 @@ describe('POST /api/credential integration', () => {
         code: 'INVALID_INPUT',
       },
     });
+    expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
   it('returns a signed credential and writes an audit row for valid paid requests', async () => {
-    mockSuccessfulSettlement();
+    mockSuccessfulPaymentLifecycle();
 
     const response = await POST(
       createRequest('0x1234567890AbcdEF1234567890aBcdef12345678', 'signed-receipt')
@@ -174,6 +213,33 @@ describe('POST /api/credential integration', () => {
         payer: '0xpayer',
         scoreTier: 'good',
         x402Tx: '0xtx',
+      })
+    );
+  });
+
+  it('supports credential issuance in local mock mode without calling the live payment network', async () => {
+    process.env.LOCAL_INTEGRATION_MODE = 'mock';
+    globalThis.fetch = vi.fn() as typeof fetch;
+
+    const response = await POST(
+      createRequest('0x1234567890AbcdEF1234567890aBcdef12345678', LOCAL_MOCK_PAYMENT_RECEIPT)
+    );
+
+    expect(response.status).toBe(200);
+    const credential = (await response.json()) as Record<string, unknown>;
+
+    expect(credential).toMatchObject({
+      issuer: 'okx-onchainos-credit',
+      score: 720,
+      tier: 'good',
+      version: '1.0',
+      wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',
+    });
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(auditValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payer: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+        x402Tx: '0xlocalmocktx',
       })
     );
   });

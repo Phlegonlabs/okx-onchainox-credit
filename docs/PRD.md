@@ -4,6 +4,8 @@
 
 OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet transaction history, DeFi repayment behavior, and portfolio quality from OKX OnchainOS APIs to generate a verifiable 300–850 credit score (FICO-equivalent). Retail DeFi users connect their wallet to check and improve their score, then pay via x402 to receive an ECDSA-signed verifiable credential. DeFi protocols and Neo Banks query wallet scores through a pay-per-use x402 enterprise API to enable under-collateralized lending. AI agents and developers interact with the system via an MCP server (OpenClaw Skill) and CLI tool.
 
+**Launch scope:** Production release targets the web app and enterprise API first. MCP and CLI are included in-repo but treated as preview/internal tooling until they share the same cache/fallback contract and packaged distribution flow.
+
 **Market context:** On-chain private credit TVL reached $9.68B in 2025 (+930% YoY). Spectral and Credora offer scoring but are closed to retail users and have no agent/MCP support. This product fills both gaps.
 
 ---
@@ -37,10 +39,11 @@ OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet tra
 - Persona: DeFi Protocol
 - Trigger: User submits borrow request; protocol needs creditworthiness check
 - Steps:
-  1. Protocol sends `GET /api/v1/score?wallet=0xABCD` with `Payment-Token` header
-  2. Server verifies x402 USDC payment
-  3. Returns score + breakdown JSON + ECDSA signature
-  4. Protocol adjusts collateral requirement based on score bracket
+  1. Protocol sends `GET /api/v1/score?wallet=0xABCD`
+  2. Server responds with `402` + payment requirements when `Payment-Signature` is missing
+  3. Protocol obtains a valid x402 receipt, retries with `Payment-Signature`, and server verifies the receipt terms before settlement
+  4. Server settles the payment and returns score + breakdown JSON + ECDSA signature
+  5. Protocol adjusts collateral requirement based on score bracket
 - Success state: Protocol receives score, user gets better loan terms
 - Error states: Wallet not found (returns 300 base score), x402 payment invalid (402), rate limit exceeded (429)
 
@@ -60,7 +63,7 @@ OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet tra
 
 | ID | Requirement | Acceptance Criteria | Priority | Journey |
 |----|-------------|-------------------|----------|---------|
-| FR-001 | Wallet connection via WalletConnect | User can connect any EVM wallet; SIWE message signed; session persisted in cookie; disconnect clears session | Must | All |
+| FR-001 | Wallet connection via WalletConnect | User can connect any EVM wallet; server issues a one-time SIWE nonce; session persisted in cookie; disconnect clears session | Must | All |
 | FR-002 | Credit score generation | Score 300–850 computed from 5 dimensions using OKX OnchainOS APIs; returns within 5s; score + dimension breakdown returned | Must | Retail, Protocol |
 | FR-003 | Score dimension: wallet age + activity | Wallet creation date + transaction frequency scored; oldest active wallets score highest | Must | Score Engine |
 | FR-004 | Score dimension: asset scale | Total portfolio value in USD via OKX Market API; recency-weighted | Must | Score Engine |
@@ -97,7 +100,7 @@ OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet tra
 | NFR-007 | Security | x402 verification | Every API call verifies payment before returning data; no payment = 402 | Must |
 | NFR-008 | Observability | Structured logging | JSON logs with wallet hash (not full address), request ID, score tier, duration | Must |
 | NFR-009 | Reliability | OKX API fallback | If OKX API times out > 3s, return cached score with staleness flag | Should |
-| NFR-010 | Compliance | Rate limiting | Enterprise API: 100 req/min per x402 payer | Must |
+| NFR-010 | Compliance | Rate limiting | Enterprise API: 100 req/min per x402 payer per resource | Must |
 | NFR-011 | Accessibility | WCAG | Dashboard meets WCAG 2.1 AA | Should |
 | NFR-012 | Security | Input validation | All wallet addresses validated as EIP-55 checksummed before API calls | Must |
 
@@ -204,7 +207,7 @@ created_at  DATETIME NOT NULL
 ### Epic E6: MCP Server + CLI
 - **E6-S01**: MCP server (3 tools: analyze_credit, get_score, get_improvement_tips)
 - **E6-S02**: SKILL.md + api-reference.md
-- **E6-S03**: CLI (okx-credit score/verify/report)
+- **E6-S03**: CLI (okx-credit score/verify)
 - **E6-S04**: Integration tests (MCP lifecycle + CLI)
 
 ---
