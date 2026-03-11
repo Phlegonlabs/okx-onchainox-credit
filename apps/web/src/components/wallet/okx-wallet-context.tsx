@@ -55,7 +55,7 @@ interface OkxWalletContextValue {
   disconnect: () => Promise<void>;
   sendTransaction: (params: TransactionParams) => Promise<string>;
   signMessage: (message: string) => Promise<string>;
-  signTypedData: (typedData: TypedDataParams) => Promise<string>;
+  signTypedData: (typedData: TypedDataParams, chainId?: number) => Promise<string>;
   switchChain: (chainId: number) => Promise<void>;
 }
 
@@ -405,7 +405,8 @@ export function OkxWalletProvider({ children }: { children: React.ReactNode }) {
   );
 
   const signTypedData = useCallback(
-    (typedData: TypedDataParams) => walletSignTypedData(actionDeps, typedData),
+    (typedData: TypedDataParams, chainId?: number) =>
+      walletSignTypedData(actionDeps, typedData, chainId),
     [actionDeps]
   );
 

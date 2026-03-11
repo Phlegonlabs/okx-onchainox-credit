@@ -139,14 +139,15 @@ export async function walletSendTransaction(
 
 export async function walletSignTypedData(
   deps: WalletActionDeps,
-  typedData: TypedDataParams
+  typedData: TypedDataParams,
+  targetChainId?: number
 ): Promise<string> {
   const { address } = deps;
   if (!address) {
     throw new Error('Connect an OKX wallet before requesting a signature.');
   }
 
-  const chainId = deps.chainId ?? defaultWalletChain.id;
+  const chainId = targetChainId ?? deps.chainId ?? defaultWalletChain.id;
   const params = [address, typedData];
 
   if (deps.connectorType === 'extension') {

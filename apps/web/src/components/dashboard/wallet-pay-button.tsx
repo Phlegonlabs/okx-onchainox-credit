@@ -53,7 +53,7 @@ export function WalletPayButton({
           : {}),
         tokenAddress: payment.tokenAddress,
       });
-      const signature = await signTypedData(typedData);
+      const signature = await signTypedData(typedData, payment.chainId);
       const paymentPayload = buildPaymentPayload({
         authorization,
         chainId: payment.chainId,

@@ -68,13 +68,14 @@ describe('walletSignTypedData', () => {
   it('passes typed data objects directly to the OKX app connector', async () => {
     const request = vi.fn().mockResolvedValue('0xsigned');
     const deps = createActionDeps({
+      chainId: 1,
       getUniversalUi: async () =>
         ({
           request,
         }) as never,
     });
 
-    const signature = await walletSignTypedData(deps, typedData);
+    const signature = await walletSignTypedData(deps, typedData, 196);
 
     expect(signature).toBe('0xsigned');
     expect(request).toHaveBeenCalledWith(
