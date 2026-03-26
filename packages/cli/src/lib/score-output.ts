@@ -1,4 +1,4 @@
-import type { Score } from '@okx-credit/scoring';
+import type { Score } from '@graxis/scoring';
 
 const dimensionLabels: Record<keyof Score['dimensions'], string> = {
   walletAge: 'Wallet age',

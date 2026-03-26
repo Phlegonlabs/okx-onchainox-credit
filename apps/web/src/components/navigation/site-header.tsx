@@ -18,9 +18,7 @@ export function SiteHeader({ sessionWallet }: SiteHeaderProps) {
         <div className="flex min-w-0 items-center gap-8">
           <Link className="min-w-0 flex items-center gap-2" href="/">
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-gold)]" />
-            <span className="text-sm tracking-wide text-[var(--text-primary)]">
-              OnchainOS Credit
-            </span>
+            <span className="text-sm tracking-wide text-[var(--text-primary)]">Graxis</span>
           </Link>
 
           <nav className="hidden items-center gap-1 lg:flex">

@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { getSessionExpiryDays, getSessionSecret } from './env';
 
-export const SESSION_COOKIE_NAME = 'okx_credit_session';
+export const SESSION_COOKIE_NAME = 'graxis_session';
 
 export interface SessionPayload {
   expiresAt: string;

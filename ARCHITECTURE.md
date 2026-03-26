@@ -1,4 +1,4 @@
-# Architecture: OKX OnchainOS Credit
+# Architecture: Graxis
 
 ## Domain Map
 
@@ -68,7 +68,7 @@ The package boundaries below are architectural intent. This repo does not curren
 ## Package / Module Structure
 
 ```
-okx-onchainos-credit/
+graxis/
 ├── apps/web/                        # Next.js App Router frontend + API
 │   ├── src/app/
 │   │   ├── page.tsx                 # Marketing landing page
@@ -223,7 +223,7 @@ Prices: Retail credential = $0.50; Enterprise score query = $0.10.
 ```json
 {
   "version": "1.0",
-  "issuer": "okx-onchainos-credit",
+  "issuer": "graxis",
   "wallet": "0xABCD...",
   "score": 720,
   "tier": "good",

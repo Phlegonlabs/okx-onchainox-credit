@@ -3,7 +3,7 @@ import {
   type IssuedCredential,
   parseIssuedCredential,
   verifyCredentialSignature,
-} from '@okx-credit/scoring';
+} from '@graxis/scoring';
 import type { Command } from 'commander';
 import { CliError } from '../lib/errors.js';
 import type { CliIo } from '../lib/io.js';

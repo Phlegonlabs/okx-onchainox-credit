@@ -1,6 +1,6 @@
+import type { CreditImprovementTip } from '@graxis/scoring';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import type { CreditImprovementTip } from '@okx-credit/scoring';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createMcpServer } from './lib/create-server.js';
 
@@ -16,7 +16,7 @@ describe('MCP server scaffold', () => {
     const server = createMcpServer();
     const client = new Client(
       {
-        name: 'okx-credit-test-client',
+        name: 'graxis-test-client',
         version: '1.0.0',
       },
       {
@@ -64,7 +64,7 @@ describe('MCP server scaffold', () => {
     });
     const client = new Client(
       {
-        name: 'okx-credit-test-client',
+        name: 'graxis-test-client',
         version: '1.0.0',
       },
       {
@@ -97,7 +97,7 @@ describe('MCP server scaffold', () => {
     const server = createMcpServer();
     const client = new Client(
       {
-        name: 'okx-credit-test-client',
+        name: 'graxis-test-client',
         version: '1.0.0',
       },
       {
@@ -144,7 +144,7 @@ describe('MCP server scaffold', () => {
     });
     const client = new Client(
       {
-        name: 'okx-credit-test-client',
+        name: 'graxis-test-client',
         version: '1.0.0',
       },
       {
@@ -202,7 +202,7 @@ describe('MCP server scaffold', () => {
     });
     const client = new Client(
       {
-        name: 'okx-credit-test-client',
+        name: 'graxis-test-client',
         version: '1.0.0',
       },
       {

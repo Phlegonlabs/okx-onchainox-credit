@@ -1,6 +1,6 @@
-import type { Score, ScoreDimensions, ScoreTier } from '@okx-credit/scoring';
+import type { Score, ScoreDimensions, ScoreTier } from '@graxis/scoring';
 
-const SCORE_QUERY_ISSUER = 'okx-onchainos-credit';
+const SCORE_QUERY_ISSUER = 'graxis';
 const SCORE_QUERY_VERSION = '1.0';
 
 export interface ScoreQueryPayload {

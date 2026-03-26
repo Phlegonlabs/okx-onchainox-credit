@@ -1,4 +1,4 @@
-# Project Plan: OKX OnchainOS Credit
+# Project Plan: Graxis
 
 ## Traceability
 Requirements (PRD §4, §9) -> Epics (PRD §9) -> Stories (PRD §9) -> Tasks (below)
@@ -14,7 +14,7 @@ Status note: Milestones M1-M6 were completed by March 10, 2026. Current work on 
 ### M1: Foundation & Infrastructure
 **Status:** ✅ Completed (2026-03-09)
 **Branch:** `milestone/m1`
-**Worktree:** `../okx-onchainos-credit-M1`
+**Worktree:** `../graxis-M1`
 **Covers:** Project scaffold, monorepo, OKX API client, DB schema, SIWE auth
 **Depends on:** None
 
@@ -36,7 +36,7 @@ Status note: Milestones M1-M6 were completed by March 10, 2026. Current work on 
 ### M2: Score Engine
 **Status:** ✅ Completed (2026-03-10)
 **Branch:** `milestone/m2`
-**Worktree:** `../okx-onchainos-credit-M2`
+**Worktree:** `../graxis-M2`
 **Covers:** E2 — all 5 scoring dimensions + aggregation + caching
 **Depends on:** M1
 
@@ -57,7 +57,7 @@ Status note: Milestones M1-M6 were completed by March 10, 2026. Current work on 
 ### M3: x402 + Credential Issuance
 **Status:** ✅ Completed (2026-03-10)
 **Branch:** `milestone/m3`
-**Worktree:** `../okx-onchainos-credit-M3`
+**Worktree:** `../graxis-M3`
 **Covers:** E3 — x402 middleware, ECDSA signing, credential issuance endpoint
 **Depends on:** M2
 
@@ -75,7 +75,7 @@ Status note: Milestones M1-M6 were completed by March 10, 2026. Current work on 
 ### M4: Web Dashboard
 **Status:** ✅ Completed (2026-03-10)
 **Branch:** `milestone/m4`
-**Worktree:** `../okx-onchainos-credit-M4`
+**Worktree:** `../graxis-M4`
 **Covers:** E4 — landing page, score dashboard, credential flow, mobile responsive
 **Depends on:** M3
 
@@ -95,7 +95,7 @@ Status note: Milestones M1-M6 were completed by March 10, 2026. Current work on 
 ### M5: Enterprise API
 **Status:** ✅ Completed (2026-03-10)
 **Branch:** `milestone/m5`
-**Worktree:** `../okx-onchainos-credit-M5`
+**Worktree:** `../graxis-M5`
 **Covers:** E5 — enterprise x402 API, rate limiting, verification endpoint
 **Depends on:** M3
 
@@ -112,7 +112,7 @@ Status note: Milestones M1-M6 were completed by March 10, 2026. Current work on 
 ### M6: MCP Server + CLI
 **Status:** ✅ Completed (2026-03-10)
 **Branch:** `milestone/m6`
-**Worktree:** `../okx-onchainos-credit-M6`
+**Worktree:** `../graxis-M6`
 **Covers:** E6 — MCP server, SKILL.md, CLI, integration tests
 **Depends on:** M4, M5
 
@@ -123,8 +123,8 @@ Status note: Milestones M1-M6 were completed by March 10, 2026. Current work on 
 | M6-003 | E6-S01 | Tool: get_score (wallet -> score + breakdown only) | Returns score + 5 dimension scores; faster than analyze_credit | ✅ | `f82b4aa` |
 | M6-004 | E6-S01 | Tool: get_improvement_tips (wallet -> ranked tips) | Returns top-N tips with point estimates; N configurable (default 3) | ✅ | `76b942b` |
 | M6-005 | E6-S02 | SKILL.md + docs/api-reference.md | SKILL.md has tool names, schemas, connection method; api-reference.md has full JSON schemas | ✅ | `b7c6423` |
-| M6-006 | E6-S03 | CLI: `okx-credit score <wallet>` | Returns score JSON or table; `--format json` for machine-readable; exit 0 on success | ✅ | `2b76fe4` |
-| M6-007 | E6-S03 | CLI: `okx-credit verify <credential-json-path>` | Verifies ECDSA signature; prints valid/invalid + details; exit 0 if valid, exit 1 if invalid | ✅ | `eaf62c4` |
+| M6-006 | E6-S03 | CLI: `graxis score <wallet>` | Returns score JSON or table; `--format json` for machine-readable; exit 0 on success | ✅ | `2b76fe4` |
+| M6-007 | E6-S03 | CLI: `graxis verify <credential-json-path>` | Verifies ECDSA signature; prints valid/invalid + details; exit 0 if valid, exit 1 if invalid | ✅ | `eaf62c4` |
 | M6-008 | E6-S04 | MCP integration tests (initialize -> tools/list -> tools/call -> error) | Full MCP lifecycle tested; structured error on bad input | ✅ | `af76be2` |
 | M6-009 | E6-S04 | CLI unit tests | Tests cover: valid wallet, invalid wallet, JSON format, table format | ✅ | `26be05b` |
 

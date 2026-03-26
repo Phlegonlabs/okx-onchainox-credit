@@ -1,4 +1,4 @@
-const NONCE_COOKIE_NAME = 'okx_credit_siwe_nonce';
+const NONCE_COOKIE_NAME = 'graxis_siwe_nonce';
 const SAMPLE_WALLET = '0x90F79bf6EB2c4f870365E785982E1f101E93b906';
 
 export interface ReleaseSmokeCheckResult {
@@ -36,7 +36,7 @@ function buildSampleCredentialQuery(): string {
     },
     expiresAt: issuedAt + 30 * 24 * 60 * 60,
     issuedAt,
-    issuer: 'okx-onchainos-credit',
+    issuer: 'graxis',
     score: 701,
     signature: '0xdeadbeef',
     tier: 'good',

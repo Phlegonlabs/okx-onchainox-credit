@@ -1,6 +1,6 @@
+import { type CreditImprovementTip, getImprovementTips, getWalletScore } from '@graxis/scoring';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { type CreditImprovementTip, getImprovementTips, getWalletScore } from '@okx-credit/scoring';
 import * as z from 'zod/v4';
 import { createToolError, createToolResult, isValidEvmWallet } from '../lib/tool-results.js';
 

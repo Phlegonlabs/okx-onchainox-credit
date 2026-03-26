@@ -1,10 +1,10 @@
 {
-  "name": "@okx-credit/cli",
+  "name": "@graxis/cli",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "bin": {
-    "okx-credit": "./src/index.ts"
+    "graxis": "./src/index.ts"
   },
   "scripts": {
     "start": "tsx src/index.ts",
@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "commander": "^12.1.0",
-    "@okx-credit/scoring": "workspace:*"
+    "@graxis/scoring": "workspace:*"
   },
   "devDependencies": {
     "tsx": "^4.19.2",

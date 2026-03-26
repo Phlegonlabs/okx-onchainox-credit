@@ -1,5 +1,5 @@
 import { getImprovementTips, getTierTheme } from '@/lib/credit/dashboard-score';
-import type { ScoreDimensions, ScoreTier } from '@okx-credit/scoring';
+import type { ScoreDimensions, ScoreTier } from '@graxis/scoring';
 
 export function ImprovementTips({
   dimensions,

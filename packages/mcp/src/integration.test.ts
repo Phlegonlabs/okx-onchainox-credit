@@ -1,6 +1,6 @@
+import type { CreditImprovementTip } from '@graxis/scoring';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import type { CreditImprovementTip } from '@okx-credit/scoring';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createMcpServer } from './lib/create-server.js';
 
@@ -77,7 +77,7 @@ describe('MCP integration lifecycle', () => {
     });
     const client = new Client(
       {
-        name: 'okx-credit-integration-client',
+        name: 'graxis-integration-client',
         version: '1.0.0',
       },
       {
@@ -139,7 +139,7 @@ describe('MCP integration lifecycle', () => {
     const server = createMcpServer();
     const client = new Client(
       {
-        name: 'okx-credit-integration-client',
+        name: 'graxis-integration-client',
         version: '1.0.0',
       },
       {

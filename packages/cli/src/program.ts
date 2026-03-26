@@ -20,7 +20,7 @@ export function createCliProgram(dependencies: CliDependencies = {}) {
     writeErr: (message) => io.stderr(message.trimEnd()),
     writeOut: (message) => io.stdout(message.trimEnd()),
   });
-  program.name('okx-credit').description('OKX OnchainOS Credit CLI');
+  program.name('graxis').description('Graxis CLI');
   registerScoreCommand(program, {
     io,
     ...(dependencies.scoreLoader ? { scoreLoader: dependencies.scoreLoader } : {}),

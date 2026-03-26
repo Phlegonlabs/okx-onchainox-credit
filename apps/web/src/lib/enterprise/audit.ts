@@ -1,5 +1,5 @@
 import { db, schema } from '@/lib/db';
-import type { ScoreTier } from '@okx-credit/scoring';
+import type { ScoreTier } from '@graxis/scoring';
 
 type EnterpriseAuditMetadataValue = boolean | null | number | string;
 

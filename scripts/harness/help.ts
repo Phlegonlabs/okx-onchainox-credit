@@ -7,7 +7,7 @@ export function isHelpCommand(command: string | undefined): boolean {
 }
 
 export function runHelp() {
-  info('OKX OnchainOS Credit — Harness CLI');
+  info('Graxis — Harness CLI');
   info('Usage: bun run harness <command>');
   info('');
   info('Core loop:  init | validate | done <id>');

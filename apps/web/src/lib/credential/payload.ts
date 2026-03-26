@@ -1,9 +1,9 @@
-import type { Score } from '@okx-credit/scoring';
+import type { Score } from '@graxis/scoring';
 import { isAddress } from 'ethers';
 
 const CREDENTIAL_EXPIRY_DAYS = 30;
 const CREDENTIAL_EXPIRY_SECONDS = CREDENTIAL_EXPIRY_DAYS * 24 * 60 * 60;
-const CREDENTIAL_ISSUER = 'okx-onchainos-credit';
+const CREDENTIAL_ISSUER = 'graxis';
 const CREDENTIAL_VERSION = '1.0';
 
 export interface CredentialPayload {

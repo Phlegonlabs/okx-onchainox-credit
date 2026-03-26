@@ -15,7 +15,7 @@ function downloadCredential(credential: IssuedCredential) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = `okx-credit-credential-${credential.wallet}.json`;
+  anchor.download = `graxis-credential-${credential.wallet}.json`;
   anchor.click();
   URL.revokeObjectURL(url);
 }

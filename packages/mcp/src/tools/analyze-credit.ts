@@ -1,6 +1,6 @@
+import { type CreditAnalysis, analyzeWalletCredit } from '@graxis/scoring';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { type CreditAnalysis, analyzeWalletCredit } from '@okx-credit/scoring';
 import * as z from 'zod/v4';
 import { createToolError, createToolResult, isValidEvmWallet } from '../lib/tool-results.js';
 
@@ -39,7 +39,7 @@ export function registerAnalyzeCreditTool(
     'analyze_credit',
     {
       description:
-        'Return the full OKX OnchainOS credit analysis for a wallet, including score, breakdown, and ranked improvement tips.',
+        'Return the full Graxis credit analysis for a wallet, including score, breakdown, and ranked improvement tips.',
       inputSchema: analyzeCreditInputSchema,
     },
     async ({ wallet }: AnalyzeCreditInput) => {

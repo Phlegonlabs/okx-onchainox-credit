@@ -1,8 +1,8 @@
-# Product Requirements Document: OKX OnchainOS Credit
+# Product Requirements Document: Graxis
 
 ## 1. Overview
 
-OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet transaction history, DeFi repayment behavior, and portfolio quality from OKX OnchainOS APIs to generate a verifiable 300–850 credit score (FICO-equivalent). Retail DeFi users connect their wallet, authenticate with SIWE, then pay via x402 to unlock the score and optionally receive an ECDSA-signed verifiable credential. DeFi protocols and Neo Banks query wallet scores through a pay-per-use x402 enterprise API to enable under-collateralized lending. AI agents and developers interact with the same paid API surface directly, while the MCP server and CLI remain preview/internal tooling.
+Graxis is an on-chain credit scoring platform that uses wallet transaction history, DeFi repayment behavior, and portfolio quality from OKX OnchainOS APIs to generate a verifiable 300–850 credit score (FICO-equivalent). Retail DeFi users connect their wallet, authenticate with SIWE, then pay via x402 to unlock the score and optionally receive an ECDSA-signed verifiable credential. DeFi protocols and Neo Banks query wallet scores through a pay-per-use x402 enterprise API to enable under-collateralized lending. AI agents and developers interact with the same paid API surface directly, while the MCP server and CLI remain preview/internal tooling.
 
 **Launch scope:** Production release targets the web app and enterprise API first. MCP and CLI are included in-repo but treated as preview/internal tooling until they share the same cache/fallback contract and packaged distribution flow.
 
@@ -83,7 +83,7 @@ OKX OnchainOS Credit is an on-chain credit scoring platform that uses wallet tra
 | FR-016 | MCP server — get_score tool | Returns score + breakdown only (lighter tool) | Should | Agent |
 | FR-017 | MCP server — get_improvement_tips tool | Returns ranked improvement tips with point estimates | Should | Agent |
 | FR-018 | SKILL.md agent discovery | SKILL.md at project root; all tools documented with schemas | Should | Agent |
-| FR-019 | Developer CLI | `okx-credit score <wallet>` → JSON output; `okx-credit verify <credential>` → valid/invalid | Should | Developer |
+| FR-019 | Developer CLI | `graxis score <wallet>` → JSON output; `graxis verify <credential>` → valid/invalid | Should | Developer |
 | FR-020 | Score history trend | Line chart showing score over last 90 days (requires 90d data from OKX APIs) | Could | Retail |
 | FR-021 | EAS on-chain attestation | Score as EAS attestation on Ethereum/Base; queryable by any on-chain contract | Could | Protocol |
 
@@ -209,7 +209,7 @@ created_at  DATETIME NOT NULL
 ### Epic E6: MCP Server + CLI
 - **E6-S01**: MCP server (3 tools: analyze_credit, get_score, get_improvement_tips)
 - **E6-S02**: SKILL.md + api-reference.md
-- **E6-S03**: CLI (okx-credit score/verify)
+- **E6-S03**: CLI (graxis score/verify)
 - **E6-S04**: Integration tests (MCP lifecycle + CLI)
 
 ---

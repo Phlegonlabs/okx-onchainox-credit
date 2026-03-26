@@ -14,7 +14,7 @@ const VALID_RELEASE_ENV = {
   SIWE_SESSION_EXPIRY_DAYS: '7',
   SIWE_SESSION_SECRET: 'session-secret',
   TURSO_AUTH_TOKEN: 'turso-token',
-  TURSO_DATABASE_URL: 'libsql://okx-credit-prod.turso.io',
+  TURSO_DATABASE_URL: 'libsql://graxis-prod.turso.io',
   X402_CHAIN_ID: '196',
   X402_CREDENTIAL_PRICE_USD: '0.50',
   X402_NETWORK: 'xlayer',
@@ -32,7 +32,7 @@ describe('getReleaseEnvReport', () => {
     expect(report.warnings).toEqual([]);
     expect(report.summary).toMatchObject({
       appUrl: 'https://credit.okx.test',
-      databaseUrl: 'libsql://okx-credit-prod.turso.io',
+      databaseUrl: 'libsql://graxis-prod.turso.io',
       paymentToken: 'USDT0',
       target: 'production',
     });

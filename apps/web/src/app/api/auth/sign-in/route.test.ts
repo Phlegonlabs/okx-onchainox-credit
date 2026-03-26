@@ -60,7 +60,7 @@ describe('auth routes', () => {
     const message = new SiweMessage({
       domain: 'localhost:3000',
       address: TEST_WALLET,
-      statement: 'Sign in to OKX credit',
+      statement: 'Sign in to Graxis',
       uri: 'http://localhost:3000',
       version: '1',
       chainId: 1,
@@ -83,7 +83,7 @@ describe('auth routes', () => {
     );
 
     expect(response.status).toBe(200);
-    expect(response.headers.get('set-cookie')).toContain('okx_credit_session=');
+    expect(response.headers.get('set-cookie')).toContain('graxis_session=');
     await expect(response.json()).resolves.toMatchObject({
       wallet: TEST_WALLET,
     });
@@ -97,7 +97,7 @@ describe('auth routes', () => {
       data: new SiweMessage({
         domain: 'localhost:3000',
         address: TEST_WALLET,
-        statement: 'Sign in to OKX credit',
+        statement: 'Sign in to Graxis',
         uri: 'http://localhost:3000',
         version: '1',
         chainId: 1,
@@ -111,7 +111,7 @@ describe('auth routes', () => {
           message: new SiweMessage({
             domain: 'localhost:3000',
             address: TEST_WALLET,
-            statement: 'Sign in to OKX credit',
+            statement: 'Sign in to Graxis',
             uri: 'http://localhost:3000',
             version: '1',
             chainId: 1,
@@ -151,7 +151,7 @@ describe('auth routes', () => {
       data: new SiweMessage({
         domain: 'localhost:3000',
         address: TEST_WALLET,
-        statement: 'Sign in to OKX credit',
+        statement: 'Sign in to Graxis',
         uri: 'http://localhost:3000',
         version: '1',
         chainId: 1,
@@ -165,7 +165,7 @@ describe('auth routes', () => {
           message: new SiweMessage({
             domain: 'localhost:3000',
             address: TEST_WALLET,
-            statement: 'Sign in to OKX credit',
+            statement: 'Sign in to Graxis',
             uri: 'http://localhost:3000',
             version: '1',
             chainId: 1,
@@ -187,7 +187,7 @@ describe('auth routes', () => {
     const message = new SiweMessage({
       domain: 'localhost:3000',
       address: TEST_WALLET,
-      statement: 'Sign in to OKX credit',
+      statement: 'Sign in to Graxis',
       uri: 'http://localhost:3000',
       version: '1',
       chainId: 1,

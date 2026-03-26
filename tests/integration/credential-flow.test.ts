@@ -198,7 +198,7 @@ describe('credential issuance flow', () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
-      issuer: 'okx-onchainos-credit',
+      issuer: 'graxis',
       score: 720,
       signature: '0xsigned',
       tier: 'good',

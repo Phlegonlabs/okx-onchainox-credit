@@ -27,6 +27,6 @@ describe('createSiweMessage', () => {
       uri: 'http://localhost:3000',
     });
 
-    expect(message).toContain('Sign in to OKX OnchainOS Credit.');
+    expect(message).toContain('Sign in to Graxis.');
   });
 });

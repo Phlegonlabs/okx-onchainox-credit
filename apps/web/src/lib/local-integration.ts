@@ -1,4 +1,4 @@
-import type { Score } from '@okx-credit/scoring';
+import type { Score } from '@graxis/scoring';
 import type { X402PaymentSettlement } from './x402/client';
 import type { X402Config } from './x402/config';
 

@@ -1,4 +1,4 @@
-# OKX OnchainOS Credit
+# Graxis
 
 On-chain credit scoring platform. Uses OKX OnchainOS APIs (Wallet + DeFi + Market) to compute a **300–850 FICO-equivalent credit score** from wallet history across 60+ chains.
 
@@ -23,7 +23,7 @@ Retail users connect a wallet, authenticate with **SIWE**, and then unlock their
 - **Data**: OKX OnchainOS APIs
 - **Agent/API**: paid REST score API for protocol or agent callers
 - **Agent tooling**: MCP Server (TypeScript, preview/internal)
-- **CLI**: `okx-credit` (workspace CLI, preview/internal)
+- **CLI**: `graxis` (workspace CLI, preview/internal)
 - **Monorepo**: bun workspaces
 
 ## Quick Start

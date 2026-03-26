@@ -4,7 +4,7 @@ import {
   type RawWalletData,
   computeScore,
   loadRawWalletData as loadScoringWalletData,
-} from '@okx-credit/scoring';
+} from '@graxis/scoring';
 import { resolveScoreWithCache } from './score-cache';
 
 export async function loadRawWalletData(

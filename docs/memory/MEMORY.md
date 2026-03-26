@@ -1,4 +1,4 @@
-# Project Memory — OKX OnchainOS Credit
+# Project Memory — Graxis
 
 > Long-term agent memory. Update via `bun run harness learn <category> "<insight>"`.
 > Session logs: docs/memory/YYYY-MM-DD.md

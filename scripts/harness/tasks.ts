@@ -62,7 +62,7 @@ function syncCurrentTask(p: Progress, task: Record<string, unknown> | null): voi
 }
 
 export async function runInit(): Promise<void> {
-  step('Harness init — OKX OnchainOS Credit');
+  step('Harness init — Graxis');
   const p = loadProgress();
   info(`Project: ${p.project}`);
   info(`Last updated: ${p.last_updated}`);

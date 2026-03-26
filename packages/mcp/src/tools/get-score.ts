@@ -1,6 +1,6 @@
+import { type Score, getWalletScore } from '@graxis/scoring';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { type Score, getWalletScore } from '@okx-credit/scoring';
 import * as z from 'zod/v4';
 import { createToolError, createToolResult, isValidEvmWallet } from '../lib/tool-results.js';
 
@@ -31,7 +31,7 @@ export function registerGetScoreTool(server: McpServer, dependencies: GetScoreDe
     'get_score',
     {
       description:
-        'Return the current OKX OnchainOS credit score and weighted dimension breakdown for a wallet.',
+        'Return the current Graxis credit score and weighted dimension breakdown for a wallet.',
       inputSchema: getScoreInputSchema,
     },
     async ({ wallet }: GetScoreInput) => {

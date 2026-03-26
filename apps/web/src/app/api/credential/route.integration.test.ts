@@ -208,7 +208,7 @@ describe('POST /api/credential integration', () => {
     const credential = (await response.json()) as Record<string, unknown>;
 
     expect(credential).toMatchObject({
-      issuer: 'okx-onchainos-credit',
+      issuer: 'graxis',
       score: 720,
       tier: 'good',
       version: '1.0',
@@ -255,7 +255,7 @@ describe('POST /api/credential integration', () => {
     const credential = (await response.json()) as Record<string, unknown>;
 
     expect(credential).toMatchObject({
-      issuer: 'okx-onchainos-credit',
+      issuer: 'graxis',
       score: 720,
       tier: 'good',
       version: '1.0',

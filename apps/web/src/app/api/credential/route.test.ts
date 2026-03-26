@@ -141,7 +141,7 @@ describe('POST /api/credential', () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
-      issuer: 'okx-onchainos-credit',
+      issuer: 'graxis',
       score: 720,
       signature: '0xsigned',
       tier: 'good',
@@ -158,7 +158,7 @@ describe('POST /api/credential', () => {
     );
     expect(signCredential).toHaveBeenCalledWith(
       expect.objectContaining({
-        issuer: 'okx-onchainos-credit',
+        issuer: 'graxis',
         score: 720,
         tier: 'good',
         wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',

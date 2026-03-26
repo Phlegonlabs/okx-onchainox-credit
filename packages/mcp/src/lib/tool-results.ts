@@ -35,4 +35,4 @@ export function createToolError(
   };
 }
 
-export { isValidEvmWallet } from '@okx-credit/scoring';
+export { isValidEvmWallet } from '@graxis/scoring';

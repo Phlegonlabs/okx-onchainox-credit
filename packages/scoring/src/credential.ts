@@ -3,7 +3,7 @@ import type { Score } from './types.js';
 
 const CREDENTIAL_EXPIRY_DAYS = 30;
 const CREDENTIAL_EXPIRY_SECONDS = CREDENTIAL_EXPIRY_DAYS * 24 * 60 * 60;
-const CREDENTIAL_ISSUER = 'okx-onchainos-credit';
+const CREDENTIAL_ISSUER = 'graxis';
 const CREDENTIAL_VERSION = '1.0';
 
 type SerializableValue =

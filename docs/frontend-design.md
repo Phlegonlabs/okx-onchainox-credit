@@ -41,7 +41,7 @@ Interpret creatively and make unexpected choices that feel genuinely designed fo
 
 Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
 
-## Project-Specific Design Direction: OKX OnchainOS Credit
+## Project-Specific Design Direction: Graxis
 
 **Aesthetic:** Institutional Finance — deep midnight navy surfaces, warm gold accent, serif display typography. Sharp rectangles (no rounded corners). Editorial precision with restrained luxury. Dark-mode-only.
 

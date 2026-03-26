@@ -1,4 +1,4 @@
-import type { ScoreDimensions, ScoreTier } from '@okx-credit/scoring';
+import type { ScoreDimensions, ScoreTier } from '@graxis/scoring';
 
 const SCORE_MAX = 850;
 const SCORE_MIN = 300;

@@ -1,7 +1,7 @@
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { getSessionSecret } from '@/lib/env';
 
-export const SIWE_NONCE_COOKIE_NAME = 'okx_credit_siwe_nonce';
+export const SIWE_NONCE_COOKIE_NAME = 'graxis_siwe_nonce';
 
 const SIWE_NONCE_BYTE_LENGTH = 16;
 const SIWE_NONCE_TTL_MS = 5 * 60 * 1000;

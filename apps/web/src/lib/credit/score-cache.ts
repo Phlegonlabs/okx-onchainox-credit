@@ -1,8 +1,8 @@
 import { db, schema } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { createWalletHash } from '@/lib/wallet/hash';
-import type { RawWalletData, Score } from '@okx-credit/scoring';
-import { computeScore } from '@okx-credit/scoring';
+import type { RawWalletData, Score } from '@graxis/scoring';
+import { computeScore } from '@graxis/scoring';
 import { eq } from 'drizzle-orm';
 
 const SCORE_DATA_SOURCE = 'okx_onchainos_v1';

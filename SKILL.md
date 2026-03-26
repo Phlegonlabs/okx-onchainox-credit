@@ -1,11 +1,11 @@
 ---
-name: okx-onchainos-credit
+name: graxis
 version: 0.1.0
 description: >
-  MCP skill for OKX OnchainOS Credit. Use it to score an EVM wallet, run a
+  MCP skill for Graxis. Use it to score an EVM wallet, run a
   full credit analysis, or return ranked score-improvement tips based on the
   wallet's on-chain history.
-author: OKX OnchainOS Credit
+author: Graxis
 license: proprietary
 transport:
   - stdio
@@ -207,9 +207,9 @@ Example MCP config:
 ```json
 {
   "mcpServers": {
-    "okx-onchainos-credit": {
+    "graxis": {
       "command": "bun",
-      "args": ["run", "--cwd", "/path/to/okx-onchainox-credit/packages/mcp", "start"],
+      "args": ["run", "--cwd", "/path/to/graxis/packages/mcp", "start"],
       "env": {
         "OKX_API_KEY": "<okx-key>",
         "OKX_SECRET_KEY": "<okx-secret>",

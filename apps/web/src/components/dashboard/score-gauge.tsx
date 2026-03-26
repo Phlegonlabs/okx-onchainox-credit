@@ -6,7 +6,7 @@ import {
   getGaugeRotation,
   getTierTheme,
 } from '@/lib/credit/dashboard-score';
-import type { ScoreTier } from '@okx-credit/scoring';
+import type { ScoreTier } from '@graxis/scoring';
 import { useEffect, useMemo, useState } from 'react';
 
 const ARC_LENGTH = 402;

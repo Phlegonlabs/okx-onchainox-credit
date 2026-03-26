@@ -21,7 +21,7 @@ export function createSiweMessage({
     chainId,
     domain,
     nonce,
-    statement: 'Sign in to OKX OnchainOS Credit.',
+    statement: 'Sign in to Graxis.',
     uri,
     version: '1',
   }).prepareMessage();

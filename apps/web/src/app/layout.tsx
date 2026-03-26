@@ -17,7 +17,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: 'OKX OnchainOS Credit',
+  title: 'Graxis',
   description:
     'Wallet-native credit scoring, signed credentials, and enterprise underwriting APIs powered by OKX OnchainOS.',
 };

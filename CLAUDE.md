@@ -1,4 +1,4 @@
-# OKX OnchainOS Credit — Agent Instructions
+# Graxis — Agent Instructions
 
 ## Project Overview
 

@@ -24,7 +24,7 @@ describe('session helpers', () => {
 
   it('reads a valid session from the cookie header', () => {
     const { token } = createSessionToken('0x1234567890abcdef1234567890abcdef12345678');
-    const cookieHeader = `okx_credit_session=${token}; Path=/; HttpOnly`;
+    const cookieHeader = `graxis_session=${token}; Path=/; HttpOnly`;
 
     expect(getSessionFromCookieHeader(cookieHeader)).toMatchObject({
       wallet: '0x1234567890abcdef1234567890abcdef12345678',

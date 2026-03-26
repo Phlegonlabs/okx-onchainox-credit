@@ -1,5 +1,5 @@
 {
-  "name": "@okx-credit/web",
+  "name": "@graxis/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@libsql/client": "^0.14.0",
-    "@okx-credit/scoring": "workspace:*",
+    "@graxis/scoring": "workspace:*",
     "@okxconnect/ui": "^1.9.1",
     "@radix-ui/react-slot": "^1.1.2",
     "class-variance-authority": "^0.7.1",

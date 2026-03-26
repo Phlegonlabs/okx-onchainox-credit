@@ -12,7 +12,7 @@ function createCredentialJson() {
     },
     expiresAt: 1775692800,
     issuedAt: 1773100800,
-    issuer: 'okx-onchainos-credit',
+    issuer: 'graxis',
     score: 720,
     signature: '0xsigned',
     tier: 'good',
@@ -42,7 +42,7 @@ describe('parseCredentialQueryValue', () => {
         JSON.stringify({
           expiresAt: 1775692800,
           issuedAt: 1773100800,
-          issuer: 'okx-onchainos-credit',
+          issuer: 'graxis',
           score: 720,
           version: '1.0',
           wallet: '0x1234567890AbcdEF1234567890aBcdef12345678',

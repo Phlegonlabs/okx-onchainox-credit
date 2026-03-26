@@ -1,4 +1,4 @@
-import type { RawWalletData, Score } from '@okx-credit/scoring';
+import type { RawWalletData, Score } from '@graxis/scoring';
 import { describe, expect, it, vi } from 'vitest';
 import { type CachedScoreRecord, type ScoreCacheStore, resolveScoreWithCache } from './score-cache';
 

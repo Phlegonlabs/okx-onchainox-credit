@@ -118,7 +118,7 @@ export function OkxWalletProvider({ children }: { children: React.ReactNode }) {
         async ({ OKXUniversalConnectUI, THEME }) => {
           const initOptions = {
             dappMetaData: {
-              name: 'OKX OnchainOS Credit',
+              name: 'Graxis',
               icon: `${window.location.origin}/favicon.ico`,
             },
             actionsConfiguration: REQUEST_ACTIONS,

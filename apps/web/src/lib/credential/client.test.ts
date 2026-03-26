@@ -13,7 +13,7 @@ describe('parseCredentialApiResponse', () => {
       },
       expiresAt: 1_800_000_000,
       issuedAt: 1_797_408_000,
-      issuer: 'okx-onchainos-credit',
+      issuer: 'graxis',
       score: 742,
       signature: '0xsigned',
       tier: 'good',

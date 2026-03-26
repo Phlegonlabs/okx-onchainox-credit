@@ -26,7 +26,7 @@ export async function runScaffold(type?: string): Promise<void> {
 
 function generateSkillMd(): void {
   const content = `---
-name: okx-onchainos-credit
+name: graxis
 description: >
   On-chain credit scoring MCP server. Computes a 300-850 FICO-equivalent credit score
   from wallet history across 60+ chains using OKX OnchainOS APIs. Returns score,

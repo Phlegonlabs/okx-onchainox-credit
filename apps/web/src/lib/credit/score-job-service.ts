@@ -22,7 +22,7 @@ import { isLocalMockMode } from '@/lib/local-integration';
 import { logger } from '@/lib/logger';
 import { classifyPaidOperationFailure } from '@/lib/paid-operation-failure';
 import { createWalletHash } from '@/lib/wallet/hash';
-import type { OkxClient } from '@okx-credit/scoring';
+import type { OkxClient } from '@graxis/scoring';
 
 const MAX_AUTOMATIC_ATTEMPTS = 8;
 

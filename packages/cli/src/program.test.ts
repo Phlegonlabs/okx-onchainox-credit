@@ -1,4 +1,4 @@
-import type { IssuedCredential, Score } from '@okx-credit/scoring';
+import type { IssuedCredential, Score } from '@graxis/scoring';
 import { describe, expect, it } from 'vitest';
 import { runCli } from './program.js';
 
@@ -46,7 +46,7 @@ function createCredential(): IssuedCredential {
     tier: 'good',
     dimensions: createScore().dimensions,
     version: '1.0',
-    issuer: 'okx-onchainos-credit',
+    issuer: 'graxis',
     issuedAt: 1741564800,
     expiresAt: 1744156800,
     signature: '0xsignature',
@@ -57,7 +57,7 @@ describe('runCli', () => {
   it('prints score output in table format by default', async () => {
     const capture = createIoCapture();
 
-    const exitCode = await runCli(['node', 'okx-credit', 'score', VALID_WALLET], {
+    const exitCode = await runCli(['node', 'graxis', 'score', VALID_WALLET], {
       io: capture.io,
       scoreLoader: async () => createScore(),
     });
@@ -70,13 +70,10 @@ describe('runCli', () => {
   it('prints score output in JSON format when requested', async () => {
     const capture = createIoCapture();
 
-    const exitCode = await runCli(
-      ['node', 'okx-credit', 'score', VALID_WALLET, '--format', 'json'],
-      {
-        io: capture.io,
-        scoreLoader: async () => createScore(),
-      }
-    );
+    const exitCode = await runCli(['node', 'graxis', 'score', VALID_WALLET, '--format', 'json'], {
+      io: capture.io,
+      scoreLoader: async () => createScore(),
+    });
 
     expect(exitCode).toBe(0);
     expect(capture.stdout[0]).toContain(`"wallet": "${VALID_WALLET}"`);
@@ -86,7 +83,7 @@ describe('runCli', () => {
   it('returns a non-zero exit code for invalid wallet input', async () => {
     const capture = createIoCapture();
 
-    const exitCode = await runCli(['node', 'okx-credit', 'score', 'not-a-wallet'], {
+    const exitCode = await runCli(['node', 'graxis', 'score', 'not-a-wallet'], {
       io: capture.io,
     });
 
@@ -97,7 +94,7 @@ describe('runCli', () => {
   it('verifies a credential file and prints the result', async () => {
     const capture = createIoCapture();
 
-    const exitCode = await runCli(['node', 'okx-credit', 'verify', 'credential.json'], {
+    const exitCode = await runCli(['node', 'graxis', 'verify', 'credential.json'], {
       fileReader: async () => JSON.stringify(createCredential()),
       io: capture.io,
       verifyCredential: async () => true,
@@ -111,7 +108,7 @@ describe('runCli', () => {
   it('returns exit code 1 when credential verification fails', async () => {
     const capture = createIoCapture();
 
-    const exitCode = await runCli(['node', 'okx-credit', 'verify', 'credential.json'], {
+    const exitCode = await runCli(['node', 'graxis', 'verify', 'credential.json'], {
       fileReader: async () => JSON.stringify(createCredential()),
       io: capture.io,
       verifyCredential: async () => false,

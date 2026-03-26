@@ -30,7 +30,7 @@ describe('createScoreQueryPayload', () => {
       computedAt: '2026-03-10T00:00:00.000Z',
       dataGaps: ['no_defi_history'],
       expiresAt: '2026-03-11T00:00:00.000Z',
-      issuer: 'okx-onchainos-credit',
+      issuer: 'graxis',
       score: 721,
       stale: true,
       tier: 'good',

@@ -24,7 +24,7 @@ function makeValidPayload(overrides: Partial<CredentialPayload> = {}): Credentia
     },
     expiresAt: issuedAt + CREDENTIAL_EXPIRY_SECONDS,
     issuedAt,
-    issuer: 'okx-onchainos-credit',
+    issuer: 'graxis',
     score: 720,
     tier: 'good',
     version: '1.0',
@@ -49,9 +49,9 @@ describe('isCredentialPayload', () => {
   });
 
   it('returns false when issuer is wrong', () => {
-    expect(
-      isCredentialPayload(makeValidPayload({ issuer: 'other-issuer' as 'okx-onchainos-credit' }))
-    ).toBe(false);
+    expect(isCredentialPayload(makeValidPayload({ issuer: 'other-issuer' as 'graxis' }))).toBe(
+      false
+    );
   });
 
   it('returns false for an invalid wallet address', () => {

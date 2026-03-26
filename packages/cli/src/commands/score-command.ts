@@ -1,4 +1,4 @@
-import { type Score, getWalletScore, isValidEvmWallet } from '@okx-credit/scoring';
+import { type Score, getWalletScore, isValidEvmWallet } from '@graxis/scoring';
 import type { Command } from 'commander';
 import { CliError } from '../lib/errors.js';
 import type { CliIo } from '../lib/io.js';

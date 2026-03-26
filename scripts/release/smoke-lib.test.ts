@@ -22,7 +22,7 @@ describe('runReleaseSmoke', () => {
           {
             headers: {
               'content-type': 'application/json',
-              'set-cookie': 'okx_credit_siwe_nonce=token; Path=/; HttpOnly',
+              'set-cookie': 'graxis_siwe_nonce=token; Path=/; HttpOnly',
             },
             status: 200,
           }
@@ -100,7 +100,7 @@ describe('runReleaseSmoke', () => {
           {
             headers: {
               'content-type': 'application/json',
-              'set-cookie': 'okx_credit_siwe_nonce=token; Path=/; HttpOnly',
+              'set-cookie': 'graxis_siwe_nonce=token; Path=/; HttpOnly',
             },
             status: 200,
           }
