@@ -4,8 +4,17 @@ import { SESSION_COOKIE_NAME, verifySessionToken } from '@/lib/session';
 import { GeistMono } from 'geist/font/mono';
 import { GeistSans } from 'geist/font/sans';
 import type { Metadata } from 'next';
+import { Instrument_Serif } from 'next/font/google';
 import { cookies } from 'next/headers';
 import './globals.css';
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+  variable: '--font-instrument-serif',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'OKX OnchainOS Credit',
@@ -23,7 +32,10 @@ export default async function RootLayout({
   const session = sessionToken ? verifySessionToken(sessionToken) : null;
 
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html
+      lang="en"
+      className={`${GeistSans.variable} ${GeistMono.variable} ${instrumentSerif.variable}`}
+    >
       <body>
         <WalletProvider>
           <SiteHeader sessionWallet={session?.wallet ?? null} />

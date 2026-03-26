@@ -15,59 +15,76 @@ export function DashboardScoreView({
   sessionExpiresAt: string;
 }) {
   return (
-    <div className="grid gap-6">
-      <section className="rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-5 md:p-6">
-        <div className="flex flex-col gap-3 border-b border-[#2a2a2a] pb-5 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-medium text-white">Score Report</h2>
+    <div className="grid gap-8">
+      <section className="border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-5 md:p-8">
+        <div className="flex flex-col gap-3 border-b border-[var(--border-subtle)] pb-5 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="font-display text-xl text-[var(--text-primary)]">Score Report</h2>
           <div className="flex flex-wrap items-center gap-2">
             {isLocalMockMode ? (
-              <span className="rounded-md border border-[#333] px-2 py-1 text-xs text-[#888]">
-                Mock mode
+              <span className="border border-[var(--border-default)] px-2 py-0.5 text-xs text-[var(--text-tertiary)]">
+                Mock
               </span>
             ) : null}
-            <span className="rounded-md border border-[rgba(5,150,105,0.3)] px-2 py-1 text-xs text-[var(--score-excellent)]">
+            <span className="border border-[var(--success-border)] bg-[var(--success-bg)] px-2 py-0.5 text-xs text-[var(--score-excellent)]">
               x402 settled
             </span>
-            <span className="rounded-md border border-[#2a2a2a] px-2 py-1 text-xs text-[#666]">
+            <span className="border border-[var(--border-subtle)] px-2 py-0.5 text-xs text-[var(--text-tertiary)]">
               {score.stale ? 'Stale cache' : 'Fresh'}
             </span>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
-          <div className="mx-auto w-full max-w-[280px]">
+        <div className="mt-8 grid gap-10 lg:grid-cols-[260px_minmax(0,1fr)]">
+          <div className="mx-auto w-full max-w-[260px]">
             <ScoreGauge score={score.score} tier={score.tier} />
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-4">
               <div>
-                <p className="text-xs text-[#666]">Wallet</p>
-                <p className="mt-1 font-mono text-sm text-white" title={score.wallet}>
+                <p className="text-[11px] uppercase tracking-[0.15em] text-[var(--text-tertiary)]">
+                  Wallet
+                </p>
+                <p
+                  className="mt-1.5 font-mono text-sm text-[var(--text-primary)]"
+                  title={score.wallet}
+                >
                   {truncateWalletAddress(score.wallet)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-[#666]">Computed</p>
-                <p className="mt-1 text-sm text-white">{formatIsoDateUtc(score.computedAt)}</p>
+                <p className="text-[11px] uppercase tracking-[0.15em] text-[var(--text-tertiary)]">
+                  Computed
+                </p>
+                <p className="mt-1.5 text-sm text-[var(--text-primary)]">
+                  {formatIsoDateUtc(score.computedAt)}
+                </p>
               </div>
               <div>
-                <p className="text-xs text-[#666]">Expires</p>
-                <p className="mt-1 text-sm text-white">{formatIsoDateUtc(score.expiresAt)}</p>
+                <p className="text-[11px] uppercase tracking-[0.15em] text-[var(--text-tertiary)]">
+                  Expires
+                </p>
+                <p className="mt-1.5 text-sm text-[var(--text-primary)]">
+                  {formatIsoDateUtc(score.expiresAt)}
+                </p>
               </div>
               <div>
-                <p className="text-xs text-[#666]">Session</p>
-                <p className="mt-1 text-sm text-white">{formatIsoDateUtc(sessionExpiresAt)}</p>
+                <p className="text-[11px] uppercase tracking-[0.15em] text-[var(--text-tertiary)]">
+                  Session
+                </p>
+                <p className="mt-1.5 text-sm text-[var(--text-primary)]">
+                  {formatIsoDateUtc(sessionExpiresAt)}
+                </p>
               </div>
             </div>
 
             {score.dataGaps.length ? (
-              <div className="rounded-md border border-[rgba(217,119,6,0.3)] bg-[rgba(217,119,6,0.06)] p-3">
-                <p className="text-xs text-[var(--score-fair)]">Data gaps</p>
+              <div className="border border-[rgba(197,162,77,0.2)] bg-[rgba(197,162,77,0.04)] p-4">
+                <p className="text-xs text-[var(--accent-gold)]">Data gaps</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {score.dataGaps.map((gap) => (
                     <span
-                      className="rounded-md border border-[rgba(217,119,6,0.2)] px-2 py-0.5 text-xs text-[var(--score-fair)]"
+                      className="border border-[rgba(197,162,77,0.15)] px-2 py-0.5 text-xs text-[var(--accent-gold)]"
                       key={gap}
                     >
                       {gap.replaceAll('_', ' ')}
@@ -76,15 +93,15 @@ export function DashboardScoreView({
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-[#666]">No data gaps flagged.</p>
+              <p className="text-sm text-[var(--text-tertiary)]">No data gaps flagged.</p>
             )}
           </div>
         </div>
       </section>
 
-      <section className="rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-5 md:p-6">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)] lg:items-start">
-          <div className="lg:border-r lg:border-[#2a2a2a] lg:pr-8">
+      <section className="border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-5 md:p-8">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)] lg:items-start">
+          <div className="lg:border-r lg:border-[var(--border-subtle)] lg:pr-10">
             <ScoreBreakdown dimensions={score.breakdown} tier={score.tier} />
           </div>
           <div className="lg:pl-2">

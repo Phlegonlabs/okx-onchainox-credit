@@ -43,7 +43,7 @@ export function DashboardExperience({
   }
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-8">
       <DashboardTargetWalletPanel
         onApplyTargetWallet={handleApplyTargetWallet}
         onResetTargetWallet={handleResetTargetWallet}
@@ -78,8 +78,10 @@ export function DashboardExperience({
           />
         </>
       ) : (
-        <section className="rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-6">
-          <p className="text-sm text-[#888]">Enter a wallet address above to begin scoring.</p>
+        <section className="border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-8">
+          <p className="text-sm text-[var(--text-tertiary)]">
+            Enter a wallet address above to begin scoring.
+          </p>
         </section>
       )}
     </div>

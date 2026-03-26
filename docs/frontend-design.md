@@ -43,43 +43,73 @@ Remember: Claude is capable of extraordinary creative work. Don't hold back, sho
 
 ## Project-Specific Design Direction: OKX OnchainOS Credit
 
-**Aesthetic:** Vercel-style — pure black/white/gray, minimal, flat, clean typography, sharp corners, no decorative effects. Financial infrastructure that feels precise and developer-grade.
+**Aesthetic:** Institutional Finance — deep midnight navy surfaces, warm gold accent, serif display typography. Sharp rectangles (no rounded corners). Editorial precision with restrained luxury. Dark-mode-only.
 
-**Color palette:**
+**Color palette (CSS custom properties in `globals.css`):**
 ```css
---background: #000;           /* pure black */
---foreground: #fff;            /* primary text */
---card: #0a0a0a;               /* card surface */
---border: #2a2a2a;             /* borders */
---muted: #1a1a1a;              /* muted surface */
---text-primary: #fff;          /* primary text */
---text-secondary: #888;        /* secondary text */
---text-dim: #666;              /* dim / label text */
---text-faint: #444;            /* placeholder, disabled */
+/* Surfaces — deep navy, not pure black */
+--surface-base: #090c14;
+--surface-raised: #0f1320;
+--surface-overlay: #161b2e;
 
-/* Score tier colours (muted functional — only used for data) */
---score-excellent: #059669;
---score-good: #2563eb;
---score-fair: #d97706;
---score-poor: #dc2626;
+/* Borders */
+--border-subtle: #1c2438;
+--border-default: #252e42;
+
+/* Text — warm off-white, not pure white */
+--text-primary: #e8e6e1;
+--text-secondary: #7c8597;
+--text-tertiary: #4a5568;
+
+/* Brand accent — warm gold */
+--accent-gold: #c5a24d;
+--accent-gold-hover: #d4b36a;
+--accent-gold-dim: rgba(197, 162, 77, 0.12);
+
+/* Score tier colours (functional — data only) */
+--score-excellent: #2dd4a0;
+--score-good: #5b9cf0;
+--score-fair: #c5a24d;
+--score-poor: #ef6b6b;
+
+/* Semantic */
+--error: #ef6b6b;
+--error-bg: rgba(239, 107, 107, 0.06);
+--error-border: rgba(239, 107, 107, 0.2);
+--success-bg: rgba(45, 212, 160, 0.06);
+--success-border: rgba(45, 212, 160, 0.2);
 ```
 
 **Typography:**
+- Display / headings: `Instrument Serif` via `next/font/google` — weight 400, normal + italic. Applied via `font-display` class (CSS variable `--font-instrument-serif`).
 - Body / UI: `Geist Sans` via `geist/font/sans` — clean, geometric sans-serif
 - Data / addresses: `Geist Mono` via `geist/font/mono` — monospaced for numbers and wallet addresses
-- No display/serif fonts — headings use Geist Sans with `font-medium` or `font-semibold`
+- Headings use `font-display` (Instrument Serif) for editorial feel
 
 **Component patterns:**
-- Cards: `bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg p-5`
-- Primary button: `bg-white text-black rounded-md px-4 py-2.5 text-sm font-medium`
-- Secondary button: `border border-[#333] text-white rounded-md px-4 py-2.5 text-sm`
-- Input: `bg-transparent border border-[#2a2a2a] rounded-md h-10 px-3 text-sm`
-- Labels: `text-xs text-[#666]` or `text-xs text-[#888]`
-- Border radius: `rounded-lg` (8px) max, `rounded-md` (6px) for small elements
-- No gradients, no blurs, no glows, no shadows, no decorative elements
+- Sections: `border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-5 md:p-6` — no rounded corners
+- Primary button: `bg-[var(--accent-gold)] text-[var(--surface-base)] px-4 py-2.5 text-sm font-medium` — gold, sharp edges
+- Secondary button: `border border-[var(--border-default)] text-[var(--text-secondary)] py-2 text-sm`
+- Input: `bg-transparent border border-[var(--border-subtle)] h-10 px-3 text-sm text-[var(--text-primary)]` — gold focus ring via `focus:border-[var(--accent-gold)]`
+- Labels: `text-[11px] uppercase tracking-[0.15em] text-[var(--text-tertiary)]` — uppercase tracking for editorial precision
+- Border radius: none (sharp rectangles throughout). No `rounded-*` classes.
+- No gradients, no blurs (except header backdrop), no shadows, no decorative elements
 
-**Score gauge:** Arc-style gauge (SVG), not a bar. Score animates counting up from 300 on load. Needle-like indicator. Colored in tier color against `#2a2a2a` track. No glow effects.
+**Layout:**
+- Max width: `max-w-6xl` for content containers
+- Page padding: `px-6 pb-12 pt-8 md:px-10`
+- Section gap: `gap-8`
+- Header: `backdrop-blur-md` with gold dot indicator before logo text
+
+**Score gauge:** Arc-style SVG gauge. Score animates counting up from 300. Thin needle indicator (w-px). Colored in tier color against `var(--border-subtle)` track. Subtle glow: `boxShadow: '0 0 12px ${accent}40'`. Easing: `cubic-bezier(0.16, 1, 0.3, 1)`, 1200ms duration. Score number in serif font (`font-display`).
 
 **Wallet addresses:** Always truncated `0xABCD...1234` in Geist Mono. Full address on hover via title attribute.
 
-**Motion:** Subtle `animate-rise` (8px translateY, 500ms) on page load with staggered delays. No bouncy animations — everything is precise and minimal.
+**Motion:** `animate-enter` (12px translateY, 600ms, `cubic-bezier(0.16, 1, 0.3, 1)`) on page load with staggered delays (`--stagger` CSS variable). Gold selection color: `::selection { background: rgba(197, 162, 77, 0.3) }`. No bouncy animations.
+
+**Key differentiators:**
+- Serif headlines create editorial gravitas uncommon in Web3
+- Gold accent avoids the cyan/purple AI aesthetic
+- Deep navy (not pure black) adds warmth and sophistication
+- Sharp rectangles feel more institutional than rounded corners
+- Uppercase tracking on labels adds precision without complexity

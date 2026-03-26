@@ -13,37 +13,41 @@ export function ImprovementTips({
 
   return (
     <div className="min-w-0">
-      <div className="border-b border-[#2a2a2a] pb-4">
-        <h3 className="text-base font-medium text-white">Improvement Tips</h3>
-      </div>
+      <h3 className="border-b border-[var(--border-subtle)] pb-4 text-sm text-[var(--text-primary)]">
+        Improvement Tips
+      </h3>
 
-      <div className="mt-4 grid gap-4">
+      <div className="mt-4 grid gap-5">
         {tips.map((tip, index) => (
           <div
-            className="border-b border-[#2a2a2a] pb-4 last:border-none last:pb-0"
+            className="border-b border-[var(--border-subtle)] pb-5 last:border-none last:pb-0"
             key={tip.dimensionKey}
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs text-[#666]">#{index + 1}</p>
-                <p className="mt-1 text-sm font-medium text-white">{tip.label}</p>
+                <span className="font-mono text-xs text-[var(--text-tertiary)]">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <p className="mt-1 text-sm text-[var(--text-primary)]">{tip.label}</p>
               </div>
               <span
-                className="rounded-md border px-2 py-0.5 text-xs"
+                className="border px-2 py-0.5 font-mono text-xs"
                 style={{
-                  borderColor: `color-mix(in srgb, ${theme.accent} 30%, transparent)`,
+                  borderColor: `color-mix(in srgb, ${theme.accent} 25%, transparent)`,
                   color: theme.accent,
                 }}
               >
-                +{tip.estimatedPointGain} pts
+                +{tip.estimatedPointGain}
               </span>
             </div>
 
-            <p className="mt-2 text-sm text-[#888]">{tip.summary}</p>
+            <p className="mt-2 text-sm leading-relaxed text-[var(--text-tertiary)]">
+              {tip.summary}
+            </p>
 
-            <div className="mt-3 rounded-md border border-[#2a2a2a] bg-black px-3 py-2">
-              <span className="text-xs text-[#666]">Current: </span>
-              <span className="font-mono text-sm text-white">{tip.currentValue}/100</span>
+            <div className="mt-3 flex items-center gap-2 text-xs">
+              <span className="text-[var(--text-tertiary)]">Current</span>
+              <span className="font-mono text-[var(--text-secondary)]">{tip.currentValue}/100</span>
             </div>
           </div>
         ))}

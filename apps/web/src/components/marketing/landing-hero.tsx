@@ -1,42 +1,46 @@
 import { WalletConnectPanel } from '@/components/wallet/wallet-connect-panel';
 
-const features = [
-  { label: '60+ chains', detail: 'Multi-chain wallet analysis' },
-  { label: '30D credential', detail: 'ECDSA signed proof with expiry' },
-  { label: 'x402 metered', detail: 'Pay-per-query enterprise API' },
+const stats = [
+  { value: '60+', label: 'EVM chains scored' },
+  { value: '30D', label: 'credential validity' },
+  { value: 'x402', label: 'metered access' },
 ];
 
 export function LandingHero() {
   return (
-    <section className="grid gap-12 lg:grid-cols-[minmax(0,1.1fr)_400px] lg:gap-16">
-      <div className="flex flex-col gap-8">
-        <div className="space-y-4">
-          <h1 className="animate-rise text-4xl font-medium leading-[1.1] tracking-tight text-white md:text-6xl">
-            On-chain credit scoring for wallets.
+    <section className="grid gap-16 lg:grid-cols-[1fr_380px] lg:items-start lg:gap-20">
+      <div className="max-w-xl">
+        <div className="animate-enter">
+          <p className="text-[13px] uppercase tracking-[0.2em] text-[var(--accent-gold)]">
+            On-chain credit infrastructure
+          </p>
+          <h1 className="mt-5 font-display text-4xl leading-[1.08] tracking-tight text-[var(--text-primary)] md:text-[56px]">
+            Credit scoring
+            <br />
+            <em className="text-[var(--text-secondary)]">for wallets</em>
           </h1>
           <p
-            className="animate-rise max-w-xl text-base leading-relaxed text-[#888] md:text-lg"
+            className="animate-enter mt-6 max-w-md text-base leading-relaxed text-[var(--text-secondary)]"
             style={{ animationDelay: '80ms' }}
           >
-            Transform wallet history into a 300-850 credit score with verifiable credentials
-            protocols can trust.
+            FICO-equivalent 300-850 scores computed from on-chain history. ECDSA-signed credentials
+            for DeFi protocols and enterprise underwriting.
           </p>
         </div>
 
-        <div className="animate-rise grid gap-3 sm:grid-cols-3" style={{ animationDelay: '160ms' }}>
-          {features.map((feature) => (
-            <div
-              className="rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-4"
-              key={feature.label}
-            >
-              <p className="text-sm font-medium text-white">{feature.label}</p>
-              <p className="mt-1 text-sm text-[#666]">{feature.detail}</p>
+        <div className="animate-enter mt-10 flex gap-10" style={{ animationDelay: '160ms' }}>
+          {stats.map((stat) => (
+            <div key={stat.label}>
+              <p className="font-display text-2xl text-[var(--text-primary)]">{stat.value}</p>
+              <p className="mt-1 text-xs text-[var(--text-tertiary)]">{stat.label}</p>
             </div>
           ))}
         </div>
       </div>
 
-      <WalletConnectPanel />
+      <div className="animate-enter" style={{ animationDelay: '200ms' }}>
+        <WalletConnectPanel />
+      </div>
     </section>
   );
 }

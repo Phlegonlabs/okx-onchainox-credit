@@ -14,8 +14,8 @@ export default async function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-black px-5 pb-10 pt-6 md:px-8 md:pb-12 md:pt-8">
-      <div className="mx-auto flex max-w-5xl flex-col gap-6">
+    <main className="min-h-screen px-6 pb-12 pt-8 md:px-10 md:pb-16 md:pt-10">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
         <DashboardExperience
           isLocalMockMode={isLocalMockMode()}
           sessionExpiresAt={session.expiresAt}

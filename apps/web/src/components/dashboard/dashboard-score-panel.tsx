@@ -208,26 +208,26 @@ export function DashboardScorePanel({
   return (
     <section
       aria-busy={isSubmitting || processingJob !== null}
-      className="rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-5 md:p-6"
+      className="border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-5 md:p-6"
     >
-      <div className="flex flex-col gap-3 border-b border-[#2a2a2a] pb-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-[var(--border-subtle)] pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-medium text-white">Score Unlock</h2>
-          <p className="mt-1 text-sm text-[#888]">
+          <h2 className="font-display text-xl text-[var(--text-primary)]">Score Unlock</h2>
+          <p className="mt-1 text-sm text-[var(--text-tertiary)]">
             {targetWallet ? truncateWalletAddress(targetWallet) : 'No target'}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {isLocalMockMode ? (
-            <span className="rounded-md border border-[#333] px-2 py-1 text-xs text-[#888]">
-              Mock mode
+            <span className="border border-[var(--border-default)] px-2 py-0.5 text-xs text-[var(--text-tertiary)]">
+              Mock
             </span>
           ) : null}
-          <span className="rounded-md border border-[#2a2a2a] px-2 py-1 text-xs text-[#666]">
+          <span className="border border-[var(--border-subtle)] px-2 py-0.5 text-xs text-[var(--text-tertiary)]">
             {workspaceState === 'payment_required'
               ? 'Quote ready'
               : workspaceState === 'settling'
-                ? 'Verifying payment...'
+                ? 'Verifying...'
                 : workspaceState === 'processing'
                   ? 'Processing'
                   : workspaceState === 'error'
@@ -239,7 +239,7 @@ export function DashboardScorePanel({
 
       <div className="mt-5">
         <button
-          className="w-full rounded-md bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-[#e5e5e5] disabled:opacity-60"
+          className="w-full bg-[var(--accent-gold)] py-2.5 text-sm font-medium text-[var(--surface-base)] transition-colors hover:bg-[var(--accent-gold-hover)] disabled:opacity-50"
           disabled={
             isSubmitting || !canRequestScore || paymentRequired !== null || processingJob !== null
           }
@@ -258,21 +258,21 @@ export function DashboardScorePanel({
         {isSubmitting ? (
           <output aria-live="polite" className="mt-4 block">
             <div className="grid gap-2">
-              <div className="h-2 animate-pulse rounded bg-[#1a1a1a]" />
-              <div className="h-2 w-5/6 animate-pulse rounded bg-[#1a1a1a]" />
+              <div className="h-1.5 animate-pulse bg-[var(--surface-overlay)]" />
+              <div className="h-1.5 w-5/6 animate-pulse bg-[var(--surface-overlay)]" />
             </div>
           </output>
         ) : null}
 
         {paymentRequired ? (
           <div className="mt-4 space-y-3">
-            <div className="rounded-md border border-[#2a2a2a] bg-black p-4">
-              <p className="text-xs text-[#666]">Payment quote</p>
-              <p className="mt-2 text-sm text-[#888]">
+            <div className="border border-[var(--border-subtle)] bg-[var(--surface-base)] p-4">
+              <p className="text-xs text-[var(--text-tertiary)]">Payment quote</p>
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">
                 {paymentRequired.amount} {paymentRequired.token} on {paymentRequired.network} (chain{' '}
                 {paymentRequired.chainId})
               </p>
-              <p className="mt-1 break-all text-xs text-[#666]">
+              <p className="mt-1 break-all text-xs text-[var(--text-tertiary)]">
                 Recipient: {paymentRequired.recipient}
               </p>
             </div>
@@ -286,16 +286,16 @@ export function DashboardScorePanel({
         ) : null}
 
         {processingJob ? (
-          <div className="mt-4 rounded-md border border-[#2a2a2a] bg-black p-4">
-            <p className="text-xs text-[#666]">Report generation</p>
-            <p className="mt-2 text-sm text-[#888]">
+          <div className="mt-4 border border-[var(--border-subtle)] bg-[var(--surface-base)] p-4">
+            <p className="text-xs text-[var(--text-tertiary)]">Report generation</p>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
               {processingJob.statusMessage ?? 'Collecting wallet history from OKX OnchainOS.'}
             </p>
-            <p className="mt-2 text-xs text-[#666]">
+            <p className="mt-2 text-xs text-[var(--text-tertiary)]">
               Attempt {Math.max(processingJob.attemptCount, 1)}
             </p>
             {processingJob.nextAttemptAt ? (
-              <p className="mt-1 text-xs text-[#666]">
+              <p className="mt-1 text-xs text-[var(--text-tertiary)]">
                 Next retry: {formatIsoDateTimeUtc(processingJob.nextAttemptAt)}
               </p>
             ) : null}
@@ -304,7 +304,7 @@ export function DashboardScorePanel({
 
         {errorMessage ? (
           <div
-            className="mt-3 rounded-md border border-[rgba(220,38,38,0.3)] bg-[rgba(220,38,38,0.08)] px-3 py-2 text-sm text-red-400"
+            className="mt-3 border border-[var(--error-border)] bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
             role="alert"
           >
             {errorMessage}

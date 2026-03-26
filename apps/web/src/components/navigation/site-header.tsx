@@ -13,17 +13,20 @@ const marketingLinks = [
 
 export function SiteHeader({ sessionWallet }: SiteHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 border-b border-[#2a2a2a] bg-[rgba(0,0,0,0.8)] backdrop-blur-sm">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-3 md:px-8">
-        <div className="flex min-w-0 items-center gap-6">
-          <Link className="min-w-0" href="/">
-            <span className="text-sm font-medium text-white">OKX OnchainOS Credit</span>
+    <header className="sticky top-0 z-50 border-b border-[var(--border-subtle)] bg-[rgba(9,12,20,0.85)] backdrop-blur-md">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-3.5 md:px-10">
+        <div className="flex min-w-0 items-center gap-8">
+          <Link className="min-w-0 flex items-center gap-2" href="/">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-gold)]" />
+            <span className="text-sm tracking-wide text-[var(--text-primary)]">
+              OnchainOS Credit
+            </span>
           </Link>
 
           <nav className="hidden items-center gap-1 lg:flex">
             {marketingLinks.map((link) => (
               <Link
-                className="rounded-md px-3 py-1.5 text-sm text-[#888] transition hover:text-white"
+                className="px-3 py-1.5 text-[13px] text-[var(--text-tertiary)] transition-colors hover:text-[var(--text-secondary)]"
                 href={link.href}
                 key={link.href}
               >
@@ -33,9 +36,9 @@ export function SiteHeader({ sessionWallet }: SiteHeaderProps) {
           </nav>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 md:gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           {sessionWallet ? (
-            <span className="hidden rounded-md border border-[#2a2a2a] px-3 py-1.5 font-mono text-xs text-[#888] md:block">
+            <span className="hidden font-mono text-xs text-[var(--text-tertiary)] md:block">
               {truncateWalletAddress(sessionWallet)}
             </span>
           ) : null}
@@ -43,7 +46,7 @@ export function SiteHeader({ sessionWallet }: SiteHeaderProps) {
           {sessionWallet ? (
             <>
               <Link
-                className="rounded-md border border-[#333] px-3 py-1.5 text-sm text-white transition hover:bg-[#111]"
+                className="border border-[var(--border-default)] px-3.5 py-1.5 text-[13px] text-[var(--text-primary)] transition-colors hover:border-[var(--text-tertiary)] hover:bg-[var(--surface-overlay)]"
                 href="/dashboard"
               >
                 Dashboard
@@ -52,7 +55,7 @@ export function SiteHeader({ sessionWallet }: SiteHeaderProps) {
             </>
           ) : (
             <Link
-              className="rounded-md bg-white px-3 py-1.5 text-sm font-medium text-black transition hover:bg-[#e5e5e5]"
+              className="bg-[var(--accent-gold)] px-3.5 py-1.5 text-[13px] font-medium text-[var(--surface-base)] transition-colors hover:bg-[var(--accent-gold-hover)]"
               href="/#connect-credit-wallet"
             >
               Connect Wallet

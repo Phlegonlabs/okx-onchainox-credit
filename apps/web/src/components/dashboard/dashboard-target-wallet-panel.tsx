@@ -38,13 +38,13 @@ export function DashboardTargetWalletPanel({
   }
 
   return (
-    <section className="rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-5 md:p-6">
+    <section className="border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-5 md:p-6">
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <label className="block min-w-0 flex-1">
-            <span className="text-xs text-[#888]">Target wallet address</span>
+            <span className="text-xs text-[var(--text-tertiary)]">Target wallet address</span>
             <input
-              className="mt-1.5 h-10 w-full rounded-md border border-[#2a2a2a] bg-transparent px-3 font-mono text-sm text-white outline-none transition placeholder:text-[#444] focus:border-[#555]"
+              className="mt-1.5 h-10 w-full border border-[var(--border-subtle)] bg-transparent px-3 font-mono text-sm text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent-gold)]"
               onChange={(event) => onTargetWalletInputChange(event.target.value)}
               placeholder="0x..."
               ref={inputRef}
@@ -56,14 +56,14 @@ export function DashboardTargetWalletPanel({
 
           <div className="flex gap-2">
             <button
-              className="h-10 rounded-md bg-white px-4 text-sm font-medium text-black transition hover:bg-[#e5e5e5]"
+              className="h-10 bg-[var(--accent-gold)] px-5 text-sm font-medium text-[var(--surface-base)] transition-colors hover:bg-[var(--accent-gold-hover)]"
               type="submit"
             >
               {hasActiveTarget ? 'Update' : 'Analyze'}
             </button>
             {hasActiveTarget ? (
               <button
-                className="h-10 rounded-md border border-[#333] px-4 text-sm text-white transition hover:bg-[#111]"
+                className="h-10 border border-[var(--border-default)] px-4 text-sm text-[var(--text-secondary)] transition-colors hover:border-[var(--text-tertiary)]"
                 onClick={handleReset}
                 type="button"
               >
@@ -72,7 +72,7 @@ export function DashboardTargetWalletPanel({
             ) : null}
           </div>
         </div>
-        <p className="mt-2 text-xs text-[#666]">
+        <p className="mt-2 text-xs text-[var(--text-tertiary)]">
           EVM wallets only for now. Solana and other non-EVM address families are not supported on
           this score endpoint yet.
         </p>
@@ -80,23 +80,26 @@ export function DashboardTargetWalletPanel({
 
       {targetWalletError ? (
         <div
-          className="mt-3 rounded-md border border-[rgba(220,38,38,0.3)] bg-[rgba(220,38,38,0.08)] px-3 py-2 text-sm text-red-400"
+          className="mt-3 border border-[var(--error-border)] bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
           role="alert"
         >
           {targetWalletError}
         </div>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-[#666]">
+      <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-[var(--text-tertiary)]">
         <span>
           Target:{' '}
-          <span className="font-mono text-[#888]" title={targetWallet ?? undefined}>
+          <span
+            className="font-mono text-[var(--text-secondary)]"
+            title={targetWallet ?? undefined}
+          >
             {targetWallet ? truncateWalletAddress(targetWallet) : 'None'}
           </span>
         </span>
         <span>
           Session:{' '}
-          <span className="font-mono text-[#888]" title={sessionWallet}>
+          <span className="font-mono text-[var(--text-secondary)]" title={sessionWallet}>
             {truncateWalletAddress(sessionWallet)}
           </span>
         </span>

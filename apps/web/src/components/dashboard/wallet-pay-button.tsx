@@ -71,7 +71,7 @@ export function WalletPayButton({
   return (
     <div className="space-y-3">
       <button
-        className="w-full rounded-md bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-[#e5e5e5] disabled:opacity-60"
+        className="w-full bg-[var(--accent-gold)] px-4 py-2.5 text-sm font-medium text-[var(--surface-base)] transition-colors hover:bg-[var(--accent-gold-hover)] disabled:opacity-50"
         disabled={disabled || isPaying}
         onClick={handlePay}
         type="button"
@@ -80,7 +80,7 @@ export function WalletPayButton({
       </button>
       {payError ? (
         <div
-          className="rounded-md border border-[rgba(220,38,38,0.3)] bg-[rgba(220,38,38,0.08)] px-3 py-2 text-sm text-red-400"
+          className="border border-[var(--error-border)] bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
           role="alert"
         >
           {payError}

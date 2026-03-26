@@ -215,29 +215,31 @@ export function WalletConnectPanel() {
 
   return (
     <section
-      className="rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-5"
+      className="border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-5"
       id="connect-credit-wallet"
     >
-      <div className="space-y-1 border-b border-[#2a2a2a] pb-4">
-        <h2 className="text-lg font-medium text-white">Connect Wallet</h2>
-        <p className="text-sm text-[#666]">Connect your OKX wallet to sign in and start scoring.</p>
+      <div className="border-b border-[var(--border-subtle)] pb-4">
+        <h2 className="text-sm text-[var(--text-primary)]">Connect Wallet</h2>
+        <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+          Connect your OKX wallet to sign in and start scoring.
+        </p>
       </div>
 
       {isConnected && address ? (
         <div className="mt-4 space-y-3">
-          <div className="rounded-md border border-[#2a2a2a] bg-black p-4">
-            <p className="text-xs text-[#666]">Connected wallet</p>
-            <p className="mt-1 font-mono text-sm text-white" title={address}>
+          <div className="border border-[var(--border-subtle)] bg-[var(--surface-base)] p-4">
+            <p className="text-xs text-[var(--text-tertiary)]">Connected wallet</p>
+            <p className="mt-1 font-mono text-sm text-[var(--text-primary)]" title={address}>
               {truncateWalletAddress(address)}
             </p>
             {walletLabel && chainName ? (
-              <p className="mt-1 text-xs text-[#666]">
+              <p className="mt-1 text-xs text-[var(--text-tertiary)]">
                 {walletLabel} · {chainName} · chain {chainId ?? 'pending'}
               </p>
             ) : null}
           </div>
           <button
-            className="w-full rounded-md bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-[#e5e5e5] disabled:opacity-60"
+            className="w-full bg-[var(--accent-gold)] py-2.5 text-sm font-medium text-[var(--surface-base)] transition-colors hover:bg-[var(--accent-gold-hover)] disabled:opacity-50"
             disabled={isBusy}
             onClick={hasActiveSession ? navigateToDashboard : handleAuthenticate}
             type="button"
@@ -250,7 +252,7 @@ export function WalletConnectPanel() {
           </button>
 
           <button
-            className="w-full rounded-md border border-[#333] px-4 py-2.5 text-sm text-white transition hover:bg-[#111]"
+            className="w-full border border-[var(--border-default)] py-2.5 text-sm text-[var(--text-secondary)] transition-colors hover:border-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
             disabled={isBusy}
             onClick={handleDisconnect}
             type="button"
@@ -261,13 +263,13 @@ export function WalletConnectPanel() {
       ) : (
         <div className="mt-4 grid gap-3">
           <button
-            className="rounded-md border border-[#2a2a2a] bg-black p-4 text-left transition hover:border-[#444] disabled:cursor-not-allowed disabled:opacity-60"
+            className="border border-[var(--border-subtle)] bg-[var(--surface-base)] p-4 text-left transition-colors hover:border-[var(--border-default)] disabled:cursor-not-allowed disabled:opacity-50"
             disabled={!extensionAvailable || isBusy}
             onClick={handleConnectExtension}
             type="button"
           >
-            <p className="text-sm font-medium text-white">Browser Extension</p>
-            <p className="mt-1 text-sm text-[#666]">
+            <p className="text-sm text-[var(--text-primary)]">Browser Extension</p>
+            <p className="mt-1 text-xs text-[var(--text-tertiary)]">
               {!extensionAvailable
                 ? 'Install the OKX extension first.'
                 : pendingConnector === 'extension'
@@ -277,13 +279,13 @@ export function WalletConnectPanel() {
           </button>
 
           <button
-            className="rounded-md border border-[#2a2a2a] bg-black p-4 text-left transition hover:border-[#444] disabled:cursor-not-allowed disabled:opacity-60"
+            className="border border-[var(--border-subtle)] bg-[var(--surface-base)] p-4 text-left transition-colors hover:border-[var(--border-default)] disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isBusy}
             onClick={handleConnectApp}
             type="button"
           >
-            <p className="text-sm font-medium text-white">OKX App</p>
-            <p className="mt-1 text-sm text-[#666]">
+            <p className="text-sm text-[var(--text-primary)]">OKX App</p>
+            <p className="mt-1 text-xs text-[var(--text-tertiary)]">
               {pendingConnector === 'app'
                 ? 'Opening OKX Connect...'
                 : isRestoring
@@ -295,13 +297,16 @@ export function WalletConnectPanel() {
       )}
 
       {authError ? (
-        <div className="mt-3 rounded-md border border-[rgba(220,38,38,0.3)] bg-[rgba(220,38,38,0.08)] px-3 py-2 text-sm text-red-400">
+        <div
+          className="mt-3 border border-[var(--error-border)] bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
+          role="alert"
+        >
           {authError}
         </div>
       ) : null}
 
       {isConnected && !authError ? (
-        <p className="mt-3 text-xs text-[#666]">
+        <p className="mt-3 text-xs text-[var(--text-tertiary)]">
           {hasActiveSession
             ? 'Session active. Open the dashboard to begin.'
             : connectorType === 'app'

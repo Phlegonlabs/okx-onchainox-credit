@@ -26,12 +26,12 @@ export function HeaderSignOutButton() {
 
   return (
     <button
-      className="rounded-md text-sm text-[#888] transition hover:text-white disabled:opacity-60"
+      className="text-[13px] text-[var(--text-tertiary)] transition-colors hover:text-[var(--text-secondary)] disabled:opacity-50"
       disabled={isSigningOut}
       onClick={handleSignOut}
       type="button"
     >
-      {isSigningOut ? 'Ending...' : 'Sign Out'}
+      {isSigningOut ? 'Signing out...' : 'Sign out'}
     </button>
   );
 }

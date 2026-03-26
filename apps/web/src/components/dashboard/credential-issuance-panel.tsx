@@ -88,12 +88,12 @@ export function CredentialIssuancePanel({
   return (
     <section
       aria-busy={isSubmitting}
-      className="rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-5 md:p-6"
+      className="border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-5 md:p-6"
     >
-      <div className="flex flex-col gap-3 border-b border-[#2a2a2a] pb-5 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-medium text-white">Credential</h2>
+      <div className="flex flex-col gap-3 border-b border-[var(--border-subtle)] pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="font-display text-xl text-[var(--text-primary)]">Credential</h2>
         <button
-          className="rounded-md bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-[#e5e5e5] disabled:opacity-60"
+          className="bg-[var(--accent-gold)] px-4 py-2 text-sm font-medium text-[var(--surface-base)] transition-colors hover:bg-[var(--accent-gold-hover)] disabled:opacity-50"
           disabled={disabled || isSubmitting}
           onClick={() => requestCredential()}
           type="button"
@@ -105,11 +105,11 @@ export function CredentialIssuancePanel({
       <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
         <div className="min-w-0">
           {disabled && disabledReason ? (
-            <p className="text-sm text-[#888]">{disabledReason}</p>
+            <p className="text-sm text-[var(--text-tertiary)]">{disabledReason}</p>
           ) : null}
 
           {isLocalMockMode ? (
-            <p className="mt-3 rounded-md border border-[#2a2a2a] bg-black px-3 py-2 text-sm text-[#888]">
+            <p className="mt-3 border border-[var(--border-subtle)] bg-[var(--surface-base)] px-3 py-2 text-sm text-[var(--text-tertiary)]">
               Mock mode active.
             </p>
           ) : null}
@@ -117,15 +117,15 @@ export function CredentialIssuancePanel({
           {isSubmitting ? (
             <output aria-live="polite" className="mt-3 block">
               <div className="grid gap-2">
-                <div className="h-2 animate-pulse rounded bg-[#1a1a1a]" />
-                <div className="h-2 w-5/6 animate-pulse rounded bg-[#1a1a1a]" />
+                <div className="h-1.5 animate-pulse bg-[var(--surface-overlay)]" />
+                <div className="h-1.5 w-5/6 animate-pulse bg-[var(--surface-overlay)]" />
               </div>
             </output>
           ) : paymentRequired ? (
             <div className="mt-3 space-y-3">
-              <div className="rounded-md border border-[#2a2a2a] bg-black p-3">
-                <p className="text-xs text-[#666]">Credential quote</p>
-                <p className="mt-2 text-sm text-[#888]">
+              <div className="border border-[var(--border-subtle)] bg-[var(--surface-base)] p-3">
+                <p className="text-xs text-[var(--text-tertiary)]">Credential quote</p>
+                <p className="mt-2 text-sm text-[var(--text-secondary)]">
                   {paymentRequired.amount} {paymentRequired.token} on {paymentRequired.network}{' '}
                   (chain {paymentRequired.chainId})
                 </p>
@@ -138,15 +138,15 @@ export function CredentialIssuancePanel({
               />
             </div>
           ) : !disabled && !credential ? (
-            <p className="text-sm text-[#888]">
-              Click <span className="text-white">Get Credential</span> to fetch payment
-              requirements.
+            <p className="text-sm text-[var(--text-tertiary)]">
+              Click <span className="text-[var(--text-primary)]">Get Credential</span> to fetch
+              payment requirements.
             </p>
           ) : null}
 
           {errorMessage ? (
             <div
-              className="mt-3 rounded-md border border-[rgba(220,38,38,0.3)] bg-[rgba(220,38,38,0.08)] px-3 py-2 text-sm text-red-400"
+              className="mt-3 border border-[var(--error-border)] bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
               role="alert"
             >
               {errorMessage}
@@ -157,43 +157,51 @@ export function CredentialIssuancePanel({
         <div className="min-w-0">
           {isSubmitting ? (
             <output aria-live="polite" className="grid gap-3">
-              <div className="grid gap-3 rounded-md border border-[#2a2a2a] bg-black p-4 sm:grid-cols-3">
+              <div className="grid gap-3 border border-[var(--border-subtle)] bg-[var(--surface-base)] p-4 sm:grid-cols-3">
                 {['score', 'issued', 'expires'].map((key) => (
                   <div className="space-y-2" key={key}>
-                    <div className="h-2 w-12 animate-pulse rounded bg-[#1a1a1a]" />
-                    <div className="h-4 w-16 animate-pulse rounded bg-[#1a1a1a]" />
+                    <div className="h-2 w-12 animate-pulse bg-[var(--surface-overlay)]" />
+                    <div className="h-4 w-16 animate-pulse bg-[var(--surface-overlay)]" />
                   </div>
                 ))}
               </div>
-              <div className="h-48 animate-pulse rounded-md border border-[#2a2a2a] bg-black" />
+              <div className="h-48 animate-pulse border border-[var(--border-subtle)] bg-[var(--surface-base)]" />
             </output>
           ) : credential ? (
             <div className="space-y-3">
-              <div className="grid gap-3 rounded-md border border-[#2a2a2a] bg-black p-4 sm:grid-cols-3">
+              <div className="grid gap-3 border border-[var(--border-subtle)] bg-[var(--surface-base)] p-4 sm:grid-cols-3">
                 <div>
-                  <p className="text-xs text-[#666]">Score</p>
-                  <p className="mt-1 font-mono text-lg text-white">{credential.score}</p>
+                  <p className="text-[11px] uppercase tracking-[0.15em] text-[var(--text-tertiary)]">
+                    Score
+                  </p>
+                  <p className="mt-1.5 font-mono text-lg text-[var(--text-primary)]">
+                    {credential.score}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#666]">Issued</p>
-                  <p className="mt-1 text-sm text-white">
+                  <p className="text-[11px] uppercase tracking-[0.15em] text-[var(--text-tertiary)]">
+                    Issued
+                  </p>
+                  <p className="mt-1.5 text-sm text-[var(--text-primary)]">
                     {formatUnixDateTimeUtc(credential.issuedAt)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#666]">Expires</p>
-                  <p className="mt-1 text-sm text-white">
+                  <p className="text-[11px] uppercase tracking-[0.15em] text-[var(--text-tertiary)]">
+                    Expires
+                  </p>
+                  <p className="mt-1.5 text-sm text-[var(--text-primary)]">
                     {formatUnixDateTimeUtc(credential.expiresAt)}
                   </p>
                 </div>
               </div>
 
-              <pre className="max-h-64 overflow-auto rounded-md border border-[#2a2a2a] bg-black p-4 font-mono text-xs leading-relaxed text-[#888]">
+              <pre className="max-h-64 overflow-auto border border-[var(--border-subtle)] bg-[var(--surface-base)] p-4 font-mono text-xs leading-relaxed text-[var(--text-tertiary)]">
                 {JSON.stringify(credential, null, 2)}
               </pre>
 
               <button
-                className="w-full rounded-md border border-[#333] px-4 py-2 text-sm text-white transition hover:bg-[#111]"
+                className="w-full border border-[var(--border-default)] py-2 text-sm text-[var(--text-secondary)] transition-colors hover:border-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                 onClick={() => downloadCredential(credential)}
                 type="button"
               >
@@ -201,7 +209,7 @@ export function CredentialIssuancePanel({
               </button>
             </div>
           ) : (
-            <div className="flex h-full items-center justify-center rounded-md border border-[#2a2a2a] bg-black p-8 text-sm text-[#666]">
+            <div className="flex h-full items-center justify-center border border-[var(--border-subtle)] bg-[var(--surface-base)] p-8 text-sm text-[var(--text-tertiary)]">
               Credential will appear here after issuance.
             </div>
           )}
