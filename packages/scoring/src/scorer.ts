@@ -1,5 +1,9 @@
+import { scoreAssetScale } from './dimensions/asset-scale.js';
+import { scoreMultichain } from './dimensions/multichain.js';
+import { scoreRepayment } from './dimensions/repayment.js';
+import { scoreStability } from './dimensions/stability.js';
+import { scoreWalletAge } from './dimensions/wallet-age.js';
 // Score aggregation: 5 dimensions → 300-850 weighted score.
-// Implement dimension functions during M2-002 through M2-007.
 import type { RawWalletData, Score, ScoreDimensions, ScoreTier } from './types.js';
 
 const WEIGHTS = {
@@ -17,13 +21,7 @@ function tierFromScore(score: number): ScoreTier {
   return 'poor';
 }
 
-export async function computeScore(data: RawWalletData): Promise<Score> {
-  const { scoreWalletAge } = await import('./dimensions/wallet-age.js');
-  const { scoreAssetScale } = await import('./dimensions/asset-scale.js');
-  const { scoreStability } = await import('./dimensions/stability.js');
-  const { scoreRepayment } = await import('./dimensions/repayment.js');
-  const { scoreMultichain } = await import('./dimensions/multichain.js');
-
+export function computeScore(data: RawWalletData): Score {
   const dimensions: ScoreDimensions = {
     walletAge: scoreWalletAge(data),
     assetScale: scoreAssetScale(data),

@@ -1,4 +1,4 @@
-import { type Score, getWalletScore } from '@okx-credit/scoring';
+import { type Score, getWalletScore, isValidEvmWallet } from '@okx-credit/scoring';
 import type { Command } from 'commander';
 import { CliError } from '../lib/errors.js';
 import type { CliIo } from '../lib/io.js';
@@ -7,7 +7,6 @@ import {
   formatScoreAsJson,
   formatScoreAsTable,
 } from '../lib/score-output.js';
-import { isValidEvmWallet } from '../lib/wallet.js';
 
 interface ScoreCommandDependencies {
   io: CliIo;

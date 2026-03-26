@@ -16,16 +16,6 @@ export function scoreMultichain(data: RawWalletData): number {
     return 0;
   }
 
-  // Find closest bracket
-  const keys = Object.keys(CHAIN_SCORE_MAP)
-    .map(Number)
-    .sort((a, b) => a - b);
-  for (let i = keys.length - 1; i >= 0; i--) {
-    const key = keys[i];
-    if (key !== undefined && chainCount >= key) {
-      return CHAIN_SCORE_MAP[key] ?? 0;
-    }
-  }
-
-  return 10;
+  const capped = Math.min(chainCount, 6);
+  return CHAIN_SCORE_MAP[capped] ?? 20;
 }

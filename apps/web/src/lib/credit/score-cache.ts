@@ -25,7 +25,7 @@ interface ScoreCacheLogger {
 interface ResolveScoreWithCacheOptions {
   logger?: ScoreCacheLogger;
   now?: Date;
-  scoreComputer?: (data: RawWalletData) => Promise<Score>;
+  scoreComputer?: (data: RawWalletData) => Score | Promise<Score>;
   store?: ScoreCacheStore;
   wallet: string;
   walletDataLoader: () => Promise<RawWalletData>;
@@ -100,7 +100,7 @@ async function computeAndPersistScore(
   walletHash: string,
   walletDataLoader: () => Promise<RawWalletData>,
   store: ScoreCacheStore,
-  scoreComputer: (data: RawWalletData) => Promise<Score>,
+  scoreComputer: (data: RawWalletData) => Score | Promise<Score>,
   activeLogger: ScoreCacheLogger
 ): Promise<CachedScoreRecord> {
   const data = await walletDataLoader();

@@ -27,4 +27,5 @@ export {
 export { getImprovementTips } from './lib/improvement-tips.js';
 export { loadRawWalletData } from './lib/wallet-data.js';
 export { OkxClient } from './lib/okx-client.js';
+export { isValidEvmWallet } from './lib/wallet-validation.js';
 export { getWalletScore } from './wallet-score.js';

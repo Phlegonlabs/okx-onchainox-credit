@@ -6,8 +6,12 @@ describe('isValidEvmWallet', () => {
     expect(isValidEvmWallet('0x1234567890abcdef1234567890abcdef12345678')).toBe(true);
   });
 
-  it('returns true for a checksummed address', () => {
-    expect(isValidEvmWallet('0xAbCdEf1234567890AbCdEf1234567890AbCdEf12')).toBe(true);
+  it('returns true for a correctly checksummed address', () => {
+    expect(isValidEvmWallet('0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed')).toBe(true);
+  });
+
+  it('returns false for an incorrectly checksummed mixed-case address', () => {
+    expect(isValidEvmWallet('0xAbCdEf1234567890AbCdEf1234567890AbCdEf12')).toBe(false);
   });
 
   it('returns false for an address that is too short', () => {
